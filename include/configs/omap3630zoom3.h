@@ -173,6 +173,7 @@
 #define NAND_MAX_CHIPS           1
 
 #define CONFIG_BOOTDELAY         3
+#define CONFIG_ZERO_BOOTDELAY_CHECK     /* check for keypress on bootdelay==0 */
 
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 "loadaddr=0x81c00000\0"			\
