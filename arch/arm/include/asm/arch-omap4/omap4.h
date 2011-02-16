@@ -51,6 +51,11 @@
 #define CONTROL_PADCONF_CORE	(OMAP44XX_L4_CORE_BASE + 0x100000)
 #define CONTROL_PADCONF_WKUP	(OMAP44XX_L4_CORE_BASE + 0x31E000)
 
+/* CONTROL_ID_CODE */
+#define CONTROL_ID_CODE		(CTRL_BASE + 0x204)
+
+#define OMAP4_CONTROL_ID_CODE_ES2_1	0x3B95C02F
+#define OMAP4_CONTROL_ID_CODE_ES2_2	0x4B95C02F
 /* UART */
 #define UART1_BASE		(OMAP44XX_L4_PER_BASE + 0x6a000)
 #define UART2_BASE		(OMAP44XX_L4_PER_BASE + 0x6c000)
@@ -121,11 +126,11 @@ struct s32ktimer {
 /* Temporary SRAM stack used while low level init is done */
 #define LOW_LEVEL_SRAM_STACK	NON_SECURE_SRAM_END
 
-/*
- * OMAP4 real hardware:
- * TODO: Change this to the IDCODE in the hw regsiter
- */
-#define CPU_OMAP4430_ES10	1
-#define CPU_OMAP4430_ES20	2
+/* Silicon revisions */
+#define OMAP4430_SILICON_ID_INVALID	0
+#define OMAP4430_ES1_0	1
+#define OMAP4430_ES2_0	2
+#define OMAP4430_ES2_1	3
+#define OMAP4430_ES2_2	4
 
 #endif

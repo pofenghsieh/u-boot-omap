@@ -26,6 +26,10 @@
 #define ARMV7_H
 #include <linux/types.h>
 
+/* Cortex-A9 revisions */
+#define MIDR_CORTEX_A9_R0P1	0x410FC091
+#define MIDR_CORTEX_A9_R1P2	0x411FC092
+
 /* CCSIDR */
 #define CCSIDR_LINE_SIZE_OFFSET		0
 #define CCSIDR_LINE_SIZE_MASK		0x7
@@ -65,4 +69,4 @@ void v7_outer_cache_inval_all(void);
 void v7_outer_cache_flush_range(u32 start, u32 end);
 void v7_outer_cache_inval_range(u32 start, u32 end);
 
-#endif
+#endif /* ARMV7_H */
