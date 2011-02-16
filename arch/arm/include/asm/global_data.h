@@ -89,6 +89,11 @@ typedef	struct	global_data {
 #define GD_FLG_DISABLE_CONSOLE	0x00040	/* Disable console (in & out)		*/
 #define GD_FLG_ENV_READY	0x00080	/* Environment imported into hash table	*/
 
+#ifdef CONFIG_PRELOADER
+/* SPL works from internal RAM. gd pointer can be in .data section */
+#define DECLARE_GLOBAL_DATA_PTR     extern gd_t *gd
+#else
 #define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r8")
+#endif
 
 #endif /* __ASM_GBL_DATA_H */

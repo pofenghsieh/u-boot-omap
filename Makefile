@@ -293,6 +293,11 @@ NAND_SPL = nand_spl
 U_BOOT_NAND = $(obj)u-boot-nand.bin
 endif
 
+ifeq ($(CONFIG_SPL),y)
+.PHONEY : SPL
+ALL += SPL
+endif
+
 ifeq ($(CONFIG_ONENAND_U_BOOT),y)
 ONENAND_IPL = onenand_ipl
 U_BOOT_ONENAND = $(obj)u-boot-onenand.bin
@@ -401,6 +406,9 @@ $(LDSCRIPT):	depend
 
 $(obj)u-boot.lds: $(LDSCRIPT)
 		$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
+
+SPL		:$(TIMESTAMP_FILE) $(VERSION_FILE) depend tools
+		$(MAKE) -C spl/board/$(BOARDDIR) all
 
 $(NAND_SPL):	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 		$(MAKE) -C nand_spl/board/$(BOARDDIR) all
@@ -1138,6 +1146,7 @@ clean:
 	@rm -f $(obj)include/bmp_logo.h
 	@rm -f $(obj)lib/asm-offsets.s
 	@rm -f $(obj)nand_spl/{u-boot.lds,u-boot-spl,u-boot-spl.map,System.map}
+	@rm -f $(obj)spl/{u-boot-spl-generated.lds,u-boot-spl,u-boot-spl.map}
 	@rm -f $(obj)onenand_ipl/onenand-{ipl,ipl.bin,ipl.map}
 	@rm -f $(ONENAND_BIN)
 	@rm -f $(obj)onenand_ipl/u-boot.lds
@@ -1157,12 +1166,14 @@ clobber:	clean
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL)
 	@rm -f $(obj)u-boot.kwb
 	@rm -f $(obj)u-boot.imx
+	@rm -f $(obj)MLO
 	@rm -f $(obj)tools/{env/crc32.c,inca-swap-bytes}
 	@rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
 	@[ ! -d $(obj)onenand_ipl ] || find $(obj)onenand_ipl -name "*" -type l -print | xargs rm -f
+	@[ ! -d $(obj)spl ] || find $(obj)spl -name "*" -type l -print | xargs rm -f
 
 ifeq ($(OBJTREE),$(SRCTREE))
 mrproper \
