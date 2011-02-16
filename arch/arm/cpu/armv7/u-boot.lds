@@ -55,6 +55,8 @@ SECTIONS
 
 	. = ALIGN(4);
 
+	__image_copy_end = .;
+
 	.rel.dyn : {
 		__rel_dyn_start = .;
 		*(.rel*)
@@ -65,6 +67,8 @@ SECTIONS
 		__dynsym_start = .;
 		*(.dynsym)
 	}
+
+	__flash_image_end = .;
 
 	.bss __rel_dyn_start (OVERLAY) : {
 		__bss_start = .;

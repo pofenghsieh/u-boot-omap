@@ -77,6 +77,10 @@ _TEXT_BASE:
 _bss_start_ofs:
 	.word __bss_start - _start
 
+.global	_image_copy_end_ofs
+_image_copy_end_ofs:
+	.word 	__image_copy_end - _start
+
 .globl _bss_end_ofs
 _bss_end_ofs:
 	.word _end - _start
@@ -172,7 +176,7 @@ stack_setup:
 	beq	clear_bss		/* skip relocation */
 #endif
 	mov	r1, r6			/* r1 <- scratch for copy_loop */
-	ldr	r3, _bss_start_ofs
+	ldr	r3, _image_copy_end_ofs
 	add	r2, r0, r3		/* r2 <- source end address	    */
 
 copy_loop:
