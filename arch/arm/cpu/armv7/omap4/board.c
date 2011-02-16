@@ -105,6 +105,7 @@ void s_init(void)
 {
 	watchdog_init();
 	set_mux_conf_regs();
+	prcm_init();
 #ifdef CONFIG_PRELOADER
 	preloader_console_init();
 #endif

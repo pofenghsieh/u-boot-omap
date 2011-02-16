@@ -115,8 +115,12 @@ $(obj)board.c:$(obj)omap4_mux_data.h
 	@rm -f $@
 	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap4/board.c $@
 
+$(obj)clocks.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap4/clocks.c $@
+
 SOBJS	+= lowlevel_init.o
-COBJS	+= board.o
+COBJS	+= board.o clocks.o
 
 # rules
 LDPPFLAGS += -include $(TOPDIR)/include/config.h

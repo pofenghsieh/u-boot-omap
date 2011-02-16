@@ -25,6 +25,9 @@
 #ifndef	_OMAP_COMMON_H_
 #define	_OMAP_COMMON_H_
 
+/* Max value for DPLL multiplier M */
+#define OMAP_DPLL_MAX_N	127
+
 /* Boot device */
 #define BOOT_DEVICE_NONE	0
 #define BOOT_DEVICE_XIP		1
