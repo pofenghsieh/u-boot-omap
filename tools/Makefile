@@ -84,6 +84,7 @@ OBJ_FILES-$(CONFIG_CMD_LOADS) += img2srec.o
 OBJ_FILES-$(CONFIG_INCA_IP) += inca-swap-bytes.o
 NOPED_OBJ_FILES-y += kwbimage.o
 NOPED_OBJ_FILES-y += imximage.o
+NOPED_OBJ_FILES-y += omapimage.o
 NOPED_OBJ_FILES-y += mkimage.o
 OBJ_FILES-$(CONFIG_NETCONSOLE) += ncb.o
 NOPED_OBJ_FILES-y += os_support.o
@@ -180,6 +181,7 @@ $(obj)mkimage$(SFX):	$(obj)crc32.o \
 			$(obj)fit_image.o \
 			$(obj)image.o \
 			$(obj)imximage.o \
+			$(obj)omapimage.o \
 			$(obj)kwbimage.o \
 			$(obj)md5.o \
 			$(obj)mkimage.o \
