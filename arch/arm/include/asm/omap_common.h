@@ -55,4 +55,8 @@ u32 omap_boot_device(void);
 u32 omap_boot_mode(void);
 void preloader_console_init(void);
 
+/* symbols from start.S */
+extern u32 _u_boot_size;
+extern u32 _start;
+
 #endif /* _OMAP_COMMON_H_ */

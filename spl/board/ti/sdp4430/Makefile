@@ -68,6 +68,41 @@ $(obj)ctype.c:
 COBJS	+= serial.o ns16550.o string.o vsprintf.o console.o stdio.o
 COBJS	+= ctype.o eabi_compat.o div64.o
 
+
+# mmc
+$(obj)mmc.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/drivers/mmc/mmc.c $@
+
+$(obj)omap_hsmmc.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/drivers/mmc/omap_hsmmc.c $@
+
+$(obj)omap24xx_i2c.c: $(obj)omap24xx_i2c.h
+	@rm -f $@
+	@ln -s $(TOPDIR)/drivers/i2c/omap24xx_i2c.c $@
+
+$(obj)omap24xx_i2c.h:
+	@rm -f $@
+	@ln -s $(TOPDIR)/drivers/i2c/omap24xx_i2c.h $@
+
+$(obj)time.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/lib/time.c $@
+
+$(obj)part.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/disk/part.c $@
+
+$(obj)part_dos.c: $(obj)part_dos.h
+	@rm -f $@
+	@ln -s $(TOPDIR)/disk/part_dos.c $@
+
+$(obj)part_dos.h:
+	@rm -f $@
+	@ln -s $(TOPDIR)/disk/part_dos.h $@
+
+COBJS	+= omap_hsmmc.o omap24xx_i2c.o mmc.o time.o part.o part_dos.o
 # armv7
 $(obj)start.S:
 	@rm -f $@

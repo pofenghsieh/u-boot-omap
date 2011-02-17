@@ -64,6 +64,7 @@ _pad:			.word 0x12345678 /* now 16*4=64 */
 
 .global _end_vect
 _end_vect:
+/* This label should be at the same location for SPL and U-Boot */
 .global	_u_boot_size
 _u_boot_size:
 	.word	0xDEADBEEF
