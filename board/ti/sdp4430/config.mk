@@ -28,4 +28,5 @@
 # Linux-Kernel is expected to be at 8000'8000, entry 8000'8000
 # (mem base + reserved)
 
-CONFIG_SYS_TEXT_BASE = 0x80e80000
+# 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
+CONFIG_SYS_TEXT_BASE = 0x80100000
