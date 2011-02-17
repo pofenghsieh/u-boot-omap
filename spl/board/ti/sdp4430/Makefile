@@ -103,6 +103,14 @@ $(obj)part_dos.h:
 	@ln -s $(TOPDIR)/disk/part_dos.h $@
 
 COBJS	+= omap_hsmmc.o omap24xx_i2c.o mmc.o time.o part.o part_dos.o
+
+# fat
+$(obj)fat.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/fs/fat/fat.c $@
+
+COBJS	+=  fat.o
+
 # armv7
 $(obj)start.S:
 	@rm -f $@
