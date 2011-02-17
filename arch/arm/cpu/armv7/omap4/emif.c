@@ -1237,6 +1237,7 @@ static void dmm_init(u32 base)
 		lis_map_regs_calculated.dmm_lisa_map_2 = section_map;
 		lis_map_regs_calculated.dmm_lisa_map_1 = 0;
 	}
+
 	/* TRAP for invalid TILER mappings in section 0 */
 	lis_map_regs_calculated.dmm_lisa_map_0 = DMM_LISA_MAP_0_INVAL_ADDR_TRAP;
 
