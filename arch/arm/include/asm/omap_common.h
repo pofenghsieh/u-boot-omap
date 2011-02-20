@@ -42,6 +42,12 @@
 /* Magic number passed from SPL to U-Boot */
 #define OMAP_SPL_TO_UBOOT_MAGIC_NUMBER	0xDEADBEEF
 
+/* HW Init Context */
+#define OMAP_INIT_CONTEXT_SPL			0
+#define OMAP_INIT_CONTEXT_XIP_UBOOT		1
+#define OMAP_INIT_CONTEXT_UBOOT_LOADED_BY_SPL	2
+#define OMAP_INIT_CONTEXT_UBOOT_LOADED_BY_CH	3
+
 u32 omap_boot_device(void);
 u32 omap_boot_mode(void);
 void preloader_console_init(void);
