@@ -166,7 +166,8 @@ static const struct lpddr2_min_tck min_tck_jedec = {
 	.tFAW = 8
 };
 
-static const struct lpddr2_ac_timings *jedec_ac_timings[MAX_NUM_SPEEDBINS] = {
+static const struct lpddr2_ac_timings const*
+			jedec_ac_timings[MAX_NUM_SPEEDBINS] = {
 	&timings_jedec_200_mhz,
 	&timings_jedec_333_mhz,
 	&timings_jedec_400_mhz
@@ -780,6 +781,146 @@ void emif_reset_phy(u32 base)
 	writel(iodft, &emif->emif_iodft_tlgc);
 }
 
+#ifdef CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION
+static void display_sdram_details(u32 emif_nr, u32 cs,
+				  struct lpddr2_device_details *device)
+{
+	const char *mfg_str;
+	const char *type_str;
+	char density_str[10];
+	u32 density;
+
+	debug("EMIF%d CS%d\t", emif_nr, cs);
+
+	if (!device) {
+		debug("None\n");
+		return;
+	}
+
+	mfg_str = get_lpddr2_manufacturer(device->manufacturer);
+	type_str = get_lpddr2_type(device->type);
+
+	density = lpddr2_density_2_size_in_mbytes[device->density];
+	if ((density / 1024 * 1024) == density) {
+		density /= 1024;
+		sprintf(density_str, "%d GB", density);
+	} else
+		sprintf(density_str, "%d MB", density);
+	if (mfg_str && type_str)
+		debug("%s\t\t%s\t%s\n", mfg_str, type_str, density_str);
+}
+
+static u8 is_lpddr2_sdram_present(u32 base, u32 cs,
+				  struct lpddr2_device_details *lpddr2_device)
+{
+	u32 mr = 0, temp;
+
+	mr = get_mr(base, cs, LPDDR2_MR0);
+	if (mr > 0xFF) {
+		/* Mode register value bigger than 8 bit */
+		return 0;
+	}
+
+	temp = get_bit_field(mr, LPDDR2_MR0_DI_SHIFT, LPDDR2_MR0_DI_MASK);
+	if (temp) {
+		/* Not SDRAM */
+		return 0;
+	}
+	temp = get_bit_field(mr, LPDDR2_MR0_DNVI_SHIFT, LPDDR2_MR0_DNVI_MASK);
+
+	if (temp) {
+		/* DNV supported - But DNV is only supported for NVM */
+		return 0;
+	}
+
+	mr = get_mr(base, cs, LPDDR2_MR4);
+	if (mr > 0xFF) {
+		/* Mode register value bigger than 8 bit */
+		return 0;
+	}
+
+	mr = get_mr(base, cs, LPDDR2_MR5);
+	if (mr >= 0xFF) {
+		/* Mode register value bigger than 8 bit */
+		return 0;
+	}
+
+	if (!get_lpddr2_manufacturer(mr)) {
+		/* Manufacturer not identified */
+		return 0;
+	}
+	lpddr2_device->manufacturer = mr;
+
+	mr = get_mr(base, cs, LPDDR2_MR6);
+	if (mr >= 0xFF) {
+		/* Mode register value bigger than 8 bit */
+		return 0;
+	}
+
+	mr = get_mr(base, cs, LPDDR2_MR7);
+	if (mr >= 0xFF) {
+		/* Mode register value bigger than 8 bit */
+		return 0;
+	}
+
+	mr = get_mr(base, cs, LPDDR2_MR8);
+	if (mr >= 0xFF) {
+		/* Mode register value bigger than 8 bit */
+		return 0;
+	}
+
+	temp = get_bit_field(mr, MR8_TYPE_SHIFT, MR8_TYPE_MASK);
+	if (!get_lpddr2_type(temp)) {
+		/* Not SDRAM */
+		return 0;
+	}
+	lpddr2_device->type = temp;
+
+	temp = get_bit_field(mr, MR8_DENSITY_SHIFT, MR8_DENSITY_MASK);
+	if (temp > LPDDR2_DENSITY_32Gb) {
+		/* Density not supported */
+		return 0;
+	}
+	lpddr2_device->density = temp;
+
+	temp = get_bit_field(mr, MR8_IO_WIDTH_SHIFT, MR8_IO_WIDTH_MASK);
+	if (!get_lpddr2_io_width(temp)) {
+		/* IO width unsupported value */
+		return 0;
+	}
+	lpddr2_device->io_width = temp;
+
+	/*
+	 * If all the above tests pass we should
+	 * have a device on this chip-select
+	 */
+	return 1;
+}
+
+static struct lpddr2_device_details *get_lpddr2_details(u32 base, u8 cs,
+			struct lpddr2_device_details *lpddr2_dev_details)
+{
+	u32 phy;
+	struct emif_reg_struct *emif = (struct emif_reg_struct *)base;
+
+	if (!lpddr2_dev_details)
+		return NULL;
+
+	/* Do the minimum init for mode register accesses */
+	if (!running_from_sdram()) {
+		phy = get_ddr_phy_ctrl_1(get_syc_clk_freq() / 2, RL_BOOT);
+		writel(phy, &emif->emif_ddr_phy_ctrl_1);
+	}
+
+	if (!(is_lpddr2_sdram_present(base, cs, lpddr2_dev_details)))
+		return NULL;
+
+	display_sdram_details(emif_num(base), cs, lpddr2_dev_details);
+
+	return lpddr2_dev_details;
+}
+#endif /* CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION */
+
 static void do_lpddr2_init(u32 base, u32 cs)
 {
 	u32 mr_addr;
@@ -863,9 +1004,7 @@ static void emif_update_timings(u32 base, const struct emif_regs *regs)
 
 static void do_sdram_init(u32 base)
 {
-	struct emif_device_details dev_details;
 	const struct emif_regs *regs;
-
 	u32 in_sdram, emif_nr;
 
 	in_sdram = running_from_sdram();
@@ -873,6 +1012,7 @@ static void do_sdram_init(u32 base)
 
 #ifdef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
 	const struct emif_regs *tmp_regs;
+
 	emif_get_reg_dump(&regs, &tmp_regs);
 	regs = (emif_nr == 1) ? regs : tmp_regs;
 #else
@@ -880,23 +1020,48 @@ static void do_sdram_init(u32 base)
 	 * The user has not provided the register values. We need to
 	 * calculate it based on the timings and the DDR frequency
 	 */
-
-	const struct emif_device_details *dev_details_user_provided;
-	const struct emif_device_details *tmp_details;
+	struct emif_device_details dev_details = { NULL, NULL };
 	struct emif_regs calculated_regs;
 
+#if !defined(CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION) || \
+	!defined(CONFIG_SYS_DEFAULT_LPDDR2_TIMINGS)
+
 	/* We need some input about the devices from the user */
+	const struct emif_device_details *dev_details_user_provided;
+	const struct emif_device_details *tmp_details;
+
 	emif_get_device_details(&dev_details_user_provided, &tmp_details);
 	dev_details_user_provided = (emif_nr == 1) ? dev_details_user_provided
 						   : tmp_details;
 	if (!dev_details_user_provided)
 		return;
+#endif
 
+#ifdef CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION
+	struct lpddr2_device_details cs0_dev_details, cs1_dev_details;
+
+	/* Automatically find the device details */
+	if (!in_sdram) {
+		dev_details.cs0_device_details =
+		    get_lpddr2_details(base, CS0, &cs0_dev_details);
+		dev_details.cs1_device_details =
+		    get_lpddr2_details(base, CS1, &cs1_dev_details);
+		/*
+		 * Reset the PHY - if there is nothing connected on any
+		 * of the chip selects(typically CS1) mode register reads
+		 * will mess up with the PHY state and subsequent
+		 * initialization won't work. PHY reset brings back PHY to
+		 * a good state.
+		 */
+		emif_reset_phy(base);
+	}
+#else
 	dev_details.cs0_device_details =
 			dev_details_user_provided->cs0_device_details;
 	dev_details.cs1_device_details =
 			dev_details_user_provided->cs1_device_details;
 
+#endif
 	/* Return if no devices on this EMIF */
 	if (!dev_details.cs0_device_details &&
 	    !dev_details.cs1_device_details) {

@@ -86,10 +86,8 @@ const struct dmm_lisa_map_regs lisa_map_2G_x_2_x_2 = {
 	.dmm_lisa_map_3 = 0x80640300
 };
 
-void emif_get_reg_dump_sdp(const struct emif_regs **emif1_regs,
-			const struct emif_regs **emif2_regs)
-
-#else
+#elif !defined(CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION) || \
+	!defined(CONFIG_SYS_DEFAULT_LPDDR2_TIMINGS)
 
 static const struct lpddr2_ac_timings timings_elpida_400_mhz = {
 	.max_freq	= 400000000,
@@ -245,7 +243,8 @@ static void emif_get_dmm_regs_sdp(const struct dmm_lisa_map_regs
 void emif_get_dmm_regs(const struct dmm_lisa_map_regs **dmm_lisa_regs)
 	__attribute__((weak, alias("emif_get_dmm_regs_sdp")));
 
-#else
+#elif !defined(CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION) || \
+	!defined(CONFIG_SYS_DEFAULT_LPDDR2_TIMINGS)
 
 static void emif_get_device_details_sdp(
 			const struct emif_device_details **emif1_details,
