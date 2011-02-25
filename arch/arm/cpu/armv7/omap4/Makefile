@@ -31,6 +31,9 @@ COBJS	+= board.o
 COBJS	+= mem.o
 COBJS	+= sys_info.o
 COBJS	+= clocks.o
+COBJS	+= emif.o
+COBJS	+= sdram_elpida.o
+
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))

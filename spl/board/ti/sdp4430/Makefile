@@ -115,12 +115,20 @@ $(obj)board.c:$(obj)omap4_mux_data.h
 	@rm -f $@
 	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap4/board.c $@
 
+$(obj)emif.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap4/emif.c $@
+
+$(obj)sdram_elpida.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap4/sdram_elpida.c $@
+
 $(obj)clocks.c:
 	@rm -f $@
 	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap4/clocks.c $@
 
 SOBJS	+= lowlevel_init.o
-COBJS	+= board.o clocks.o
+COBJS	+= board.o clocks.o emif.o sdram_elpida.o
 
 # rules
 LDPPFLAGS += -include $(TOPDIR)/include/config.h

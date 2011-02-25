@@ -109,6 +109,7 @@ void s_init(void)
 #ifdef CONFIG_PRELOADER
 	preloader_console_init();
 #endif
+	sdram_init();
 }
 
 /*
@@ -169,7 +170,6 @@ u32 sdram_size(void)
  */
 int dram_init(void)
 {
-
 	gd->ram_size = sdram_size();
 
 	return 0;
