@@ -29,6 +29,8 @@
 #include <asm/arch/emif.h>
 #include <asm/arch/sys_proto.h>
 
+#ifdef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
+
 static const struct emif_regs emif_regs_elpida_200_mhz_2cs = {
 	.sdram_config_init		= 0x80000eb9,
 	.sdram_config			= 0x80001ab9,
@@ -86,6 +88,131 @@ const struct dmm_lisa_map_regs lisa_map_2G_x_2_x_2 = {
 
 void emif_get_reg_dump_sdp(const struct emif_regs **emif1_regs,
 			const struct emif_regs **emif2_regs)
+
+#else
+
+static const struct lpddr2_ac_timings timings_elpida_400_mhz = {
+	.max_freq	= 400000000,
+	.RL		= 6,
+	.tRPab		= 21,
+	.tRCD		= 18,
+	.tWR		= 15,
+	.tRASmin	= 42,
+	.tRRD		= 10,
+	.tWTRx2		= 15,
+	.tXSR		= 140,
+	.tXPx2		= 15,
+	.tRFCab		= 130,
+	.tRTPx2		= 15,
+	.tCKE		= 3,
+	.tCKESR		= 15,
+	.tZQCS		= 90,
+	.tZQCL		= 360,
+	.tZQINIT	= 1000,
+	.tDQSCKMAXx2	= 11,
+	.tRASmax	= 70,
+	.tFAW		= 50
+};
+
+static const struct lpddr2_ac_timings timings_elpida_333_mhz = {
+	.max_freq	= 333000000,
+	.RL		= 5,
+	.tRPab		= 21,
+	.tRCD		= 18,
+	.tWR		= 15,
+	.tRASmin	= 42,
+	.tRRD		= 10,
+	.tWTRx2		= 15,
+	.tXSR		= 140,
+	.tXPx2		= 15,
+	.tRFCab		= 130,
+	.tRTPx2		= 15,
+	.tCKE		= 3,
+	.tCKESR		= 15,
+	.tZQCS		= 90,
+	.tZQCL		= 360,
+	.tZQINIT	= 1000,
+	.tDQSCKMAXx2	= 11,
+	.tRASmax	= 70,
+	.tFAW		= 50
+};
+
+static const struct lpddr2_ac_timings timings_elpida_200_mhz = {
+	.max_freq	= 200000000,
+	.RL		= 3,
+	.tRPab		= 21,
+	.tRCD		= 18,
+	.tWR		= 15,
+	.tRASmin	= 42,
+	.tRRD		= 10,
+	.tWTRx2		= 20,
+	.tXSR		= 140,
+	.tXPx2		= 15,
+	.tRFCab		= 130,
+	.tRTPx2		= 15,
+	.tCKE		= 3,
+	.tCKESR		= 15,
+	.tZQCS		= 90,
+	.tZQCL		= 360,
+	.tZQINIT	= 1000,
+	.tDQSCKMAXx2	= 11,
+	.tRASmax	= 70,
+	.tFAW		= 50
+};
+
+static const struct lpddr2_min_tck min_tck_elpida = {
+	.tRL		= 3,
+	.tRP_AB		= 3,
+	.tRCD		= 3,
+	.tWR		= 3,
+	.tRAS_MIN	= 3,
+	.tRRD		= 2,
+	.tWTR		= 2,
+	.tXP		= 2,
+	.tRTP		= 2,
+	.tCKE		= 3,
+	.tCKESR		= 3,
+	.tFAW		= 8
+};
+
+static const struct lpddr2_ac_timings *elpida_ac_timings[MAX_NUM_SPEEDBINS] = {
+		&timings_elpida_200_mhz,
+		&timings_elpida_333_mhz,
+		&timings_elpida_400_mhz,
+};
+
+static const struct lpddr2_device_details elpida_2G_S4_details = {
+	.type		= LPDDR2_TYPE_S4,
+	.density	= LPDDR2_DENSITY_2Gb,
+	.io_width	= LPDDR2_IO_WIDTH_32,
+	.manufacturer	= LPDDR2_MANUFACTURER_ELPIDA
+};
+
+static const struct lpddr2_device_timings elpida_2G_S4_timings = {
+	.ac_timings	= elpida_ac_timings,
+	.min_tck	= &min_tck_elpida,
+};
+
+static const struct emif_device_details elpida_2G_S4_x_2 = {
+	.cs0_device_details = &elpida_2G_S4_details,
+	.cs1_device_details = &elpida_2G_S4_details,
+	.cs0_device_timings = &elpida_2G_S4_timings,
+	.cs1_device_timings = &elpida_2G_S4_timings
+};
+
+static const struct emif_device_details elpida_2G_S4_x_1 = {
+	.cs0_device_details = &elpida_2G_S4_details,
+	.cs1_device_details = NULL,
+	.cs0_device_timings = &elpida_2G_S4_timings,
+	.cs1_device_timings = NULL
+};
+
+#endif /* ifdef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS */
+
+#ifdef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
+
+static void emif_get_reg_dump_sdp(const struct emif_regs **emif1_regs,
+			const struct emif_regs **emif2_regs)
 {
 	u32 omap4_rev = omap4_revision();
 
@@ -104,7 +231,8 @@ void emif_get_reg_dump(const struct emif_regs **emif1_regs,
 			const struct emif_regs **emif2_regs)
 	__attribute__((weak, alias("emif_get_reg_dump_sdp")));
 
-void emif_get_dmm_regs_sdp(const struct dmm_lisa_map_regs **dmm_lisa_regs)
+static void emif_get_dmm_regs_sdp(const struct dmm_lisa_map_regs
+						**dmm_lisa_regs)
 {
 	u32 omap_rev = omap4_revision();
 
@@ -116,3 +244,25 @@ void emif_get_dmm_regs_sdp(const struct dmm_lisa_map_regs **dmm_lisa_regs)
 
 void emif_get_dmm_regs(const struct dmm_lisa_map_regs **dmm_lisa_regs)
 	__attribute__((weak, alias("emif_get_dmm_regs_sdp")));
+
+#else
+
+static void emif_get_device_details_sdp(
+			const struct emif_device_details **emif1_details,
+			const struct emif_device_details **emif2_details)
+{
+	u32 omap_rev = omap4_revision();
+
+	if (omap_rev == OMAP4430_ES1_0) {
+		*emif1_details = &elpida_2G_S4_x_1;
+		*emif2_details = &elpida_2G_S4_x_1;
+	} else {
+		*emif1_details = &elpida_2G_S4_x_2;
+		*emif2_details = &elpida_2G_S4_x_2;
+	}
+}
+
+void emif_get_device_details(const struct emif_device_details **emif1_details,
+			     const struct emif_device_details **emif2_details)
+	__attribute__((weak, alias("emif_get_device_details_sdp")));
+#endif

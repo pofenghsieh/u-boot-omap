@@ -81,6 +81,10 @@ SOBJS	+= start.o
 COBJS	+= syslib.o
 
 # omap-common
+$(obj)utils.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap-common/utils.c $@
+
 $(obj)timer.c:
 	@rm -f $@
 	@ln -s $(TOPDIR)/arch/arm/cpu/armv7/omap-common/timer.c $@
@@ -94,7 +98,7 @@ $(obj)spl-omap.c:
 	@ln -s $(TOPDIR)/spl/board/ti/spl-omap.c $@
 
 SOBJS	+= reset.o
-COBJS	+= timer.o spl-omap.o
+COBJS	+= utils.o timer.o spl-omap.o
 
 $(OBJTREE)/MLO:	$(splobj)u-boot-spl.bin
 	$(OBJTREE)/tools/mkimage -T omapimage \

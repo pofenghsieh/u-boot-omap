@@ -86,12 +86,7 @@
 /* GPMC */
 #define OMAP44XX_GPMC_BASE	0x50000000
 
-/* DMM */
-#define OMAP44XX_DMM_BASE		0x4E000000
-#define DMM_LISA_MAP_BASE		(OMAP44XX_DMM_BASE + 0x40)
-#define DMM_LISA_MAP_SYS_SIZE_MASK	(7 << 20)
-#define DMM_LISA_MAP_SYS_SIZE_SHIFT	20
-#define DMM_LISA_MAP_SYS_ADDR_MASK	(0xFF << 24)
+
 /*
  * Hardware Register Details
  */
@@ -136,6 +131,17 @@ struct s32ktimer {
 #define SRAM_ROM_VECT_BASE	0x4030D000
 /* Temporary SRAM stack used while low level init is done */
 #define LOW_LEVEL_SRAM_STACK	NON_SECURE_SRAM_END
+
+#define SRAM_SCRATCH_SPACE_ADDR		NON_SECURE_SRAM_START
+
+/*
+ * SRAM scratch space entries
+ */
+
+/* Boot parameter passed from SPL to U-Boot */
+#define OMAP4_SRAM_SCRATCH_EMIF_SIZE	SRAM_SCRATCH_SPACE_ADDR
+#define OMAP4_SRAM_SCRATCH_EMIF_T_NUM	(SRAM_SCRATCH_SPACE_ADDR + 0x8)
+#define OMAP4_SRAM_SCRATCH_EMIF_T_DEN	(SRAM_SCRATCH_SPACE_ADDR + 0xC)
 
 /* Silicon revisions */
 #define OMAP4430_SILICON_ID_INVALID	0

@@ -258,6 +258,11 @@
 /* Defines for Clock init */
 #define CONFIG_SYS_OMAP4_ABE_SYSCK
 
+/* Defines for SDRAM init */
+#ifndef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
+#define CONFIG_SYS_DEFAULT_LPDDR2_TIMINGS	1
+#endif
+
 /* Defines for SPL */
 #define CONFIG_SPL
 #define CONFIG_SYS_SPL_TEXT_BASE	0x40304360
