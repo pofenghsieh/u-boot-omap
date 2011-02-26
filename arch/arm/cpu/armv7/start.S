@@ -64,8 +64,12 @@ _pad:			.word 0x12345678 /* now 16*4=64 */
 
 .global _end_vect
 _end_vect:
+.global	_u_boot_size
+_u_boot_size:
+	.word	0xDEADBEEF
+	.word	__flash_image_end - _start
 
-	.balignl 16,0xdeadbeef
+.balignl 16,0xdeadbeef
 /*************************************************************************
  *
  * Startup Code (reset vector)
