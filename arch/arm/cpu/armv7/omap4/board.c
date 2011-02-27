@@ -57,6 +57,9 @@ u32 omap_boot_mode(void)
 void s_init(void)
 {
 	watchdog_init();
+#ifdef CONFIG_PRELOADER
+	preloader_console_init();
+#endif
 }
 
 /*

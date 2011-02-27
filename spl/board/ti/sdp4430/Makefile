@@ -28,6 +28,46 @@ include $(TOPDIR)/config.mk
 SOBJS =
 COBJS =
 
+# serial console
+$(obj)eabi_compat.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/arch/arm/lib/eabi_compat.c $@
+
+$(obj)string.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/lib/string.c $@
+
+$(obj)vsprintf.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/lib/vsprintf.c $@
+
+$(obj)console.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/common/console.c $@
+
+$(obj)stdio.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/common/stdio.c $@
+
+$(obj)serial.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/drivers/serial/serial.c $@
+
+$(obj)ns16550.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/drivers/serial/ns16550.c $@
+
+$(obj)div64.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/lib/div64.c $@
+
+$(obj)ctype.c:
+	@rm -f $@
+	@ln -s $(TOPDIR)/lib/ctype.c $@
+
+COBJS	+= serial.o ns16550.o string.o vsprintf.o console.o stdio.o
+COBJS	+= ctype.o eabi_compat.o div64.o
+
 # armv7
 $(obj)start.S:
 	@rm -f $@

@@ -44,5 +44,6 @@
 
 u32 omap_boot_device(void);
 u32 omap_boot_mode(void);
+void preloader_console_init(void);
 
 #endif /* _OMAP_COMMON_H_ */
