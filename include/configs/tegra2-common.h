@@ -31,7 +31,7 @@
 #define CONFIG_ARMCORTEXA9		/* This is an ARM V7 CPU core */
 #define CONFIG_TEGRA2			/* in a NVidia Tegra2 core */
 #define CONFIG_MACH_TEGRA_GENERIC	/* which is a Tegra generic machine */
-#define CONFIG_L2_OFF			/* No L2 cache */
+#define CONFIG_SYS_NO_L2CACHE		/* No L2 cache */
 
 #include <asm/arch/tegra2.h>		/* get chip and board defs */
 

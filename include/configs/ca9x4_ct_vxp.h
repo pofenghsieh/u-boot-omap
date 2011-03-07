@@ -40,7 +40,7 @@
 
 #define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_L2_OFF			1
+#define CONFIG_SYS_NO_L2CACHE		1
 #define CONFIG_INITRD_TAG		1
 
 /* Size of malloc() pool */
