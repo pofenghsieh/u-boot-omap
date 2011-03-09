@@ -2,6 +2,11 @@
  * (C) Copyright 2010
  * Texas Instruments, <www.ti.com>
  *
+ * Aneesh V <aneesh@ti.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -17,26 +22,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+#ifndef	_OMAP_COMMON_H_
+#define	_OMAP_COMMON_H_
 
-#ifndef _SYS_PROTO_H_
-#define _SYS_PROTO_H_
+/* Boot device */
+#define BOOT_DEVICE_NONE	0
+#define BOOT_DEVICE_XIP		1
+#define BOOT_DEVICE_XIPWAIT	2
+#define BOOT_DEVICE_NAND	3
+#define BOOT_DEVICE_ONE_NAND	4
+#define BOOT_DEVICE_MMC1	5
+#define BOOT_DEVICE_MMC2	6
 
-#include <asm/arch/omap4.h>
-#include <asm/io.h>
-#include <asm/omap_common.h>
+/* Boot type */
+#define	MMCSD_MODE_UNDEFINED	0
+#define MMCSD_MODE_RAW		1
+#define MMCSD_MODE_FAT		2
 
-struct omap_sysinfo {
-	char *board_string;
-};
+/* Magic number passed from SPL to U-Boot */
+#define OMAP_SPL_TO_UBOOT_MAGIC_NUMBER	0xDEADBEEF
 
-void gpmc_init(void);
-void watchdog_init(void);
-u32 get_device_type(void);
-void set_muxconf_regs(void);
-void sr32(void *, u32, u32, u32);
-u32 wait_on_value(u32, u32, void *, u32);
-void sdelay(unsigned long);
+u32 omap_boot_device(void);
+u32 omap_boot_mode(void);
 
-extern const struct omap_sysinfo sysinfo;
-
-#endif
+#endif /* _OMAP_COMMON_H_ */

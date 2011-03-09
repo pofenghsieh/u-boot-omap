@@ -35,6 +35,20 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_PRELOADER
+u32 omap4_boot_device = BOOT_DEVICE_MMC1;
+u32 omap4_boot_mode = MMCSD_MODE_FAT;
+u32 omap_boot_device(void)
+{
+	return omap4_boot_device;
+}
+
+u32 omap_boot_mode(void)
+{
+	return omap4_boot_mode;
+}
+#endif
+
 /*
  * Routine: s_init
  * Description: Does early system init of muxing and clocks.
