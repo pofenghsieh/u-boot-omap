@@ -35,25 +35,29 @@ endif
 
 PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__
 
-# Explicitly specifiy 32-bit ARM ISA since toolchain default can be -mthumb:
-PLATFORM_CPPFLAGS += $(call cc-option,-marm,)
+# Choose between ARM/Thumb instruction sets
+ifeq ($(CONFIG_SYS_THUMB_BUILD),y)
+PLATFORM_CPPFLAGS += $(call cc-option,-mthumb -mthumb-interwork)
+else
+PLATFORM_CPPFLAGS += $(call cc-option,-marm -mno-thumb-interwork)
+endif
 
 # Try if EABI is supported, else fall back to old API,
 # i. e. for example:
 # - with ELDK 4.2 (EABI supported), use:
-#	-mabi=aapcs-linux -mno-thumb-interwork
+#	-mabi=aapcs-linux
 # - with ELDK 4.1 (gcc 4.x, no EABI), use:
-#	-mabi=apcs-gnu -mno-thumb-interwork
+#	-mabi=apcs-gnu
 # - with ELDK 3.1 (gcc 3.x), use:
-#	-mapcs-32 -mno-thumb-interwork
+#	-mapcs-32
 PLATFORM_CPPFLAGS += $(call cc-option,\
-				-mabi=aapcs-linux -mno-thumb-interwork,\
+				-mabi=aapcs-linux,\
 				$(call cc-option,\
 					-mapcs-32,\
 					$(call cc-option,\
 						-mabi=apcs-gnu,\
 					)\
-				) $(call cc-option,-mno-thumb-interwork,)\
+				)\
 			)
 
 # For EABI, make sure to provide raise()
