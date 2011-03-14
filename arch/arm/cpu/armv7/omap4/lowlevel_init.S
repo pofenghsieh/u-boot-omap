@@ -85,12 +85,12 @@ set_pl310_ctrl_reg:
 				@ call ROM Code API to set control register
 	POP	{r4-r11, pc}
 
-.globl v7_outer_cache_enable
-v7_outer_cache_enable:
+.globl omap4_pl310_enable
+omap4_pl310_enable:
 	MOV	r0, #1
 	B	set_pl310_ctrl_reg
 
-.globl v7_outer_cache_disable
-v7_outer_cache_disable:
+.globl omap4_pl310_disable
+omap4_pl310_disable:
 	MOV	r0, #0
 	B	set_pl310_ctrl_reg

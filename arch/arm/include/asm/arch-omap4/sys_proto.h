@@ -46,6 +46,8 @@ u32 omap4_ddr_clk(void);
 void cancel_out(u32 *num, u32 *den, u32 den_limit);
 void sdram_init(void);
 u32 omap4_revision(void);
+void omap4_pl310_enable(void);
+void omap4_pl310_disable(void);
 
 static inline u32 running_from_sdram(void)
 {

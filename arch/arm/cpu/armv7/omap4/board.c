@@ -228,3 +228,13 @@ u32 omap4_revision(void)
 		return OMAP4430_SILICON_ID_INVALID;
 	}
 }
+
+void v7_outer_cache_enable(void)
+{
+	omap4_pl310_enable();
+}
+
+void v7_outer_cache_disable(void)
+{
+	omap4_pl310_disable();
+}
