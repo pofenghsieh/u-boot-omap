@@ -37,7 +37,6 @@ SECTIONS
 {
 	.text      :
 	{
-	. = ALIGN(32);
 	__start = .;
 	  start.o	(.text)
 	  *(.text*)
