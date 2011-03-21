@@ -49,6 +49,7 @@ void sdram_init(void);
 u32 omap4_revision(void);
 void omap4_pl310_enable(void);
 void omap4_pl310_disable(void);
+const char *omap4_rev_string(void);
 
 static inline u32 running_from_sdram(void)
 {

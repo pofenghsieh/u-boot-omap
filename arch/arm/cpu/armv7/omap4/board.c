@@ -89,31 +89,6 @@ static void set_mux_conf_regs(void)
 }
 
 /*
- * Routine: s_init
- * Description: Does early system init of watchdog, muxing, clocks, and
- * sdram. Watchdog disable is done always. For the rest what gets done
- * depends on the boot mode in which this function is executed
- *   1. s_init of SPL running from SRAM
- *   2. s_init of U-Boot running from FLASH
- *   3. s_init of U-Boot loaded to SDRAM by SPL
- *   4. s_init of U-Boot loaded to SDRAM by ROM code using the Configuration
- *	Header feature
- * Please have a look at the respective functions to see what gets done in
- * each of these cases
- * This function is called with SRAM stack.
- */
-void s_init(void)
-{
-	watchdog_init();
-	set_mux_conf_regs();
-#ifdef CONFIG_PRELOADER
-	preloader_console_init();
-#endif
-	prcm_init();
-	sdram_init();
-}
-
-/*
  * Routine: wait_for_command_complete
  * Description: Wait for posting to finish on watchdog
  */
@@ -237,4 +212,51 @@ void v7_outer_cache_enable(void)
 void v7_outer_cache_disable(void)
 {
 	omap4_pl310_disable();
+}
+const char *omap4_rev_string(void)
+{
+	const char *omap4_rev = NULL;
+	switch (omap4_revision()) {
+	case OMAP4430_ES1_0:
+		omap4_rev = "OMAP4430 ES1.0";
+		break;
+	case OMAP4430_ES2_0:
+		omap4_rev = "OMAP4430 ES2.0";
+		break;
+	case OMAP4430_ES2_1:
+		omap4_rev = "OMAP4430 ES2.1";
+		break;
+	case OMAP4430_ES2_2:
+		omap4_rev = "OMAP4430 ES2.2";
+		break;
+	default:
+		omap4_rev = "OMAP4 - Unknown Rev";
+		break;
+	}
+	return omap4_rev;
+}
+
+/*
+ * Routine: s_init
+ * Description: Does early system init of watchdog, muxing, clocks, and
+ * sdram. Watchdog disable is done always. For the rest what gets done
+ * depends on the boot mode in which this function is executed
+ *   1. s_init of SPL running from SRAM
+ *   2. s_init of U-Boot running from FLASH
+ *   3. s_init of U-Boot loaded to SDRAM by SPL
+ *   4. s_init of U-Boot loaded to SDRAM by ROM code using the Configuration
+ *	Header feature
+ * Please have a look at the respective functions to see what gets done in
+ * each of these cases
+ * This function is called with SRAM stack.
+ */
+void s_init(void)
+{
+	watchdog_init();
+	set_mux_conf_regs();
+#ifdef CONFIG_PRELOADER
+	preloader_console_init();
+#endif
+	prcm_init();
+	sdram_init();
 }
