@@ -183,7 +183,10 @@ void preloader_console_init(void)
 	gd->bd = &bdata;
 	gd->flags |= GD_FLG_RELOC;
 	gd->baudrate = CONFIG_BAUDRATE;
+
+	setup_clocks_for_console();
 	serial_init();		/* serial communications setup */
+
 	printf("\nU-Boot SPL for Texas Instruments OMAP4 (%s - %s)\n",
 		U_BOOT_DATE, U_BOOT_TIME);
 }

@@ -694,6 +694,23 @@ void lock_dpll(u32 base)
 u32 get_syc_clk_freq(void)
 	__attribute__ ((weak, alias("__get_syc_clk_freq")));
 
+void setup_clocks_for_console(void)
+{
+	enable_clock_domain(CM_L4PER_CLKSTCTRL, CD_CLKCTRL_CLKTRCTRL_SW_WKUP);
+
+	/* Enable all UARTs - console will be on one of them */
+	enable_clock_module(CM_L4PER_UART1_CLKCTRL,
+			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
+	enable_clock_module(CM_L4PER_UART2_CLKCTRL,
+			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
+	enable_clock_module(CM_L4PER_UART3_CLKCTRL,
+			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
+	enable_clock_module(CM_L4PER_UART4_CLKCTRL,
+			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
+
+	enable_clock_domain(CM_L4PER_CLKSTCTRL, CD_CLKCTRL_CLKTRCTRL_HW_AUTO);
+}
+
 void prcm_init(void)
 {
 	switch (omap4_hw_init_context()) {

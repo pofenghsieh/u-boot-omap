@@ -38,6 +38,7 @@ void set_muxconf_regs_non_essential(void);
 void sr32(void *, u32, u32, u32);
 u32 wait_on_value(u32, u32, void *, u32);
 void sdelay(unsigned long);
+void setup_clocks_for_console(void);
 void prcm_init(void);
 void bypass_dpll(u32 base);
 void freq_update_core(void);
