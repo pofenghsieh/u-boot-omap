@@ -28,5 +28,10 @@
 # Linux-Kernel is expected to be at 8000'8000, entry 8000'8000
 # (mem base + reserved)
 
-# 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
-CONFIG_SYS_TEXT_BASE = 0x80100000
+# 64MB into the SDRAM
+# Assuming a minimum of 128 MB on the board:
+# - 64MB before U-Boot is more than enough for Linux when relocation is
+#   disabled
+# - ~63MB after the U-Boot is more than enough for U-Boot to relocate
+#   itself without stepping on itself
+CONFIG_SYS_TEXT_BASE = 0x84000000

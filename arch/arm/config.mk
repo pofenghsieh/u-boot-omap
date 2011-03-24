@@ -71,5 +71,7 @@ LDSCRIPT := $(SRCTREE)/$(CPUDIR)/u-boot.lds
 
 # needed for relocation
 ifndef CONFIG_NAND_SPL
+ifndef CONFIG_SYS_SKIP_ARM_RELOCATION
 LDFLAGS_u-boot += -pie
+endif
 endif
