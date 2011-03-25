@@ -414,6 +414,7 @@
 
 /* Clock frequencies */
 #define OMAP_SYS_CLK_FREQ_38_4_MHZ	38400000
+#define OMAP_SYS_CLK_IND_38_4_MHZ	6
 #define OMAP_32K_CLK_FREQ		32768
 
 /* PRM_VC_CFG_I2C_CLK */
@@ -472,8 +473,10 @@
 #define DPLL_LOCKED_FREQ_TOLERANCE_500_KHZ	500
 #define DPLL_LOCKED_FREQ_TOLERANCE_1_MHZ	1000
 
-#define CONFIGURE_NO_LOCK	0
-#define CONFIGURE_AND_LOCK	1
+#define DPLL_NO_LOCK	0
+#define DPLL_LOCK	1
+
+#define NUM_SYS_CLKS	7
 
 struct dpll_regs {
 	u32 cm_clkmode_dpll;
@@ -490,15 +493,14 @@ struct dpll_regs {
 
 /* DPLL parameter table */
 struct dpll_params {
-	s32 m;
-	s32 n;
-	u32 locked_freq_khz;
-	s32 m2;
-	s32 m3;
-	s32 m4;
-	s32 m5;
-	s32 m6;
-	s32 m7;
+	u32 m;
+	u32 n;
+	u8 m2;
+	u8 m3;
+	u8 m4;
+	u8 m5;
+	u8 m6;
+	u8 m7;
 };
 
 #endif /* _CLOCKS_OMAP4_H_ */

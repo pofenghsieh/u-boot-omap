@@ -704,7 +704,7 @@ static void emif_calculate_regs(
 	addressing = &(addressing_table[temp]);
 	emif_assert(addressing);
 
-	sys_freq = get_syc_clk_freq();
+	sys_freq = get_sys_clk_freq();
 
 	regs->sdram_config_init = get_sdram_config_reg(cs0_dev_details,
 							cs1_dev_details,
@@ -908,7 +908,7 @@ static struct lpddr2_device_details *get_lpddr2_details(u32 base, u8 cs,
 
 	/* Do the minimum init for mode register accesses */
 	if (!running_from_sdram()) {
-		phy = get_ddr_phy_ctrl_1(get_syc_clk_freq() / 2, RL_BOOT);
+		phy = get_ddr_phy_ctrl_1(get_sys_clk_freq() / 2, RL_BOOT);
 		writel(phy, &emif->emif_ddr_phy_ctrl_1);
 	}
 
