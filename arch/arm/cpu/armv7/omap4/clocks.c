@@ -619,17 +619,17 @@ static void enable_clocks(const u32 *clock_domains,
 static void enable_basic_clocks(void)
 {
 	/* Enable optional additional functional clock for GPIO4 */
-	writel(readl(CM_L4PER_GPIO4_CLKCTRL) | GPIO4_CLKCTRL_OPTFCLKEN_SHIFT,
+	writel(readl(CM_L4PER_GPIO4_CLKCTRL) | GPIO4_CLKCTRL_OPTFCLKEN_MASK,
 	       CM_L4PER_GPIO4_CLKCTRL);
 
 	/* Enable 96 MHz clock for MMC1 & MMC2 */
-	writel(readl(CM_L3INIT_HSMMC1_CLKCTRL) | HSMMC_CLKCTRL_CLKSEL_SHIFT,
+	writel(readl(CM_L3INIT_HSMMC1_CLKCTRL) | HSMMC_CLKCTRL_CLKSEL_MASK,
 	       CM_L3INIT_HSMMC1_CLKCTRL);
-	writel(readl(CM_L3INIT_HSMMC2_CLKCTRL) | HSMMC_CLKCTRL_CLKSEL_SHIFT,
+	writel(readl(CM_L3INIT_HSMMC2_CLKCTRL) | HSMMC_CLKCTRL_CLKSEL_MASK,
 	       CM_L3INIT_HSMMC2_CLKCTRL);
 
 	/* Select 32KHz clock as the source of GPTIMER1 */
-	writel(readl(CM_WKUP_GPTIMER1_CLKCTRL) | GPTIMER1_CLKCTRL_CLKSEL_SHIFT,
+	writel(readl(CM_WKUP_GPTIMER1_CLKCTRL) | GPTIMER1_CLKCTRL_CLKSEL_MASK,
 	       CM_WKUP_GPTIMER1_CLKCTRL);
 
 	/* Enable optional 48M functional clock for USB  PHY */
@@ -650,7 +650,7 @@ static void enable_non_essential_clocks(void)
 {
 	u32 tmp;
 	/* Enable optional functional clock for ISS */
-	writel(readl(CM_CAM_ISS_CLKCTRL) | ISS_CLKCTRL_OPTFCLKEN_SHIFT,
+	writel(readl(CM_CAM_ISS_CLKCTRL) | ISS_CLKCTRL_OPTFCLKEN_MASK,
 	       CM_CAM_ISS_CLKCTRL);
 
 	/* Enable all optional functional clocks of DSS */
