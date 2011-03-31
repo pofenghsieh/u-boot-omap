@@ -66,8 +66,8 @@ int board_mmc_init(bd_t *bis)
 
 static void mmc_load_uboot_raw(struct mmc *mmc, u32 mmc_dev)
 {
-	u32 u_boot_size_sectors, err;
-	u32 *u_boot_size = (u32 *)(CONFIG_SYS_TEXT_BASE +
+	u32 u_boot_size, u_boot_size_sectors, err;
+	u32 *magic_loc = (u32 *)(CONFIG_SYS_TEXT_BASE +
 				(u32) &_u_boot_size - (u32) &_start);
 
 	/* read one sector first to find u-boot size */
@@ -77,21 +77,23 @@ static void mmc_load_uboot_raw(struct mmc *mmc, u32 mmc_dev)
 	if (err <= 0)
 		goto end;
 
-	if (*u_boot_size != 0xDEADBEEF) {
-		err = 0xDEADBEEF;
-		goto end;
+	if (*magic_loc++ == 0xDEADBEEF) {
+		/* Signature found - get the size saved in the next word */
+		u_boot_size = *magic_loc;
+	} else {
+		/* Signature not found - however continue to load U-Boot */
+		debug("U-Boot signature not found!\n");
+		/* Let's assume U-Boot will not be more than 200 KB */
+		u_boot_size = 200 * 1024;
 	}
-
-	/* move to the next word that has size */
-	u_boot_size++;
 
 	/*
 	 * convert size to sectors - round down is fine because we have
 	 * already read 1 sector
 	 */
-	u_boot_size_sectors = *u_boot_size/MMCSD_SECTOR_SIZE;
+	u_boot_size_sectors = u_boot_size/MMCSD_SECTOR_SIZE;
 	debug("spl: u-boot raw sectors - %d\n", u_boot_size_sectors + 1);
-	/* read one sector first to find u-boot size */
+	/* read the remaining sectors */
 	err = mmc->block_dev.block_read(mmc_dev,
 			CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR + 1,
 			u_boot_size_sectors,
@@ -176,10 +178,8 @@ void board_init_r(gd_t *id, ulong dummy)
 		break;
 	}
 
-	/*
-	 * Jump to u-boot with magic number as input to indicate that it
-	 * was loaded by SPL
-	 */
+	/* Jump to u-boot */
+	debug("Jumping to U-Boot\n");
 	u_boot_entry();
 }
 
