@@ -46,9 +46,6 @@
 #define CONFIG_DISPLAY_CPUINFO		1
 #define CONFIG_DISPLAY_BOARDINFO	1
 
-/* Keep L2 Cache Disabled */
-#define CONFIG_SYS_NO_L2CACHE			1
-
 /* Clock Defines */
 #define V_OSCK			38400000	/* Clock output from T2 */
 #define V_SCLK                   V_OSCK
@@ -250,5 +247,10 @@
 #define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_INIT_RAM_ADDR + \
 					 CONFIG_SYS_INIT_RAM_SIZE - \
 					 GENERATED_GBL_DATA_SIZE)
+
+#ifndef CONFIG_SYS_NO_L2CACHE
+#define CONFIG_SYS_L2_PL310		1
+#define CONFIG_SYS_PL310_BASE	0x48242000
+#endif
 
 #endif /* __CONFIG_H */
