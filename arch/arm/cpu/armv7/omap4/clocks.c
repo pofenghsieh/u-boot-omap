@@ -750,14 +750,6 @@ void prcm_init(void)
 {
 	switch (omap4_hw_init_context()) {
 	case OMAP_INIT_CONTEXT_SPL:
-		scale_vcores();
-		setup_dplls();
-		enable_basic_clocks();
-		break;
-	case OMAP_INIT_CONTEXT_UBOOT_LOADED_BY_SPL:
-		setup_non_essential_dplls();
-		enable_non_essential_clocks();
-		break;
 	case OMAP_INIT_CONTEXT_XIP_UBOOT:
 	case OMAP_INIT_CONTEXT_UBOOT_LOADED_BY_CH:
 		scale_vcores();
@@ -765,6 +757,8 @@ void prcm_init(void)
 		enable_basic_clocks();
 		setup_non_essential_dplls();
 		enable_non_essential_clocks();
+		break;
+	default:
 		break;
 	}
 }
