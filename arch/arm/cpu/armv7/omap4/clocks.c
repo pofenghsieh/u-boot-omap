@@ -379,7 +379,7 @@ u32 omap4_ddr_clk(void)
 
 	core_dpll_params = get_core_dpll_params();
 
-	debug("sys_clk %d\n ", sys_clk_khz * 1000);
+	spl_debug("sys_clk %d\n ", sys_clk_khz * 1000);
 
 	/* Find Core DPLL locked frequency first */
 	ddr_clk = sys_clk_khz * 2 * core_dpll_params->m /
@@ -391,7 +391,7 @@ u32 omap4_ddr_clk(void)
 	ddr_clk = ddr_clk / 4 / core_dpll_params->m2;
 
 	ddr_clk *= 1000;	/* convert to Hz */
-	debug("ddr_clk %d\n ", ddr_clk);
+	spl_debug("ddr_clk %d\n ", ddr_clk);
 
 	return ddr_clk;
 }
@@ -400,6 +400,7 @@ static void setup_dplls(void)
 {
 	u32 sysclk_ind, temp;
 	const struct dpll_params *params;
+	spl_debug("setup_dplls\n");
 
 	sysclk_ind = get_sys_clk_index();
 
@@ -416,10 +417,12 @@ static void setup_dplls(void)
 	    (CLKSEL_L3_CORE_DIV_2 << CLKSEL_L3_SHIFT) |
 	    (CLKSEL_L4_L3_DIV_2 << CLKSEL_L4_SHIFT);
 	writel(temp, CM_CLKSEL_CORE);
+	spl_debug("Core DPLL configured\n");
 
 	/* lock PER dpll */
 	do_setup_dpll(CM_CLKMODE_DPLL_PER,
 			&per_dpll_params_1536mhz[sysclk_ind], DPLL_LOCK);
+	spl_debug("PER DPLL locked\n");
 
 	/* MPU dpll */
 	if (omap4_revision() == OMAP4430_ES1_0)
@@ -427,6 +430,7 @@ static void setup_dplls(void)
 	else
 		params = &mpu_dpll_params_1ghz[sysclk_ind];
 	do_setup_dpll(CM_CLKMODE_DPLL_MPU, params, DPLL_LOCK);
+	spl_debug("MPU DPLL locked\n");
 }
 
 static void setup_non_essential_dplls(void)
@@ -551,6 +555,7 @@ static void scale_vcores(void)
 
 static void enable_clock_domain(u32 clkctrl_reg, u32 enable_mode)
 {
+	spl_debug("Enable clock domain - 0x%08x\n", clkctrl_reg);
 	modify_reg_32(clkctrl_reg, CD_CLKCTRL_CLKTRCTRL_SHIFT,
 		      CD_CLKCTRL_CLKTRCTRL_MASK, enable_mode);
 }
@@ -570,6 +575,7 @@ static inline void wait_for_clk_enable(u32 clkctrl_addr)
 static void enable_clock_module(u32 clkctrl_addr, u32 enable_mode,
 				u32 wait_for_enable)
 {
+	spl_debug("Enable clock module - 0x%08x\n", clkctrl_addr);
 	modify_reg_32(clkctrl_addr, MODULE_CLKCTRL_MODULEMODE_SHIFT,
 			MODULE_CLKCTRL_MODULEMODE_MASK, enable_mode);
 	if (wait_for_enable)
@@ -715,19 +721,29 @@ void lock_dpll(u32 base)
 
 void setup_clocks_for_console(void)
 {
-	enable_clock_domain(CM_L4PER_CLKSTCTRL, CD_CLKCTRL_CLKTRCTRL_SW_WKUP);
+	/* Do not add any spl_debug prints in this function */
+	modify_reg_32(CM_L4PER_CLKSTCTRL, CD_CLKCTRL_CLKTRCTRL_SHIFT,
+		      CD_CLKCTRL_CLKTRCTRL_MASK, CD_CLKCTRL_CLKTRCTRL_SW_WKUP);
 
 	/* Enable all UARTs - console will be on one of them */
-	enable_clock_module(CM_L4PER_UART1_CLKCTRL,
-			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
-	enable_clock_module(CM_L4PER_UART2_CLKCTRL,
-			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
-	enable_clock_module(CM_L4PER_UART3_CLKCTRL,
-			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
-	enable_clock_module(CM_L4PER_UART4_CLKCTRL,
-			    MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN, 1);
+	modify_reg_32(CM_L4PER_UART1_CLKCTRL, MODULE_CLKCTRL_MODULEMODE_SHIFT,
+			MODULE_CLKCTRL_MODULEMODE_MASK,
+			MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN);
 
-	enable_clock_domain(CM_L4PER_CLKSTCTRL, CD_CLKCTRL_CLKTRCTRL_HW_AUTO);
+	modify_reg_32(CM_L4PER_UART2_CLKCTRL, MODULE_CLKCTRL_MODULEMODE_SHIFT,
+			MODULE_CLKCTRL_MODULEMODE_MASK,
+			MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN);
+
+	modify_reg_32(CM_L4PER_UART3_CLKCTRL, MODULE_CLKCTRL_MODULEMODE_SHIFT,
+			MODULE_CLKCTRL_MODULEMODE_MASK,
+			MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN);
+
+	modify_reg_32(CM_L4PER_UART3_CLKCTRL, MODULE_CLKCTRL_MODULEMODE_SHIFT,
+			MODULE_CLKCTRL_MODULEMODE_MASK,
+			MODULE_CLKCTRL_MODULEMODE_SW_EXPLICIT_EN);
+
+	modify_reg_32(CM_L4PER_CLKSTCTRL, CD_CLKCTRL_CLKTRCTRL_SHIFT,
+		      CD_CLKCTRL_CLKTRCTRL_MASK, CD_CLKCTRL_CLKTRCTRL_HW_AUTO);
 }
 
 void prcm_init(void)

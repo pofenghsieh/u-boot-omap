@@ -34,7 +34,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define print_timing_reg(reg) debug(#reg" - 0x%08x\n", (reg))
+#define print_timing_reg(reg) spl_debug(#reg" - 0x%08x\n", (reg))
 
 static u32 *const T_num = (u32 *)OMAP4_SRAM_SCRATCH_EMIF_T_NUM;
 static u32 *const T_den = (u32 *)OMAP4_SRAM_SCRATCH_EMIF_T_DEN;
@@ -237,7 +237,7 @@ s8 addressing_table_index(u8 type, u8 density, u8 width)
 	else
 		index = density;
 
-	debug("emif: addressing table index %d\n", index);
+	spl_debug("emif: addressing table index %d\n", index);
 
 	return index;
 }
@@ -272,7 +272,7 @@ static const struct lpddr2_ac_timings *get_timings_table(const struct
 			timings = device_timings[i];
 		}
 	}
-	debug("emif: timings table: %d\n", freq_nearest);
+	spl_debug("emif: timings table: %d\n", freq_nearest);
 	return timings;
 }
 
@@ -637,7 +637,7 @@ static inline u32 get_mr(u32 base, u32 cs, u32 mr_addr)
 		mr = readl(&emif->emif_lpddr2_mode_reg_data_es2);
 	else
 		mr = readl(&emif->emif_lpddr2_mode_reg_data);
-	debug("get_mr: EMIF%d cs %d mr %08x val 0x%x\n", emif_num(base),
+	spl_debug("get_mr: EMIF%d cs %d mr %08x val 0x%x\n", emif_num(base),
 	      cs, mr_addr, mr);
 	return mr;
 }
@@ -790,10 +790,10 @@ static void display_sdram_details(u32 emif_nr, u32 cs,
 	char density_str[10];
 	u32 density;
 
-	debug("EMIF%d CS%d\t", emif_nr, cs);
+	spl_debug("EMIF%d CS%d\t", emif_nr, cs);
 
 	if (!device) {
-		debug("None\n");
+		spl_debug("None\n");
 		return;
 	}
 
@@ -807,7 +807,7 @@ static void display_sdram_details(u32 emif_nr, u32 cs,
 	} else
 		sprintf(density_str, "%d MB", density);
 	if (mfg_str && type_str)
-		debug("%s\t\t%s\t%s\n", mfg_str, type_str, density_str);
+		spl_debug("%s\t\t%s\t%s\n", mfg_str, type_str, density_str);
 }
 
 static u8 is_lpddr2_sdram_present(u32 base, u32 cs,
@@ -945,6 +945,8 @@ static void lpddr2_init(u32 base, const struct emif_regs *regs)
 	struct emif_reg_struct *emif = (struct emif_reg_struct *)base;
 	u32 nvm;
 
+	spl_debug(">>lpddr2_init() %x\n", base);
+
 	/* Not NVM */
 	nvm = readl(&emif->emif_lpddr2_nvm_config);
 	nvm &= (~OMAP44XX_REG_CS1NVMEN_MASK);
@@ -962,6 +964,8 @@ static void lpddr2_init(u32 base, const struct emif_regs *regs)
 
 	writel(regs->sdram_config, &emif->emif_sdram_config);
 	writel(regs->emif_ddr_phy_ctlr_1, &emif->emif_ddr_phy_ctrl_1);
+
+	spl_debug("<<lpddr2_init()\n");
 }
 
 static void emif_update_timings(u32 base, const struct emif_regs *regs)
@@ -1006,6 +1010,8 @@ static void do_sdram_init(u32 base)
 {
 	const struct emif_regs *regs;
 	u32 in_sdram, emif_nr;
+
+	spl_debug(">>do_sdram_init() %x\n", base);
 
 	in_sdram = running_from_sdram();
 	emif_nr = (base == OMAP44XX_EMIF1) ? 1 : 2;
@@ -1099,6 +1105,8 @@ static void do_sdram_init(u32 base)
 
 	/* Write to the shadow registers */
 	emif_update_timings(base, regs);
+
+	spl_debug("<<do_sdram_init() %x\n", base);
 }
 
 void sdram_init_pads(void)
@@ -1171,7 +1179,7 @@ static void dmm_init(u32 base)
 	sys_addr = CONFIG_SYS_SDRAM_BASE;
 	emif1_size = emif_sizes[0];
 	emif2_size = emif_sizes[1];
-	debug("emif1_size 0x%x emif2_size 0x%x\n", emif1_size, emif2_size);
+	spl_debug("emif1_size 0x%x emif2_size 0x%x\n", emif1_size, emif2_size);
 
 	if (!emif1_size && !emif2_size)
 		return;
@@ -1280,11 +1288,14 @@ static void dmm_init(u32 base)
  */
 void sdram_init(void)
 {
+	spl_debug(">>sdram_init()\n");
+
 	if (omap4_hw_init_context() == OMAP_INIT_CONTEXT_UBOOT_LOADED_BY_SPL)
 		return;
 
 	u32 in_sdram;
 	in_sdram = running_from_sdram();
+	spl_debug("in_sdram = %d\n", in_sdram);
 
 	if (!in_sdram) {
 		sdram_init_pads();
@@ -1302,4 +1313,6 @@ void sdram_init(void)
 
 	/* for the shadow registers to take effect */
 	freq_update_core();
+
+	spl_debug("<<sdram_init()\n");
 }

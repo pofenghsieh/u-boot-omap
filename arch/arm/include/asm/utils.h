@@ -25,6 +25,12 @@
 #ifndef	_UTILS_H_
 #define	_UTILS_H_
 
+#if defined(DEBUG) && defined(CONFIG_PRELOADER)
+#define spl_debug(fmt, args...)	printf(fmt, ##args)
+#else
+#define spl_debug(fmt, args...)
+#endif
+
 /* extract a bit field from a bit vector */
 #define get_bit_field(nr, start, mask)\
 	(((nr) & (mask)) >> (start))

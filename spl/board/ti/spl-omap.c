@@ -143,11 +143,13 @@ static void mmc_load_uboot(u32 mmc_dev)
 	}
 
 	boot_mode = omap_boot_mode();
-	if (boot_mode == MMCSD_MODE_RAW)
+	if (boot_mode == MMCSD_MODE_RAW) {
+		debug("boot mode - RAW\n");
 		mmc_load_uboot_raw(mmc, mmc_dev);
-	else if (boot_mode == MMCSD_MODE_FAT)
+	} else if (boot_mode == MMCSD_MODE_FAT) {
+		debug("boot mode - FAT\n");
 		mmc_load_uboot_fat(mmc);
-	else {
+	} else {
 		puts("spl: wrong MMC boot mode\n");
 		hang();
 	}
@@ -157,6 +159,7 @@ void board_init_r(gd_t *id, ulong dummy)
 {
 	u32 boot_device;
 	u_boot_entry_t u_boot_entry = (u_boot_entry_t) CONFIG_SYS_TEXT_BASE;
+	debug(">>spl:board_init_r()\n");
 
 	timer_init();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
@@ -164,6 +167,7 @@ void board_init_r(gd_t *id, ulong dummy)
 	switch (boot_device) {
 	case BOOT_DEVICE_MMC1:
 	case BOOT_DEVICE_MMC2:
+		debug("boot device - MMC2\n");
 		mmc_load_uboot(boot_device - BOOT_DEVICE_MMC1);
 		break;
 	default:
