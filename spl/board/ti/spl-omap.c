@@ -45,7 +45,9 @@ typedef void (*u_boot_entry_t)(void)__attribute__ ((noreturn));
 
 void board_init_f(ulong dummy)
 {
+	debug(">>board_init_f()\n");
 	relocate_code(CONFIG_SYS_SPL_STACK, &gdata, CONFIG_SYS_SPL_TEXT_BASE);
+	debug("<<board_init_f()\n");
 }
 
 inline void hang(void)
