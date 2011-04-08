@@ -929,7 +929,11 @@ static void do_lpddr2_init(u32 base, u32 cs)
 	while (get_mr(base, cs, LPDDR2_MR0) & LPDDR2_MR0_DAI_MASK)
 		;
 	set_mr(base, cs, LPDDR2_MR10, MR10_ZQ_ZQINIT);
-	sdelay(10);
+	/*
+	 * tZQINIT = 1 us
+	 * Enough loops assuming a maximum of 2GHz
+	 */
+	sdelay(2000);
 	set_mr(base, cs, LPDDR2_MR1, MR1_BL_8_BT_SEQ_WRAP_EN_NWR_3);
 	set_mr(base, cs, LPDDR2_MR16, MR16_REF_FULL_ARRAY);
 	/*
@@ -943,14 +947,20 @@ static void do_lpddr2_init(u32 base, u32 cs)
 static void lpddr2_init(u32 base, const struct emif_regs *regs)
 {
 	struct emif_reg_struct *emif = (struct emif_reg_struct *)base;
-	u32 nvm;
 
 	spl_debug(">>lpddr2_init() %x\n", base);
 
 	/* Not NVM */
-	nvm = readl(&emif->emif_lpddr2_nvm_config);
-	nvm &= (~OMAP44XX_REG_CS1NVMEN_MASK);
-	writel(nvm, &emif->emif_lpddr2_nvm_config);
+	modify_reg_32(&emif->emif_lpddr2_nvm_config,
+		OMAP44XX_REG_CS1NVMEN_SHIFT, OMAP44XX_REG_CS1NVMEN_MASK, 0);
+	/*
+	 * Keep REG_INITREF_DIS = 1 to prevent re-initialization of SDRAM
+	 * when EMIF_SDRAM_CONFIG register is written
+	 */
+	modify_reg_32(&emif->emif_sdram_ref_ctrl,
+		OMAP44XX_REG_INITREF_DIS_SHIFT,
+		OMAP44XX_REG_INITREF_DIS_MASK, 1);
+
 	/*
 	 * Set the SDRAM_CONFIG and PHY_CTRL for the
 	 * un-locked frequency & default RL
@@ -964,6 +974,11 @@ static void lpddr2_init(u32 base, const struct emif_regs *regs)
 
 	writel(regs->sdram_config, &emif->emif_sdram_config);
 	writel(regs->emif_ddr_phy_ctlr_1, &emif->emif_ddr_phy_ctrl_1);
+
+	/* Enable refresh now */
+	modify_reg_32(&emif->emif_sdram_ref_ctrl,
+		OMAP44XX_REG_INITREF_DIS_SHIFT,
+		OMAP44XX_REG_INITREF_DIS_MASK, 0);
 
 	spl_debug("<<lpddr2_init()\n");
 }
@@ -1313,6 +1328,14 @@ void sdram_init(void)
 
 	/* for the shadow registers to take effect */
 	freq_update_core();
+
+#ifdef DEBUG
+	writel(0xDEADBEEF, CONFIG_SYS_SDRAM_BASE);
+	if (readl(CONFIG_SYS_SDRAM_BASE) == 0xDEADBEEF)
+		spl_debug("SDRAM Init success!\n");
+	else
+		spl_debug("SDRAM Init failed!!\n");
+#endif
 
 	spl_debug("<<sdram_init()\n");
 }
