@@ -36,24 +36,13 @@
  * published by the Free Software Foundation.
  */
 #include <common.h>
-#include <asm/arch/gpio.h>
+#include <asm/omap_gpio.h>
 #include <asm/io.h>
 #include <asm/errno.h>
 
-static struct gpio_bank gpio_bank_34xx[6] = {
-	{ (void *)OMAP34XX_GPIO1_BASE, METHOD_GPIO_24XX },
-	{ (void *)OMAP34XX_GPIO2_BASE, METHOD_GPIO_24XX },
-	{ (void *)OMAP34XX_GPIO3_BASE, METHOD_GPIO_24XX },
-	{ (void *)OMAP34XX_GPIO4_BASE, METHOD_GPIO_24XX },
-	{ (void *)OMAP34XX_GPIO5_BASE, METHOD_GPIO_24XX },
-	{ (void *)OMAP34XX_GPIO6_BASE, METHOD_GPIO_24XX },
-};
-
-static struct gpio_bank *gpio_bank = &gpio_bank_34xx[0];
-
 static inline struct gpio_bank *get_gpio_bank(int gpio)
 {
-	return &gpio_bank[gpio >> 5];
+	return &omap_gpio_bank[gpio >> 5];
 }
 
 static inline int get_gpio_index(int gpio)

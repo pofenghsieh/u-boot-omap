@@ -38,6 +38,7 @@
 #include <asm/arch/mem.h>
 #include <asm/cache.h>
 #include <asm/armv7.h>
+#include <asm/omap_gpio.h>
 
 /* Declarations */
 extern omap3_sysinfo sysinfo;
@@ -392,3 +393,14 @@ void v7_outer_cache_disable(void)
 }
 
 #endif
+
+static struct gpio_bank gpio_bank_34xx[6] = {
+	{ (void *)OMAP34XX_GPIO1_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP34XX_GPIO2_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP34XX_GPIO3_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP34XX_GPIO4_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP34XX_GPIO5_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP34XX_GPIO6_BASE, METHOD_GPIO_24XX },
+};
+
+struct gpio_bank *omap_gpio_bank = gpio_bank_34xx;

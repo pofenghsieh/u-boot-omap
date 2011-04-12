@@ -33,6 +33,8 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/sizes.h>
 #include <asm/arch/emif.h>
+#include <asm/utils.h>
+#include <asm/omap_gpio.h>
 #include "omap4_mux_data.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -235,6 +237,17 @@ const char *omap4_rev_string(void)
 	}
 	return omap4_rev;
 }
+
+static struct gpio_bank gpio_bank_44xx[6] = {
+	{ (void *)OMAP44XX_GPIO1_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP44XX_GPIO2_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP44XX_GPIO3_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP44XX_GPIO4_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP44XX_GPIO5_BASE, METHOD_GPIO_24XX },
+	{ (void *)OMAP44XX_GPIO6_BASE, METHOD_GPIO_24XX },
+};
+
+struct gpio_bank *omap_gpio_bank = gpio_bank_44xx;
 
 /*
  * Routine: s_init

@@ -68,6 +68,8 @@ struct gpio_bank {
 	int method;
 };
 
+extern struct gpio_bank *omap_gpio_bank;
+
 #define METHOD_GPIO_24XX	4
 
 /* This is the interface */
