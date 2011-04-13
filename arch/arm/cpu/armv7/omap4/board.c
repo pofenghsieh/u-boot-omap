@@ -57,6 +57,12 @@ static void set_muxconf_regs_essential(void)
 	do_set_mux(CONTROL_PADCONF_WKUP, wkup_padconf_array_essential,
 		   sizeof(wkup_padconf_array_essential) /
 		   sizeof(struct pad_conf_entry));
+	/*
+	 * Changes for OMAP4460:
+	 * gpio_wk7 is used for TPS controlling
+	 */
+	if (omap4_revision() >= OMAP4460_ES1_0)
+		writel(M3, CONTROL_PADCONF_WKUP + PAD1_FREF_CLK4_REQ);
 }
 
 #ifdef CONFIG_PRELOADER

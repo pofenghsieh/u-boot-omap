@@ -34,6 +34,7 @@
 #include <asm/arch/clocks.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/utils.h>
+#include <asm/omap_gpio.h>
 
 #define abs(x) (((x) < 0) ? ((x)*-1) : (x))
 
@@ -492,6 +493,29 @@ static void setup_non_essential_dplls(void)
 	do_setup_dpll(CM_CLKMODE_DPLL_ABE, params, DPLL_LOCK);
 }
 
+static void do_scale_tps62361(u32 reg, u32 val)
+{
+	u32 temp;
+
+	/*
+	 * Select SET1 in TPS62361:
+	 * VSEL1 is grounded on board. So the following selects
+	 * VSEL1 = 0 and VSEL0 = 1
+	 */
+	omap_set_gpio_direction(TPS62361_VSEL0_GPIO, 0);
+	omap_set_gpio_dataout(TPS62361_VSEL0_GPIO, 1);
+
+	temp = TPS62361_I2C_SLAVE_ADDR |
+	    (reg << PRM_VC_VAL_BYPASS_REGADDR_SHIFT) |
+	    (val << PRM_VC_VAL_BYPASS_DATA_SHIFT) |
+	    PRM_VC_VAL_BYPASS_VALID_BIT;
+
+	writel(temp, PRM_VC_VAL_BYPASS);
+
+	while (readl(PRM_VC_VAL_BYPASS) & PRM_VC_VAL_BYPASS_VALID_BIT)
+		;
+}
+
 static void do_scale_vcore(u32 vcore_reg, u32 volt)
 {
 	u32 temp;
@@ -529,11 +553,16 @@ static void scale_vcores(void)
 	writel(0x0, PRM_VC_CFG_I2C_MODE);
 
 	/* VCORE 1 */
-	if ((omap4_rev == OMAP4430_ES2_0) || (omap4_rev == OMAP4430_ES2_1))
-		volt = SMPS_VOLT_1_3500_V;
-	else
-		volt = SMPS_VOLT_1_5000_V;
-	do_scale_vcore(SMPS_REG_ADDR_VCORE1, volt);
+	if (omap4_rev >= OMAP4460_ES1_0) {
+		volt = 1400;
+		volt -= TPS62361_BASE_VOLT_MV;
+		volt /= 10;
+		do_scale_tps62361(TPS62361_REG_ADDR_SET1, volt);
+	} else if (omap4_rev == OMAP4430_ES1_0) {
+		do_scale_vcore(SMPS_REG_ADDR_VCORE1, SMPS_VOLT_1_5000_V);
+	} else {
+		do_scale_vcore(SMPS_REG_ADDR_VCORE1, SMPS_VOLT_1_3500_V);
+	}
 
 	/* VCORE 2 */
 	if ((omap4_rev == OMAP4430_ES2_0) || (omap4_rev == OMAP4430_ES2_1))
