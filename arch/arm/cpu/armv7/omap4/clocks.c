@@ -781,9 +781,9 @@ void prcm_init(void)
 	case OMAP_INIT_CONTEXT_SPL:
 	case OMAP_INIT_CONTEXT_XIP_UBOOT:
 	case OMAP_INIT_CONTEXT_UBOOT_LOADED_BY_CH:
+		enable_basic_clocks();
 		scale_vcores();
 		setup_dplls();
-		enable_basic_clocks();
 		setup_non_essential_dplls();
 		enable_non_essential_clocks();
 		break;

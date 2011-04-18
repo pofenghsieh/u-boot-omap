@@ -62,7 +62,7 @@ static void set_muxconf_regs_essential(void)
 	 * gpio_wk7 is used for TPS controlling
 	 */
 	if (omap4_revision() >= OMAP4460_ES1_0)
-		writel(M3, CONTROL_PADCONF_WKUP + PAD1_FREF_CLK4_REQ);
+		writew(M3, CONTROL_PADCONF_WKUP + PAD1_FREF_CLK4_REQ);
 }
 
 #ifdef CONFIG_PRELOADER
