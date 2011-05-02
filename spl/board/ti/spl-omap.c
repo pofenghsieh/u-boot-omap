@@ -162,11 +162,19 @@ static void mmc_load_uboot(u32 mmc_dev)
 void board_init_r(gd_t *id, ulong dummy)
 {
 	u32 boot_device;
+	u8 val;
+	u8 val2 = 0;
 	u_boot_entry_t u_boot_entry = (u_boot_entry_t) CONFIG_SYS_TEXT_BASE;
 	debug(">>spl:board_init_r()\n");
 
 	timer_init();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+	printf("vmem:i2c\n");
+	val = 0xe0;
+	i2c_write(0x48, 0x66, 1, &val, 1);
+	printf("vmem:off\n");
+	i2c_read(0x48, 0x66, 1, &val2, 1);
+	printf("vmem:off state %x\n", val2);
 	boot_device = omap_boot_device();
 	switch (boot_device) {
 	case BOOT_DEVICE_MMC1:
