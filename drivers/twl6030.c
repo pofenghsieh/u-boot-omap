@@ -486,15 +486,13 @@ void twl6030_init_battery_charging(void)
 
 		printf("\rBattery Voltage: %d mV", battery_volt);
 
-		/*
-		 * Poll battery at regular interval. Use Longer poll period
-		 * if charging; and shorter if not. Look for charger presence
-		 * during this time.
-		 */
+		/* reset safety timer */
+		twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, 32,
+					CONTROLLER_WDG);
+
 		timeout = (charger_state == CHARGING)?
 			L_BATT_POLL_TIMEOUT : S_BATT_POLL_TIMEOUT;
 
-		//printf("State %d Charger %d   \n",Charging, charger_state);
 		while (charger_state == is_charger_present() && timeout--)
 			udelay(POLL_INTERVAL);
 
