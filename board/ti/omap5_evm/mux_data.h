@@ -266,8 +266,13 @@ const struct pad_conf_entry core_padconf_array_non_essential[] = {
 
 const struct pad_conf_entry wkup_padconf_array_non_essential[] = {
 
-	{LLIA_WAKEREQIN, (IEN | M1)},    /*  C2C_WAKEREQIN  */
-	{LLIB_WAKEREQIN, (IEN | M1)},    /*  SYS_C2C_PWKUP  */
+/*
+ * This pad keeps C2C Module always enabled.
+ * Putting this in safe mode do not cause the issue.
+ * C2C driver could enable this mux setting if needed.
+ */
+	{LLIA_WAKEREQIN, (M7)},    /*  SAFE MODE  */
+	{LLIB_WAKEREQIN, (M7)},    /*  SAFE MODE  */
 	{DRM_EMU0, (PTU | IEN | M0)},    /*  DRM_EMU0    */
 	{DRM_EMU1, (PTU | IEN | M0)},    /*  DRM_EMU1    */
 	{JTAG_NTRST, (IEN | M0)},    /*  JTAG_NTRST  */
