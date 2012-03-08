@@ -321,7 +321,6 @@ static void setup_dplls(void)
 #endif
 }
 
-#ifdef CONFIG_UBOOT_CLOCKS_ENABLE_ALL
 static void setup_non_essential_dplls(void)
 {
 	u32 sys_clk_khz, abe_ref_clk;
@@ -364,7 +363,6 @@ static void setup_non_essential_dplls(void)
 	/* Lock the dpll */
 	do_setup_dpll(&prcm->cm_clkmode_dpll_abe, params, DPLL_LOCK, "abe");
 }
-#endif
 
 void do_scale_tps62361(u32 reg, u32 volt_mv)
 {
@@ -603,8 +601,8 @@ void prcm_init(void)
 
 	if (OMAP_INIT_CONTEXT_SPL != omap_hw_init_context())
 	{
-#ifdef CONFIG_UBOOT_CLOCKS_ENABLE_ALL
 		setup_non_essential_dplls();
+#ifdef CONFIG_UBOOT_CLOCKS_ENABLE_ALL
 		enable_non_essential_clocks();
 #endif
 		enable_basic_uboot_clocks();
