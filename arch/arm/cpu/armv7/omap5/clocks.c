@@ -498,6 +498,7 @@ void enable_non_essential_clocks(void)
 		&prcm->cm_l3instr_intrconn_wp1_clkctrl,
 		&prcm->cm_l3init_hsi_clkctrl,
 		&prcm->cm_l3init_hsusbtll_clkctrl,
+		&prcm->cm_l4per_hdq1w_clkctrl,
 		0
 	};
 
@@ -521,7 +522,6 @@ void enable_non_essential_clocks(void)
 		&prcm->cm_l4per_gptimer11_clkctrl,
 		&prcm->cm_l4per_gptimer3_clkctrl,
 		&prcm->cm_l4per_gptimer4_clkctrl,
-		&prcm->cm_l4per_hdq1w_clkctrl,
 		&prcm->cm_l4per_mcspi2_clkctrl,
 		&prcm->cm_l4per_mcspi3_clkctrl,
 		&prcm->cm_l4per_mcspi4_clkctrl,
