@@ -164,8 +164,15 @@ int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 		return battery_volt;
 	}
 
-	if (gpadc->twl_chip_type == chip_TWL6030)
-		battery_volt = (battery_volt * 25 * 1000) >> (10 + 2);
+	if (gpadc->twl_chip_type == chip_TWL6030) {
+
+		/*
+		 * multiply by 1000 to convert the unit to milli
+		 * division by 1024 (>> 10) for 10 bit ADC
+		 * division by 8 (>> 3) for actual scaler gain
+		 */
+		battery_volt = (battery_volt * 40 * 1000) >> (10 + 3);
+	}
 	else
 		battery_volt = (battery_volt * 25 * 1000) >> (12 + 2);
 
@@ -203,8 +210,11 @@ void twl6030_init_battery_charging(void)
 	}
 
 	/* Enable VBAT measurement */
-	if (gpadc.twl_chip_type == chip_TWL6030)
+	if (gpadc.twl_chip_type == chip_TWL6030) {
 		twl6030_i2c_write_u8(TWL6030_CHIP_PM, VBAT_MEAS, MISC1);
+		twl6030_i2c_write_u8(TWL6030_CHIP_ADC, GPADC_CTRL_SCALER_DIV4,
+			TWL6030_GPADC_CTRL);
+	}
 	else
 		twl6030_i2c_write_u8(TWL6030_CHIP_ADC, GPADC_CTRL2_CH18_SCALER_EN, TWL6032_GPADC_CTRL2);
 
