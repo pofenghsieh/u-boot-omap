@@ -413,6 +413,13 @@ void twl6030_init_battery_charging(void)
 				"TWL6030 will be used\n");
 	}
 
+	/* Forced stop charging */
+	charging = CHARGING_USB;
+	ret = twl6030_stop_usb_charging();
+	if (ret == 0 ) {
+	        printf("Failed to stop charging\n");
+	}
+
 	/* Calibration */
 	ret = twl6030_calibration();
 	if (ret) {
