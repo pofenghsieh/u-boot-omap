@@ -35,29 +35,6 @@ static inline int twl6030_i2c_read_u8(u8 chip_no, u8 *val, u8 reg)
 	return i2c_read(chip_no, reg, 1, val, 1);
 }
 
-static int twl6030_gpadc_read_channel(t_twl6030_gpadc_data * gpadc, u8 channel_no)
-{
-	u8 lsb = 0;
-	u8 msb = 0;
-	int ret = 0;
-	u8 channel = channel_no;
-
-	if (gpadc->twl_chip_type == chip_TWL6032)
-		channel = 0;
-
-	ret = twl6030_i2c_read_u8(TWL6030_CHIP_ADC, &lsb,
-			gpadc->rbase + channel * 2);
-	if (ret)
-		return ret;
-
-	ret = twl6030_i2c_read_u8(TWL6030_CHIP_ADC, &msb,
-			gpadc->rbase + 1 + channel * 2);
-	if (ret)
-		return ret;
-
-	return (msb << 8) | lsb;
-}
-
 static int twl6030_gpadc_sw2_trigger(t_twl6030_gpadc_data * gpadc)
 {
 	u8 val;
@@ -65,7 +42,7 @@ static int twl6030_gpadc_sw2_trigger(t_twl6030_gpadc_data * gpadc)
 
 	ret = twl6030_i2c_write_u8(TWL6030_CHIP_ADC, gpadc->enable, gpadc->ctrl);
 	if (ret)
-		return ret;
+		return -1;
 
 	/* Waiting until the SW1 conversion ends*/
 	val =  TWL6030_GPADC_BUSY;
@@ -73,13 +50,46 @@ static int twl6030_gpadc_sw2_trigger(t_twl6030_gpadc_data * gpadc)
 	while (!((val & TWL6030_GPADC_EOC_SW) && (!(val & TWL6030_GPADC_BUSY)))) {
 		ret = twl6030_i2c_read_u8(TWL6030_CHIP_ADC, &val, gpadc->ctrl);
 		if (ret)
-			return ret;
+			return -1;
 		udelay(1000);
 	}
 
 	return 0;
 }
 
+static int twl6030_gpadc_read_channel(t_twl6030_gpadc_data * gpadc, u8 channel_no)
+{
+	u8 lsb = 0;
+	u8 msb = 0;
+	int ret;
+	u8 channel = channel_no;
+
+	if (gpadc->twl_chip_type == chip_TWL6032) {
+		ret = twl6030_i2c_write_u8(TWL6030_CHIP_ADC, channel_no,
+				TWL6032_GPSELECT_ISB);
+		if (ret)
+			return -1;
+	}
+
+	ret = twl6030_gpadc_sw2_trigger(gpadc);
+	if (ret)
+		return ret;
+
+	if (gpadc->twl_chip_type == chip_TWL6032)
+		channel = 0;
+
+	ret = twl6030_i2c_read_u8(TWL6030_CHIP_ADC, &lsb,
+			gpadc->rbase + channel * 2);
+	if (ret)
+		return -1;
+
+	ret = twl6030_i2c_read_u8(TWL6030_CHIP_ADC, &msb,
+			gpadc->rbase + 1 + channel * 2);
+	if (ret)
+		return -1;
+
+	return (msb << 8) | lsb;
+}
 
 void twl6030_start_usb_charging(void)
 {
@@ -102,29 +112,56 @@ void twl6030_start_usb_charging(void)
 	return;
 }
 
+int is_battery_present(t_twl6030_gpadc_data * gpadc)
+{
+	int bat_id_val;
+	unsigned int current_src_val;
+	u8 reg;
+	int ret;
+
+	bat_id_val = twl6030_gpadc_read_channel(gpadc, 0);
+	if (bat_id_val < 0) {
+		printf("Failed to read GPADC\n");
+		return bat_id_val;
+	}
+
+	if (gpadc->twl_chip_type == chip_TWL6030)
+		bat_id_val = (bat_id_val* 5 * 1000) >> (10 + 2);
+	else
+		bat_id_val = (bat_id_val * 5 * 1000) >> (12 + 2);
+
+	ret = twl6030_i2c_read_u8(TWL6030_CHIP_ADC, &reg, GPADC_CTRL);
+	if (ret) {
+		printf("Failed to read GPADC\n");
+		return -1;
+	}
+
+	current_src_val = (reg & GPADC_CTRL_ISOURCE_EN) ?
+				GPADC_ISOURCE_22uA :
+				GPADC_ISOURCE_7uA;
+
+	bat_id_val = (bat_id_val * 1000) / current_src_val;
+
+	if (bat_id_val < BATTERY_DETECT_THRESHOLD)
+		return 0;
+
+	return 1;
+}
+
 int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 {
 	int battery_volt = 0;
-	int ret = 0;
+
 	u8 vbatch = TWL6030_GPADC_VBAT_CHNL;
 
-	if (gpadc->twl_chip_type == chip_TWL6032) {
+	if (gpadc->twl_chip_type == chip_TWL6032)
 		vbatch = TWL6032_GPADC_VBAT_CHNL;
-		twl6030_i2c_write_u8(TWL6030_CHIP_ADC, vbatch, TWL6032_GPSELECT_ISB);
-	}
-
-	/* Start GPADC SW conversion */
-	ret = twl6030_gpadc_sw2_trigger(gpadc);
-	if (ret) {
-		printf("Failed to convert battery voltage\n");
-		return ret;
-	}
 
 	/* measure Vbat voltage */
 	battery_volt = twl6030_gpadc_read_channel(gpadc, vbatch);
 	if (battery_volt < 0) {
 		printf("Failed to read battery voltage\n");
-		return ret;
+		return battery_volt;
 	}
 
 	if (gpadc->twl_chip_type == chip_TWL6030)
@@ -137,7 +174,6 @@ int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 
 void twl6030_init_battery_charging(void)
 {
-	u8 stat1 = 0;
 	int battery_volt = 0;
 	int ret = 0;
 	t_twl6030_gpadc_data gpadc;
@@ -166,8 +202,6 @@ void twl6030_init_battery_charging(void)
 				"TWL6030 will be used\n");
 	}
 
-	twl6030_start_usb_charging();
-
 	/* Enable VBAT measurement */
 	if (gpadc.twl_chip_type == chip_TWL6030)
 		twl6030_i2c_write_u8(TWL6030_CHIP_PM, VBAT_MEAS, MISC1);
@@ -187,6 +221,15 @@ void twl6030_init_battery_charging(void)
 	 */
 	if (gpadc.twl_chip_type == chip_TWL6032)
 		twl6030_gpadc_sw2_trigger(&gpadc);
+
+	/*
+	 * In case if battery is absent or error occurred while the battery
+	 * detection we will not turn on the battery charging
+	 */
+	if (is_battery_present(&gpadc) <= 0)
+		return;
+
+	twl6030_start_usb_charging();
 
 	battery_volt = twl6030_get_battery_voltage(&gpadc);
 	if (battery_volt < 0)
