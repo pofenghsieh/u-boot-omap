@@ -23,6 +23,7 @@
 #ifdef CONFIG_TWL6030
 
 #include <twl6030.h>
+#include <bq2415x.h>
 
 #define L_BATT_POLL_PERIOD		20000000	/* 20 seconds */
 #define S_BATT_POLL_PERIOD		2000000		/* 2 seconds */
@@ -36,12 +37,14 @@
 /* Charging Active */
 enum {
 	NOT_CHARGING = 0,
+	CHARGING_AC,
 	CHARGING_USB
 };
 
 /* Charger Presence */
 enum {
 	NO_CHARGER = 0,
+	VAC_CHARGER,
 	VBUS_CHARGER
 };
 
@@ -181,8 +184,10 @@ static int is_charger_present(void)
 				  CONTROLLER_STAT1);
 	if (ret)
 		return NO_CHARGER;
-	if (val & VBUS_DET)
-		return CHARGER;
+	if (val & VAC_DET)
+		return VAC_CHARGER;
+	else if (val & VBUS_DET)
+		return VBUS_CHARGER;
 
 	return NO_CHARGER;
 }
@@ -260,6 +265,34 @@ int twl6030_start_usb_charging(void)
 	return 1;
 }
 
+int twl6030_start_ac_charging(void)
+{
+	/*
+	 * Only start charging if currently
+	 * not charging and there is a charger
+	 */
+	if(charging != NOT_CHARGING)
+		return 0;
+
+        twl6030_i2c_write_u8(BQ2415x_CHIP_CHARGER, MAX_CHARGE_CURRENT,
+                                                BQ2415x_SAFETY_LIMIT_REG);
+        twl6030_i2c_write_u8(BQ2415x_CHIP_CHARGER, NO_INPUT_CURRENT_LIMIT,
+                                                BQ2415x_CONTROL_REG);
+        twl6030_i2c_write_u8(BQ2415x_CHIP_CHARGER, RGULATION_VOLTAGE,
+                                                BQ2415x_VOLTAGE_REG);
+        twl6030_i2c_write_u8(BQ2415x_CHIP_CHARGER, CHARGE_CURRENT,
+                                                BQ2415x_CURRENT_REG);
+        twl6030_i2c_write_u8(BQ2415x_CHIP_CHARGER, NORMAL_CHARGE_CURRENT,
+                                                BQ2415x_SPECIAL_REG);
+        /* enable AC charging */
+        twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CONTROLLER_CTRL1_EN_CHARGER
+                                                | CONTROLLER_CTRL1_SEL_CHARGER,
+                                                CONTROLLER_CTRL1);
+	charging = CHARGING_AC;
+
+	return 1;
+}
+
 static int is_battery_present(t_twl6030_gpadc_data * gpadc)
 {
 	int bat_id_val;
@@ -321,16 +354,18 @@ int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 		return battery_volt;
 	}
 
+	if(stopped_charging) {
+		if (saved_charging == CHARGING_USB)
+			twl6030_start_usb_charging();
+		else
+			twl6030_start_ac_charging();
+	}
 	/* Offset calibration data */
 	if(channel_calib_data[ADC_CH7].calibrated) {
 		battery_volt = (battery_volt * SCALE -
 		channel_calib_data[ADC_CH7].offset_err)/
 		channel_calib_data[ADC_CH7].gain_err;
 	}
-
-	if (stopped_charging)
-		if (saved_charging == CHARGING_USB)
-			twl6030_start_usb_charging();
 
 	if (gpadc->twl_chip_type == chip_TWL6030) {
 		/*
@@ -467,9 +502,11 @@ void twl6030_init_battery_charging(void)
 		return;
 
 	charger_state = is_charger_present();
-	if (charger_state == VBUS_CHARGER)
+	if (charger_state == VAC_CHARGER)
+		ret = twl6030_start_ac_charging();
+	else if (charger_state == VBUS_CHARGER)
 		ret = twl6030_start_usb_charging();
-	if (charger_state == NO_CHARGER || ret==0) {
+	if (charger_state == NO_CHARGER || ret==0){
 		printf("Charger not detected.");
 		goto shutdown;
 	}
@@ -492,6 +529,9 @@ void twl6030_init_battery_charging(void)
 		twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, 32,
 					CONTROLLER_WDG);
 
+		twl6030_i2c_write_u8(BQ2415x_CHIP_CHARGER,
+                                                        TMR_RST | EN_STAT,
+                                                        BQ2415x_STATUS_CTRL_REG);
 		timeout = (charger_state == NO_CHARGER)?
 			S_BATT_POLL_TIMEOUT : L_BATT_POLL_TIMEOUT;
 
@@ -503,12 +543,15 @@ void twl6030_init_battery_charging(void)
 
 			charger_state = is_charger_present();
 
-			if (charging != NOT_CHARGING) {
+			if (charging != NOT_CHARGING){
 				ret = twl6030_stop_usb_charging();
 			}
 
 			if (charging == NOT_CHARGING) {
-				if (charger_state == VBUS_CHARGER) {
+				if (charger_state == VAC_CHARGER) {
+					/* VAC Charger plugged */
+					twl6030_start_ac_charging();
+				} else if (charger_state == VBUS_CHARGER) {
 					/* VBUS Charger plugged */
 					twl6030_start_usb_charging();
 				}
