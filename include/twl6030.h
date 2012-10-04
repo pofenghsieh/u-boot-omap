@@ -43,6 +43,15 @@
 #define GPADC_CTRL2_CH18_SCALER_EN	(1 << 2)
 #define GPADC_CTRL_SCALER_DIV4		(1 << 3)
 
+/* PM REGISTERS */
+#define TWL6030_PHOENIX_DEV_ON		0x25
+#define APP_DEVOFF			(1<<0)
+#define CON_DEVOFF			(1<<1)
+#define MOD_DEVOFF			(1<<2)
+
+#define STS_HW_CONDITIONS		0x21
+#define STS_PLUG_DET			(1<<3)
+
 /* Battery CHARGER REGISTERS */
 #define CONTROLLER_INT_MASK	0xE0
 #define CONTROLLER_CTRL1	0xE1

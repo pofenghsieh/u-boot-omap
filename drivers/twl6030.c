@@ -91,6 +91,46 @@ static int twl6030_gpadc_read_channel(t_twl6030_gpadc_data * gpadc, u8 channel_n
 	return (msb << 8) | lsb;
 }
 
+/*
+ * Function to determine if either a PC or Wall USB is attached
+ * returns 1 if a charger is present; and 0 if not.
+ */
+static int is_charger_present(void)
+{
+	u8 val;
+	int ret;
+
+	ret = twl6030_i2c_read_u8(TWL6030_CHIP_CHARGER, &val,
+				  CONTROLLER_STAT1);
+	if (ret)
+		return 0;
+	if (val & VBUS_DET)
+		return 1;
+
+	return 0;
+}
+
+/*
+ * Function to power down TWL and device
+ * It should not return as device will be powered off
+ */
+void twl6030_shutdown(void)
+{
+	u8 val;
+
+	twl6030_i2c_read_u8(TWL6030_CHIP_PM, &val,
+		TWL6030_PHOENIX_DEV_ON);
+
+	/* Write out all 3 bits to shtudown PMIC power */
+	val |= APP_DEVOFF | CON_DEVOFF | MOD_DEVOFF;
+
+	twl6030_i2c_write_u8(TWL6030_CHIP_PM, val,
+		TWL6030_PHOENIX_DEV_ON);
+
+	/* TWL should be powered off here */
+	while(1) {}
+}
+
 void twl6030_start_usb_charging(void)
 {
 	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CHARGERUSB_VICHRG_1500,
@@ -239,8 +279,6 @@ void twl6030_init_battery_charging(void)
 	if (is_battery_present(&gpadc) <= 0)
 		return;
 
-	twl6030_start_usb_charging();
-
 	battery_volt = twl6030_get_battery_voltage(&gpadc);
 	if (battery_volt < 0)
 		return;
@@ -290,7 +328,14 @@ void twl6030_init_battery_charging(void)
 
 		if (!abort)
 		{
+			if(!is_charger_present()) {
+				printf("Charger not detected. Proceed to shutdown\n");
+				goto shutdown;
+			}
+
 			printf("Charging...\n");
+
+			twl6030_start_usb_charging();
 
 			/* wait for battery to charge to the level when kernel can boot */
 			while (battery_volt < 3400) {
@@ -300,6 +345,14 @@ void twl6030_init_battery_charging(void)
 			printf("\n");
 		}
 	}
+
+	return;
+
+shutdown:
+
+	twl6030_shutdown();
+	return;	/*Should never get here */
+
 }
 
 void twl6030_usb_device_settings()
