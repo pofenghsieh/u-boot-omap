@@ -30,6 +30,7 @@
 #define TWL6030_CHIP_ADC	0x49
 #define TWL6030_CHIP_CHARGER	0x49
 #define TWL6030_CHIP_PWM	0x49
+#define TWL6030_CHIP_ID2	0x4A
 
 #define TWL6032_GPSELECT_ISB	0x35
 
@@ -51,6 +52,11 @@
 
 #define STS_HW_CONDITIONS		0x21
 #define STS_PLUG_DET			(1<<3)
+
+/* ADC REGISTERS */
+#define GPADC_CTRL_ISOURCE_EN		(1 << 7)
+#define GPADC_ISOURCE_22uA		22
+#define GPADC_ISOURCE_7uA		7
 
 /* Battery CHARGER REGISTERS */
 #define CONTROLLER_INT_MASK	0xE0
@@ -140,6 +146,8 @@
 #define VUSB_CFG_STATE		0xA2
 #define MISC2			0xE5
 
+#define SCALE			(1<<15)
+
 #define USB_PRODUCT_ID_LSB	0x02
 
 #define TWL6030_GPADC_VBAT_CHNL	0x07
@@ -164,6 +172,24 @@ typedef struct{
 	u8 ctrl;
 	u8 enable;
 }t_twl6030_gpadc_data;
+
+typedef struct {
+	int     channel;
+	u8      delta_err_reg1;
+	u8      delta_err_reg2;
+	int     ideal_code1;
+	int     ideal_code2;
+	int     gain_err;
+	int     offset_err;
+	int     calibrated;
+}t_channel_calibration_info;
+
+typedef enum {
+	ADC_CH0 = 0,	/* BATT_PRESENCE */
+	ADC_CH7,	/* BATT_VOLTAGE */
+	ADC_CHANNEL_MAX
+}t_adc_channels;
+
 
 void twl6030_init_battery_charging(void);
 void twl6030_usb_device_settings(void);

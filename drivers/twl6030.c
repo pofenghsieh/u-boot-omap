@@ -24,6 +24,40 @@
 
 #include <twl6030.h>
 
+#define L_BATT_POLL_PERIOD		20000000	/* 20 seconds */
+#define S_BATT_POLL_PERIOD		1000000		/* 1 second */
+#define POLL_INTERVAL			100000		/* 100 ms */
+#define L_BATT_POLL_TIMEOUT		(L_BATT_POLL_PERIOD/POLL_INTERVAL)
+#define S_BATT_POLL_TIMEOUT		(S_BATT_POLL_PERIOD/POLL_INTERVAL)
+#define CHARGE_DELAY			5
+#define SHUTDOWN_COUNT			10
+#define BOOT_VOLTAGE			3400		/* 3.4V */
+
+/* Charging Active */
+enum {
+	NOT_CHARGING = 0,
+	CHARGING
+};
+
+/* Charger Presence */
+enum {
+	NO_CHARGER = 0,
+	CHARGER
+};
+
+/* Battery Presence */
+enum {
+	NO_BATTERY = 0,
+	BATTERY
+};
+
+static int charging = 0;
+
+static t_channel_calibration_info channel_calib_data[2] = {
+	{0, 0xCD, 0xCE, 116, 745, 0, 0, 0}, /* BATT_PRESENCE */
+	{7, 0xD3, 0xD4, 614, 941, 0, 0, 0}  /* BATT_VOLTAGE  */
+};
+
 /* Functions to read and write from TWL6030 */
 static inline int twl6030_i2c_write_u8(u8 chip_no, u8 val, u8 reg)
 {
@@ -90,10 +124,53 @@ static int twl6030_gpadc_read_channel(t_twl6030_gpadc_data * gpadc, u8 channel_n
 
 	return (msb << 8) | lsb;
 }
+/*
+ * Function to read in calibration errors and offset data
+ * for later ADC conversion use
+ */
+static int twl6030_calibration(void)
+{
+	int i;
+	int ret = 1;
+	int gain_error_1;
+	int offset_error;
+	s16 ideal_code1, ideal_code2;
+	u8 tmp1, tmp2;
+	s8 delta_error1, delta_error2;
+
+	for (i = ADC_CH0; i < ADC_CHANNEL_MAX; i++) {
+
+		ret = twl6030_i2c_read_u8(TWL6030_CHIP_ID2, &tmp1,
+			channel_calib_data[i].delta_err_reg1);
+		if (ret)
+			return -1;
+
+		ret = twl6030_i2c_read_u8(TWL6030_CHIP_ID2, &tmp2,
+			channel_calib_data[i].delta_err_reg2);
+		if (ret)
+			return -1;
+
+		delta_error1 = ((s8)(tmp1 << 1) >> 1);
+		delta_error2 = ((s8)(tmp2 << 1) >> 1);
+		ideal_code1 = channel_calib_data[i].ideal_code1;
+		ideal_code2 = channel_calib_data[i].ideal_code2;
+
+		gain_error_1 = (delta_error2 - delta_error1) * SCALE
+					/ (ideal_code2 - ideal_code1);
+		offset_error = delta_error1 * SCALE - gain_error_1
+					*  ideal_code1;
+		channel_calib_data[i].gain_err = gain_error_1 + SCALE;
+		channel_calib_data[i].offset_err = offset_error;
+
+		channel_calib_data[i].calibrated = 1;
+
+	}
+
+	return 0;
+}
 
 /*
  * Function to determine if either a PC or Wall USB is attached
- * returns 1 if a charger is present; and 0 if not.
  */
 static int is_charger_present(void)
 {
@@ -103,11 +180,11 @@ static int is_charger_present(void)
 	ret = twl6030_i2c_read_u8(TWL6030_CHIP_CHARGER, &val,
 				  CONTROLLER_STAT1);
 	if (ret)
-		return 0;
+		return NO_CHARGER;
 	if (val & VBUS_DET)
-		return 1;
+		return CHARGER;
 
-	return 0;
+	return NO_CHARGER;
 }
 
 /*
@@ -131,8 +208,38 @@ void twl6030_shutdown(void)
 	while(1) {}
 }
 
-void twl6030_start_usb_charging(void)
+/*
+ * Function to stop USB charging if charging
+ * was enabled. Returns 1 if charging is disabled;
+ * and 0 if it is not disabled.
+ */
+int twl6030_stop_usb_charging(void)
 {
+	if(charging == NOT_CHARGING)
+		return 0;
+
+	/* Disable USB charging */
+	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, 0, CONTROLLER_CTRL1);
+
+	charging = NOT_CHARGING;
+
+	return 1;
+}
+/*
+ * Function to start USB charging if charging
+ * was disabled and charger is now present.
+ * Returns 1 if charging is enabled;
+ * and 0 if it is not enabled.
+ */
+int twl6030_start_usb_charging(void)
+{
+	/*
+	 * Only start charging if currently
+	 * not charging and there is a charger
+	 */
+	if(charging == CHARGING || !is_charger_present())
+		return 0;
+
 	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CHARGERUSB_VICHRG_1500,
 							CHARGERUSB_VICHRG);
 	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CHARGERUSB_CIN_LIMIT_NONE,
@@ -148,11 +255,12 @@ void twl6030_start_usb_charging(void)
 	/* Enable USB charging */
 	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CONTROLLER_CTRL1_EN_CHARGER,
 							CONTROLLER_CTRL1);
+	charging = CHARGING;
 
-	return;
+	return 1;
 }
 
-int is_battery_present(t_twl6030_gpadc_data * gpadc)
+static int is_battery_present(t_twl6030_gpadc_data * gpadc)
 {
 	int bat_id_val;
 	unsigned int current_src_val;
@@ -163,6 +271,12 @@ int is_battery_present(t_twl6030_gpadc_data * gpadc)
 	if (bat_id_val < 0) {
 		printf("Failed to read GPADC\n");
 		return bat_id_val;
+	}
+
+	if (channel_calib_data[ADC_CH0].calibrated) {
+		bat_id_val = (bat_id_val * SCALE -
+			channel_calib_data[ADC_CH0].offset_err)/
+			channel_calib_data[ADC_CH0].gain_err;
 	}
 
 	if (gpadc->twl_chip_type == chip_TWL6030)
@@ -183,19 +297,22 @@ int is_battery_present(t_twl6030_gpadc_data * gpadc)
 	bat_id_val = (bat_id_val * 1000) / current_src_val;
 
 	if (bat_id_val < BATTERY_DETECT_THRESHOLD)
-		return 0;
+		return NO_BATTERY;
 
-	return 1;
+	return BATTERY;
 }
 
 int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 {
 	int battery_volt = 0;
-
+	int stopped_charging;
 	u8 vbatch = TWL6030_GPADC_VBAT_CHNL;
 
 	if (gpadc->twl_chip_type == chip_TWL6032)
 		vbatch = TWL6032_GPADC_VBAT_CHNL;
+
+	/* Stop charging to achieve better accuracy */
+	stopped_charging = twl6030_stop_usb_charging();
 
 	/* measure Vbat voltage */
 	battery_volt = twl6030_gpadc_read_channel(gpadc, vbatch);
@@ -204,8 +321,17 @@ int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 		return battery_volt;
 	}
 
-	if (gpadc->twl_chip_type == chip_TWL6030) {
+	/* Offset calibration data */
+	if(channel_calib_data[ADC_CH7].calibrated) {
+		battery_volt = (battery_volt * SCALE -
+		channel_calib_data[ADC_CH7].offset_err)/
+		channel_calib_data[ADC_CH7].gain_err;
+	}
 
+	if(stopped_charging)
+		twl6030_start_usb_charging();
+
+	if (gpadc->twl_chip_type == chip_TWL6030) {
 		/*
 		 * multiply by 1000 to convert the unit to milli
 		 * division by 1024 (>> 10) for 10 bit ADC
@@ -213,20 +339,22 @@ int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 		 */
 		battery_volt = (battery_volt * 40 * 1000) >> (10 + 3);
 	}
-	else
+	else {
 		battery_volt = (battery_volt * 25 * 1000) >> (12 + 2);
-
+	}
 	return battery_volt;
 }
 
 void twl6030_init_battery_charging(void)
 {
-	int battery_volt = 0;
-	int ret = 0;
-	t_twl6030_gpadc_data gpadc;
 	u8 val;
+	int ret = 0;
 	int abort = 0;
-	int chargedelay = 5;
+	int battery_volt = 0;
+	int chargedelay = CHARGE_DELAY;
+	int timeout, charger_state;
+	int shutdown_counter = SHUTDOWN_COUNT;
+	t_twl6030_gpadc_data gpadc;
 
 	gpadc.twl_chip_type = chip_TWL6030;
 	gpadc.rbase = GPCH0_LSB;
@@ -249,6 +377,12 @@ void twl6030_init_battery_charging(void)
 				"TWL6030 will be used\n");
 	}
 
+	/* Calibration */
+	ret = twl6030_calibration();
+	if (ret) {
+	        printf("Failed to calibrate\n");
+	}
+
 	/* Enable VBAT measurement */
 	if (gpadc.twl_chip_type == chip_TWL6030) {
 		twl6030_i2c_write_u8(TWL6030_CHIP_PM, VBAT_MEAS, MISC1);
@@ -256,7 +390,8 @@ void twl6030_init_battery_charging(void)
 			TWL6030_GPADC_CTRL);
 	}
 	else
-		twl6030_i2c_write_u8(TWL6030_CHIP_ADC, GPADC_CTRL2_CH18_SCALER_EN, TWL6032_GPADC_CTRL2);
+		twl6030_i2c_write_u8(TWL6030_CHIP_ADC,
+			GPADC_CTRL2_CH18_SCALER_EN, TWL6032_GPADC_CTRL2);
 
 	/* Enable GPADC module */
 	ret = twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, FGS | GPADCS, TOGGLE1);
@@ -276,80 +411,141 @@ void twl6030_init_battery_charging(void)
 	 * In case if battery is absent or error occurred while the battery
 	 * detection we will not turn on the battery charging
 	 */
-	if (is_battery_present(&gpadc) <= 0)
+	if (is_battery_present(&gpadc) <= 0){
+		printf("Battery not detected\n");
 		return;
+	}
 
 	battery_volt = twl6030_get_battery_voltage(&gpadc);
-	if (battery_volt < 0)
+
+	if (battery_volt < 0 || battery_volt >= BOOT_VOLTAGE)
 		return;
 
-	if (battery_volt < 3400) {
-
-	#ifdef CONFIG_SILENT_CONSOLE
-		if (gd->flags & GD_FLG_SILENT) {
-			/* Restore serial console */
-			console_assign (stdout, "serial");
-			console_assign (stderr, "serial");
-		}
-	#endif
-
-		printf("Main battery voltage too low!\n");
-		printf("Hit any key to stop charging: %2d ", chargedelay);
-
-		if (tstc()) {	/* we got a key press	*/
-			(void) getc();  /* consume input	*/
-		}
-
-		while ((chargedelay > 0) && (!abort)) {
-			int i;
-
-			--chargedelay;
-			/* delay 100 * 10ms */
-			for (i=0; !abort && i<100; ++i) {
-				if (tstc()) {	/* we got a key press	*/
-					abort  = 1;	/* don't auto boot	*/
-					chargedelay = 0;	/* no more delay	*/
-					(void) getc();  /* consume input	*/
-					break;
-				}
-				udelay (10000);
-			}
-			printf ("\b\b\b%2d ", chargedelay);
-		}
-		putc ('\n');
-
-	#ifdef CONFIG_SILENT_CONSOLE
-		if (gd->flags & GD_FLG_SILENT) {
-			/* Restore silent console */
-			console_assign (stdout, "nulldev");
-			console_assign (stderr, "nulldev");
-		}
-	#endif
-
-		if (!abort)
-		{
-			if(!is_charger_present()) {
-				printf("Charger not detected. Proceed to shutdown\n");
-				goto shutdown;
-			}
-
-			printf("Charging...\n");
-
-			twl6030_start_usb_charging();
-
-			/* wait for battery to charge to the level when kernel can boot */
-			while (battery_volt < 3400) {
-				battery_volt = twl6030_get_battery_voltage(&gpadc);
-				printf("\rBattery Voltage: %d mV", battery_volt);
-			}
-			printf("\n");
-		}
+#ifdef CONFIG_SILENT_CONSOLE
+	if (gd->flags & GD_FLG_SILENT) {
+		/* Restore serial console */
+		console_assign (stdout, "serial");
+		console_assign (stderr, "serial");
 	}
+#endif
+
+	printf("Main battery voltage too low!\n");
+	printf("Hit any key to stop charging: %2d ", chargedelay);
+
+	if (tstc()) {	/* we got a key press	*/
+		(void) getc();  /* consume input	*/
+	}
+
+	while ((chargedelay > 0) && (!abort)) {
+		int i;
+
+		--chargedelay;
+		/* delay 100 * 10ms */
+		for (i=0; !abort && i<100; ++i) {
+			if (tstc()) {	/* we got a key press	*/
+				abort  = 1;	/* don't auto boot	*/
+				chargedelay = 0;	/* no more delay	*/
+				(void) getc();  /* consume input	*/
+				break;
+			}
+			udelay (10000);
+		}
+		printf ("\b\b\b%2d ", chargedelay);
+	}
+	putc ('\n');
+
+#ifdef CONFIG_SILENT_CONSOLE
+	if (gd->flags & GD_FLG_SILENT) {
+		/* Restore silent console */
+		console_assign (stdout, "nulldev");
+		console_assign (stderr, "nulldev");
+	}
+#endif
+
+	if (abort)
+		return;
+
+	if (!twl6030_start_usb_charging()) {
+		printf("Charger not detected.");
+		goto shutdown;
+	}
+
+	printf("Charging...\n");
+	charger_state = is_charger_present();
+
+	/*
+	 * Wait for battery to charge to the level when kernel can boot
+	 * During this time, battery voltage is polled periodically and
+	 * charger presence is monitored. If charger is detected to be
+	 * unplugged for a period of time, the device will proceed
+	 * to shutdown to avoid battery drain.
+	 */
+	do {
+		/* Read battery voltage */
+		battery_volt = twl6030_get_battery_voltage(&gpadc);
+
+		printf("\rBattery Voltage: %d mV", battery_volt);
+
+		/*
+		 * Poll battery at regular interval. Use Longer poll period
+		 * if charging; and shorter if not. Look for charger presence
+		 * during this time.
+		 */
+		timeout = (charger_state == CHARGING)?
+			L_BATT_POLL_TIMEOUT : S_BATT_POLL_TIMEOUT;
+
+		//printf("State %d Charger %d   \n",Charging, charger_state);
+		while (charger_state == is_charger_present() && timeout--)
+			udelay(POLL_INTERVAL);
+
+		/* Charger plug or unplug action detected*/
+		if (charger_state != is_charger_present()) {
+
+			charger_state = is_charger_present();
+
+			if (charging == NOT_CHARGING &&
+				charger_state == CHARGER) {
+
+				/* Charger plugged */
+				twl6030_start_usb_charging();
+
+			} else if (charging == CHARGING &&
+				charger_state == NO_CHARGER) {
+
+				printf("\rCharger Unplugged!       ");
+				/* Charger unplugged */
+				twl6030_stop_usb_charging();
+
+				/* Will count down before shutdown */
+				shutdown_counter = SHUTDOWN_COUNT;
+			}
+
+		} else if (charging == NOT_CHARGING &&
+				charger_state == NO_CHARGER) {
+
+			/*
+			 * Charger continues to be unplugged.
+			 * Countdown until 0 and shut off device
+			 */
+
+			printf("\rCharger Unplugged! (%d)   ",
+				--shutdown_counter);
+
+			if (shutdown_counter == 0)
+				goto shutdown;
+		}
+
+		charger_state = is_charger_present();
+
+	} while (battery_volt < BOOT_VOLTAGE);
+
+	printf("\n");
 
 	return;
 
 shutdown:
 
+	printf("\nShutdown!\n");
 	twl6030_shutdown();
 	return;	/*Should never get here */
 
