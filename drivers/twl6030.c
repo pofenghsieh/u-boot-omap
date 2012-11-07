@@ -25,7 +25,7 @@
 #include <twl6030.h>
 
 #define L_BATT_POLL_PERIOD		20000000	/* 20 seconds */
-#define S_BATT_POLL_PERIOD		1000000		/* 1 second */
+#define S_BATT_POLL_PERIOD		2000000		/* 2 seconds */
 #define POLL_INTERVAL			100000		/* 100 ms */
 #define L_BATT_POLL_TIMEOUT		(L_BATT_POLL_PERIOD/POLL_INTERVAL)
 #define S_BATT_POLL_TIMEOUT		(S_BATT_POLL_PERIOD/POLL_INTERVAL)
@@ -36,13 +36,13 @@
 /* Charging Active */
 enum {
 	NOT_CHARGING = 0,
-	CHARGING
+	CHARGING_USB
 };
 
 /* Charger Presence */
 enum {
 	NO_CHARGER = 0,
-	CHARGER
+	VBUS_CHARGER
 };
 
 /* Battery Presence */
@@ -51,7 +51,7 @@ enum {
 	BATTERY
 };
 
-static int charging = 0;
+static int charging = NOT_CHARGING;
 
 static t_channel_calibration_info channel_calib_data[2] = {
 	{0, 0xCD, 0xCE, 116, 745, 0, 0, 0}, /* BATT_PRESENCE */
@@ -237,7 +237,7 @@ int twl6030_start_usb_charging(void)
 	 * Only start charging if currently
 	 * not charging and there is a charger
 	 */
-	if(charging == CHARGING || !is_charger_present())
+	if(charging != NOT_CHARGING)
 		return 0;
 
 	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CHARGERUSB_VICHRG_1500,
@@ -255,7 +255,7 @@ int twl6030_start_usb_charging(void)
 	/* Enable USB charging */
 	twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, CONTROLLER_CTRL1_EN_CHARGER,
 							CONTROLLER_CTRL1);
-	charging = CHARGING;
+	charging = CHARGING_USB;
 
 	return 1;
 }
@@ -305,12 +305,12 @@ static int is_battery_present(t_twl6030_gpadc_data * gpadc)
 int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 {
 	int battery_volt = 0;
-	int stopped_charging;
+	int stopped_charging, saved_charging;
 	u8 vbatch = TWL6030_GPADC_VBAT_CHNL;
 
 	if (gpadc->twl_chip_type == chip_TWL6032)
 		vbatch = TWL6032_GPADC_VBAT_CHNL;
-
+	saved_charging = charging;
 	/* Stop charging to achieve better accuracy */
 	stopped_charging = twl6030_stop_usb_charging();
 
@@ -328,8 +328,9 @@ int twl6030_get_battery_voltage(t_twl6030_gpadc_data * gpadc)
 		channel_calib_data[ADC_CH7].gain_err;
 	}
 
-	if(stopped_charging)
-		twl6030_start_usb_charging();
+	if (stopped_charging)
+		if (saved_charging == CHARGING_USB)
+			twl6030_start_usb_charging();
 
 	if (gpadc->twl_chip_type == chip_TWL6030) {
 		/*
@@ -411,7 +412,7 @@ void twl6030_init_battery_charging(void)
 	 * In case if battery is absent or error occurred while the battery
 	 * detection we will not turn on the battery charging
 	 */
-	if (is_battery_present(&gpadc) <= 0){
+	if (is_battery_present(&gpadc) <= 0) {
 		printf("Battery not detected\n");
 		return;
 	}
@@ -465,14 +466,15 @@ void twl6030_init_battery_charging(void)
 	if (abort)
 		return;
 
-	if (!twl6030_start_usb_charging()) {
+	charger_state = is_charger_present();
+	if (charger_state == VBUS_CHARGER)
+		ret = twl6030_start_usb_charging();
+	if (charger_state == NO_CHARGER || ret==0) {
 		printf("Charger not detected.");
 		goto shutdown;
 	}
 
 	printf("Charging...\n");
-	charger_state = is_charger_present();
-
 	/*
 	 * Wait for battery to charge to the level when kernel can boot
 	 * During this time, battery voltage is polled periodically and
@@ -490,10 +492,10 @@ void twl6030_init_battery_charging(void)
 		twl6030_i2c_write_u8(TWL6030_CHIP_CHARGER, 32,
 					CONTROLLER_WDG);
 
-		timeout = (charger_state == CHARGING)?
-			L_BATT_POLL_TIMEOUT : S_BATT_POLL_TIMEOUT;
+		timeout = (charger_state == NO_CHARGER)?
+			S_BATT_POLL_TIMEOUT : L_BATT_POLL_TIMEOUT;
 
-		while (charger_state == is_charger_present() && timeout--)
+		while (timeout--)
 			udelay(POLL_INTERVAL);
 
 		/* Charger plug or unplug action detected*/
@@ -501,22 +503,24 @@ void twl6030_init_battery_charging(void)
 
 			charger_state = is_charger_present();
 
-			if (charging == NOT_CHARGING &&
-				charger_state == CHARGER) {
-
-				/* Charger plugged */
-				twl6030_start_usb_charging();
-
-			} else if (charging == CHARGING &&
-				charger_state == NO_CHARGER) {
-
-				printf("\rCharger Unplugged!       ");
-				/* Charger unplugged */
-				twl6030_stop_usb_charging();
-
-				/* Will count down before shutdown */
-				shutdown_counter = SHUTDOWN_COUNT;
+			if (charging != NOT_CHARGING) {
+				ret = twl6030_stop_usb_charging();
 			}
+
+			if (charging == NOT_CHARGING) {
+				if (charger_state == VBUS_CHARGER) {
+					/* VBUS Charger plugged */
+					twl6030_start_usb_charging();
+				}
+			} else if (charger_state == NO_CHARGER) {
+
+					printf("\rCharger Unplugged!       ");
+					/* Charger unplugged */
+					twl6030_stop_usb_charging();
+
+					/* Will count down before shutdown */
+					shutdown_counter = SHUTDOWN_COUNT;
+				}
 
 		} else if (charging == NOT_CHARGING &&
 				charger_state == NO_CHARGER) {
@@ -533,7 +537,6 @@ void twl6030_init_battery_charging(void)
 				goto shutdown;
 		}
 
-		charger_state = is_charger_present();
 
 	} while (battery_volt < BOOT_VOLTAGE);
 
