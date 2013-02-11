@@ -382,6 +382,20 @@ static void setup_usb_dpll(void)
 }
 #endif
 
+#ifdef CONFIG_ZEBU
+#define CM1_BASE       0x4A005000
+static void lock_dpll_ddr(void)
+{
+	writel(0x000, CM1_BASE + 0x218); /* CM_AUTO_IDLE_DPLL_DDR.AUTO_DPLL_MODE = DPLL auto control disabled */
+	writel(0x002, CM1_BASE + 0x220); /* CM_DIV_M2_DPLL_DDR.DIVHS = 2 */
+	writel(0x001, CM1_BASE + 0x224); /* CM_DIV_M3_DPLL_DDR.DIVHS = 1 */
+	writel(0x008, CM1_BASE + 0x228); /* CM_DIV_H11_DPLL_DDR.DIVHS = 8 */
+	writel(0x202, CM1_BASE + 0x21c); /* CM_CLKSEL_DPLL_DDR.DPLL_DIV = 2 */
+	writel(0x007, CM1_BASE + 0x210); /* CM_CLKMODE_DPLL_DDR.DPLL_EN = Enables the DPLL in Lock mode */
+	while((readl(CM1_BASE + 0x214) & 0x1) != 1);
+}
+#endif
+
 static void setup_dplls(void)
 {
 	u32 temp;
@@ -421,9 +435,13 @@ static void setup_dplls(void)
 #ifdef CONFIG_USB_EHCI_OMAP
 	setup_usb_dpll();
 #endif
+#ifndef CONFIG_ZEBU
 	params = get_ddr_dpll_params(*dplls_data);
 	do_setup_dpll((*prcm)->cm_clkmode_dpll_ddrphy,
 		      params, DPLL_LOCK, "ddr");
+#else
+	lock_dpll_ddr();
+#endif
 }
 
 #ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
@@ -723,7 +741,9 @@ void prcm_init(void)
 	case OMAP_INIT_CONTEXT_UBOOT_FROM_NOR:
 	case OMAP_INIT_CONTEXT_UBOOT_AFTER_CH:
 		enable_basic_clocks();
+#ifndef CONFIG_ZEBU
 		scale_vcores(*omap_vcores);
+#endif
 		setup_dplls();
 #ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
 		setup_non_essential_dplls();

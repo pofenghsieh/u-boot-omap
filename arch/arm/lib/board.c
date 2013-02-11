@@ -600,8 +600,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 #ifdef CONFIG_GENERIC_MMC
+#ifndef CONFIG_ZEBU
 	puts("MMC:   ");
 	mmc_initialize(gd->bd);
+#endif
 #endif
 
 #ifdef CONFIG_HAS_DATAFLASH

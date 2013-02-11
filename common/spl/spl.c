@@ -132,8 +132,9 @@ __weak void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 	debug("image entry point: 0x%X\n", spl_image->entry_point);
 	/* Pass the saved boot_params from rom code */
 #if defined(CONFIG_VIRTIO) || defined(CONFIG_ZEBU)
-	image_entry = (image_entry_noargs_t)0x80100000;
+	image_entry = (image_entry_noargs_t)0x80e80000;
 #endif
+
 	u32 boot_params_ptr_addr = (u32)&boot_params_ptr;
 	image_entry((u32 *)boot_params_ptr_addr);
 }
@@ -179,6 +180,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 	boot_device = spl_boot_device();
 	debug("boot device - %d\n", boot_device);
+#ifndef CONFIG_ZEBU
 	switch (boot_device) {
 #ifdef CONFIG_SPL_RAM_DEVICE
 	case BOOT_DEVICE_RAM:
@@ -235,6 +237,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		debug("SPL: Un-supported Boot Device\n");
 		hang();
 	}
+#endif /* CONFIG_ZEBU */
 
 	switch (spl_image.os) {
 	case IH_OS_U_BOOT:

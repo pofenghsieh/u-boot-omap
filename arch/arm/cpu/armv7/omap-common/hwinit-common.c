@@ -142,7 +142,9 @@ void s_init(void)
 	watchdog_init();
 	set_mux_conf_regs();
 #ifdef CONFIG_SPL_BUILD
+#ifndef CONFIG_ZEBU
 	srcomp_enable();
+#endif
 	setup_clocks_for_console();
 
 	gd = &gdata;
@@ -155,7 +157,11 @@ void s_init(void)
 	timer_init();
 
 	/* For regular u-boot sdram_init() is called from dram_init() */
+#ifndef CONFIG_ZEBU
 	sdram_init();
+#else
+	zebu_sdram_init();
+#endif
 	init_boot_params();
 #endif
 }

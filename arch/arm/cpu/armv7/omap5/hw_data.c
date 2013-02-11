@@ -450,9 +450,11 @@ void enable_basic_uboot_clocks(void)
 		(*prcm)->cm_l4per_i2c2_clkctrl,
 		(*prcm)->cm_l4per_i2c3_clkctrl,
 		(*prcm)->cm_l4per_i2c4_clkctrl,
+#ifndef CONFIG_ZEBU
 		(*prcm)->cm_l3init_hsusbtll_clkctrl,
 		(*prcm)->cm_l3init_hsusbhost_clkctrl,
 		(*prcm)->cm_l3init_fsusb_clkctrl,
+#endif
 		0
 	};
 

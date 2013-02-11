@@ -33,7 +33,11 @@
  * loop, allow for a minimum of 2 ms wait (in reality the wait will be
  * much more than that)
  */
+#ifdef CONFIG_ZEBU
+#define LDELAY		1000
+#else
 #define LDELAY		1000000
+#endif
 
 /* CM_DLL_CTRL */
 #define CM_DLL_CTRL_OVERRIDE_SHIFT		0

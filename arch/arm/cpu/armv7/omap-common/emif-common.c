@@ -74,10 +74,14 @@ inline u32 emif_num(u32 base)
  */
 u32 emif_sdram_type()
 {
+#ifndef CONFIG_ZEBU
 	struct emif_reg_struct *emif = (struct emif_reg_struct *)EMIF1_BASE;
 
 	return (readl(&emif->emif_sdram_config) &
 		EMIF_REG_SDRAM_TYPE_MASK) >> EMIF_REG_SDRAM_TYPE_SHIFT;
+#else
+	return EMIF_SDRAM_TYPE_DDR3;
+#endif
 }
 
 static inline u32 get_mr(u32 base, u32 cs, u32 mr_addr)
@@ -1231,6 +1235,115 @@ void dmm_init(u32 base)
 			emif2_enabled = 1;
 		}
 	}
+
+}
+
+void zebu_sdram_init(void)
+{
+	u32 size_prog, size_detect, i = 0;
+	struct emif_reg_struct *emif = (struct emif_reg_struct *)EMIF1_BASE;
+
+	dmm_init(DMM_BASE);
+
+	writel(0x0020080C, &emif->emif_ddr_phy_ctrl_1);
+	writel(0x00000000, &emif->emif_ddr_phy_ctrl_2);
+	writel(0x0020080C, &emif->emif_ddr_phy_ctrl_1_shdw);
+	writel(0x1F7FCC1D, &emif->emif_sdram_tim_1);
+	writel(0x5071975D, &emif->emif_sdram_tim_2);
+	writel(0x0EDF972F, &emif->emif_sdram_tim_3);
+	writel(0x1F7FCC1D, &emif->emif_sdram_tim_1_shdw);
+	writel(0x5071975D, &emif->emif_sdram_tim_2_shdw);
+	writel(0x0EDF972F, &emif->emif_sdram_tim_3_shdw);
+
+	writel(0x04020080, &emif->emif_ddr_ext_phy_ctrl_1);
+	writel(0x04020080, &emif->emif_ddr_ext_phy_ctrl_1_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_2);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_2_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_3);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_3_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_4);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_4_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_5);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_5_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_6);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_6_shdw);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_7);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_7_shdw);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_8);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_8_shdw);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_9);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_9_shdw);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_10);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_10_shdw);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_11);
+	writel(0x00350035, &emif->emif_ddr_ext_phy_ctrl_11_shdw);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_12);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_12_shdw);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_13);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_13_shdw);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_14);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_14_shdw);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_15);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_15_shdw);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_16);
+	writel(0x00400040, &emif->emif_ddr_ext_phy_ctrl_16_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_17);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_17_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_18);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_18_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_19);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_19_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_20);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_20_shdw);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_21);
+	writel(0x0, &emif->emif_ddr_ext_phy_ctrl_21_shdw);
+	writel(0x00800080, &emif->emif_ddr_ext_phy_ctrl_22);
+	writel(0x00800080, &emif->emif_ddr_ext_phy_ctrl_22_shdw);
+	writel(0x00800080, &emif->emif_ddr_ext_phy_ctrl_23);
+	writel(0x00800080, &emif->emif_ddr_ext_phy_ctrl_23_shdw);
+	writel(0x40010080, &emif->emif_ddr_ext_phy_ctrl_24);
+	writel(0x40010080, &emif->emif_ddr_ext_phy_ctrl_24_shdw);
+	writel(0x08102040, &emif->emif_ddr_ext_phy_ctrl_25);
+	writel(0x08102040, &emif->emif_ddr_ext_phy_ctrl_25_shdw);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_26);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_26_shdw);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_27);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_27_shdw);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_28);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_28_shdw);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_29);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_29_shdw);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_30);
+	writel(0x01500150, &emif->emif_ddr_ext_phy_ctrl_30_shdw);
+
+	writel(0x00000077, EMIF1_BASE + 0x31c);
+
+	writel(0x0, &emif->emif_pwr_mgmt_ctrl_shdw);
+	writel(0x61A32232, &emif->emif_sdram_config);
+	writel(0x0, &emif->emif_lpddr2_nvm_config);
+	writel(0x12000F3D, &emif->emif_sdram_ref_ctrl);
+	writel(0x00000F3D, &emif->emif_sdram_ref_ctrl_shdw);
+
+		size_prog = omap_sdram_size();
+		if ((size_prog & (size_prog -1)) != 0) {
+			i = 1;
+			while((i < size_prog) && (i))
+				i <<= 1;
+			if(i)
+				size_prog = i;
+			else
+				size_prog = (1 << 30);
+		}
+		size_detect = get_ram_size((long *)CONFIG_SYS_SDRAM_BASE,
+						size_prog);
+		/* Compare with the size programmed */
+		if (size_detect != size_prog) {
+			printf("SDRAM: identified size not same as expected"
+				" size identified: %x expected: %x\n",
+				size_detect,
+				size_prog);
+		} else
+			printf("sdram successful initialized\n");
 
 }
 
