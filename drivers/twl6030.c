@@ -409,8 +409,8 @@ void twl6030_init_battery_charging(void)
 		}
 	} else {
 		printf("twl6030_init_battery_charging(): "
-				"could not determine chip! "
-				"TWL6030 will be used\n");
+		       "could not determine chip!\n");
+		return;
 	}
 
 	/* Forced stop charging */
