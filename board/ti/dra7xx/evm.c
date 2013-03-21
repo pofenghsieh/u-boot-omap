@@ -93,6 +93,20 @@ void set_muxconf_regs_essential(void)
 		     sizeof(struct pad_conf_entry));
 }
 
+/*
+ * @brief unlock_ctrl_module - Unlock the CONTROL MODULE CORE by
+ * writing a particular sequence into MMR Lock registers inorder
+ * to access any register in CONTROL MODULE CORE.
+ */
+void unlock_ctrl_module(void)
+{
+	writel(MMR1_UNLOCK_VALUE, CTRL_CORE_MMR_LOCK_1);
+	writel(MMR2_UNLOCK_VALUE, CTRL_CORE_MMR_LOCK_2);
+	writel(MMR3_UNLOCK_VALUE, CTRL_CORE_MMR_LOCK_3);
+	writel(MMR4_UNLOCK_VALUE, CTRL_CORE_MMR_LOCK_4);
+	writel(MMR5_UNLOCK_VALUE, CTRL_CORE_MMR_LOCK_5);
+}
+
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_GENERIC_MMC)
 int board_mmc_init(bd_t *bis)
 {

@@ -64,6 +64,7 @@ u32 warm_reset(void);
 void force_emif_self_refresh(void);
 void get_ioregs(const struct ctrl_ioregs **regs);
 void srcomp_enable(void);
+void unlock_ctrl_module(void);
 
 /*
  * This is used to verify if the configuration header

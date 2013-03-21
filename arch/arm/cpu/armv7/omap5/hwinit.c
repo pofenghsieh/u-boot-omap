@@ -311,6 +311,10 @@ void config_data_eye_leveling_samples(u32 emif_base)
 			(*ctrl)->control_emif2_sdram_config_ext);
 }
 
+void __weak unlock_ctrl_module(void)
+{
+}
+
 void init_omap_revision(void)
 {
 	/*
@@ -319,6 +323,8 @@ void init_omap_revision(void)
 	 * So use ARM revision for identification
 	 */
 	unsigned int rev = cortex_rev();
+
+	unlock_ctrl_module();
 
 	switch (readl(CONTROL_ID_CODE)) {
 	case OMAP5430_CONTROL_ID_CODE_ES1_0:
