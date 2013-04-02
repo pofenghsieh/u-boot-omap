@@ -32,7 +32,7 @@
 
 /* TWL6035 */
 #ifndef CONFIG_SPL_BUILD
-#define CONFIG_TWL6035_POWER
+#define CONFIG_PALMAS_POWER
 #endif
 
 #define CONFIG_SYS_PROMPT		"OMAP5430 EVM # "
