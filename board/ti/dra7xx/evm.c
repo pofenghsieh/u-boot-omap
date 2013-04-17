@@ -93,6 +93,14 @@ void set_muxconf_regs_essential(void)
 		     sizeof(struct pad_conf_entry));
 }
 
+void set_muxconf_regs_non_essential(void)
+{
+	do_set_mux32((*ctrl)->control_padconf_core_base,
+		     core_padconf_array_non_essential,
+		     sizeof(core_padconf_array_non_essential) /
+		     sizeof(struct pad_conf_entry));
+}
+
 /*
  * @brief unlock_ctrl_module - Unlock the CONTROL MODULE CORE by
  * writing a particular sequence into MMR Lock registers inorder

@@ -33,4 +33,5 @@
 #define CONFIG_DRA7XX		/* in a TI DRA7XX core */
 #define CONFIG_SYS_PROMPT		"DRA752 EVM # "
 
+#define CONFIG_SYS_ENABLE_PADS_ALL
 #endif /* __CONFIG_DRA7XX_EVM_H */
