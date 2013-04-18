@@ -799,6 +799,7 @@ void prcm_init(void)
 #ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
 		enable_non_essential_clocks();
 #endif
+		setup_warmreset_time();
 		break;
 	default:
 		break;

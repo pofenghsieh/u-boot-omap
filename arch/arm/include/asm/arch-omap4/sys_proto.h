@@ -59,6 +59,7 @@ void gpi2c_init(void);
 int omap_vc_bypass_send_value(u8 sa, u8 reg_addr, u8 reg_data);
 u32 warm_reset(void);
 void force_emif_self_refresh(void);
+void setup_warmreset_time(void);
 /*
  * This is used to verify if the configuration header
  * was executed by Romcode prior to control of transfer
