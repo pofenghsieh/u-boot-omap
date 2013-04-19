@@ -353,7 +353,6 @@ void configure_mpu_dpll(void)
 	debug("MPU DPLL locked\n");
 }
 
-#ifdef CONFIG_USB_EHCI_OMAP
 static void setup_usb_dpll(void)
 {
 	const struct dpll_params *params;
@@ -380,7 +379,6 @@ static void setup_usb_dpll(void)
 	/* Now setup the dpll with the regular function */
 	do_setup_dpll((*prcm)->cm_clkmode_dpll_usb, params, DPLL_LOCK, "usb");
 }
-#endif
 
 #ifdef CONFIG_ZEBU
 #define CM1_BASE       0x4A005000
@@ -432,9 +430,7 @@ static void setup_dplls(void)
 	/* MPU dpll */
 	configure_mpu_dpll();
 
-#ifdef CONFIG_USB_EHCI_OMAP
 	setup_usb_dpll();
-#endif
 #ifndef CONFIG_ZEBU
 	params = get_ddr_dpll_params(*dplls_data);
 	do_setup_dpll((*prcm)->cm_clkmode_dpll_ddrphy,
@@ -444,11 +440,11 @@ static void setup_dplls(void)
 #endif
 }
 
-#ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
 static void setup_non_essential_dplls(void)
 {
 	u32 abe_ref_clk;
 	const struct dpll_params *params;
+	u32 sysclk_ind = get_sys_clk_index();
 
 	/* IVA */
 	clrsetbits_le32((*prcm)->cm_bypclk_dpll_iva,
@@ -461,6 +457,12 @@ static void setup_non_essential_dplls(void)
 	params = get_abe_dpll_params(*dplls_data);
 #ifdef CONFIG_SYS_OMAP_ABE_SYSCK
 	abe_ref_clk = CM_ABE_PLL_REF_CLKSEL_CLKSEL_SYSCLK;
+
+	if (omap_revision() == DRA752_ES1_0)
+		/* Select the sys clk for dpll_abe */
+		clrsetbits_le32((*prcm)->cm_abe_pll_sys_clksel,
+				CM_CLKSEL_ABE_PLL_SYS_CLKSEL_MASK,
+				CM_ABE_PLL_SYS_CLKSEL_SYSCLK2);
 #else
 	abe_ref_clk = CM_ABE_PLL_REF_CLKSEL_CLKSEL_32KCLK;
 	/*
@@ -484,8 +486,37 @@ static void setup_non_essential_dplls(void)
 			abe_ref_clk << CM_ABE_PLL_REF_CLKSEL_CLKSEL_SHIFT);
 	/* Lock the dpll */
 	do_setup_dpll((*prcm)->cm_clkmode_dpll_abe, params, DPLL_LOCK, "abe");
+
+	if ((*dplls_data)->eve) {
+		params = &(*dplls_data)->eve[sysclk_ind];
+		do_setup_dpll((*prcm)->cm_clkmode_dpll_eve, params,
+			      DPLL_LOCK, "eve");
+	}
+
+	if ((*dplls_data)->dsp) {
+		params = &(*dplls_data)->dsp[sysclk_ind];
+		do_setup_dpll((*prcm)->cm_clkmode_dpll_dsp, params,
+			      DPLL_LOCK, "dsp");
+	}
+
+	if ((*dplls_data)->gpu) {
+		params = &(*dplls_data)->gpu[sysclk_ind];
+		do_setup_dpll((*prcm)->cm_clkmode_dpll_gpu, params,
+			      DPLL_LOCK, "gpu");
+	}
+
+	if ((*dplls_data)->gmac) {
+		params = &(*dplls_data)->gmac[sysclk_ind];
+		do_setup_dpll((*prcm)->cm_clkmode_dpll_gmac, params,
+			      DPLL_LOCK, "gmac");
+	}
+
+	if ((*dplls_data)->pcie_ref) {
+		params = &(*dplls_data)->pcie_ref[sysclk_ind];
+		do_setup_dpll((*prcm)->cm_clkmode_dpll_pcie_ref, params,
+			      DPLL_LOCK, "pcie_ref");
+	}
 }
-#endif
 
 u32 get_offset_code(u32 volt_offset, struct pmic_data *pmic)
 {
@@ -779,8 +810,8 @@ void prcm_init(void)
 		scale_vcores(*omap_vcores);
 #endif
 		setup_dplls();
-#ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
 		setup_non_essential_dplls();
+#ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
 		enable_non_essential_clocks();
 #endif
 		break;

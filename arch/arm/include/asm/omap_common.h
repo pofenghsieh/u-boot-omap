@@ -87,6 +87,9 @@ struct prcm_regs {
 	u32 cm_ssc_deltamstep_dpll_ddrphy;
 	u32 cm_clkmode_dpll_dsp;
 	u32 cm_shadow_freq_config1;
+	u32 cm_clkmode_dpll_eve;
+	u32 cm_clkmode_dpll_gmac;
+	u32 cm_clkmode_dpll_gpu;
 	u32 cm_mpu_mpu_clkctrl;
 
 	/* cm1.dsp */
@@ -299,6 +302,7 @@ struct prcm_regs {
 	/* l4 wkup regs */
 	u32 cm_abe_pll_ref_clksel;
 	u32 cm_sys_clksel;
+	u32 cm_abe_pll_sys_clksel;
 	u32 cm_wkup_clkstctrl;
 	u32 cm_wkup_l4wkup_clkctrl;
 	u32 cm_wkup_wdtimer1_clkctrl;
@@ -484,6 +488,11 @@ struct dplls {
 	const struct dpll_params *iva;
 	const struct dpll_params *usb;
 	const struct dpll_params *ddr;
+	const struct dpll_params *eve;
+	const struct dpll_params *dsp;
+	const struct dpll_params *gpu;
+	const struct dpll_params *gmac;
+	const struct dpll_params *pcie_ref;
 };
 
 struct pmic_data {

@@ -796,6 +796,9 @@ struct prcm_regs const dra7xx_prcm = {
 	.cm_ssc_deltamstep_dpll_ddrphy		= 0x4a00522c,
 	.cm_clkmode_dpll_dsp			= 0x4a005234,
 	.cm_shadow_freq_config1			= 0x4a005260,
+	.cm_clkmode_dpll_eve			= 0x4a005284,
+	.cm_clkmode_dpll_gmac			= 0x4a0052a8,
+	.cm_clkmode_dpll_gpu			= 0x4a0052d8,
 
 	/* cm1.mpu */
 	.cm_mpu_mpu_clkctrl			= 0x4a005320,
@@ -942,6 +945,7 @@ struct prcm_regs const dra7xx_prcm = {
 	/* l4 wkup regs */
 	.cm_abe_pll_ref_clksel			= 0x4ae0610c,
 	.cm_sys_clksel				= 0x4ae06110,
+	.cm_abe_pll_sys_clksel			= 0x4ae06118,
 	.cm_wkup_clkstctrl			= 0x4ae07800,
 	.cm_wkup_l4wkup_clkctrl			= 0x4ae07820,
 	.cm_wkup_wdtimer1_clkctrl		= 0x4ae07828,
