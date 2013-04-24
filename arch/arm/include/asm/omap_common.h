@@ -604,7 +604,14 @@ static inline u32 omap_revision(void)
 #define OMAP5432_ES1_0	0x54320100
 #define OMAP5430_ES2_0  0x54300200
 #define OMAP5432_ES2_0  0x54320200
+#define OMAP54xx	0x54000000
 
 /* DRA7XX */
 #define DRA752_ES1_0	0x07520100
+
+static inline u8 is_omap54xx(void)
+{
+	extern u32 *const omap_si_rev;
+	return ((*omap_si_rev & 0xFF000000) == OMAP54xx);
+}
 #endif /* _OMAP_COMMON_H_ */
