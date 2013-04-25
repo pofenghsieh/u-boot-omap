@@ -154,8 +154,6 @@ void s_init(void)
 #endif
 	prcm_init();
 #ifdef CONFIG_SPL_BUILD
-	timer_init();
-
 	/* For regular u-boot sdram_init() is called from dram_init() */
 #ifndef CONFIG_ZEBU
 	sdram_init();
