@@ -76,6 +76,9 @@ u32 emif_sdram_type()
 {
 	struct emif_reg_struct *emif = (struct emif_reg_struct *)EMIF1_BASE;
 
+	if (omap_revision() == DRA752_ES1_0)
+		return EMIF_SDRAM_TYPE_DDR3;
+
 	return (readl(&emif->emif_sdram_config) &
 		EMIF_REG_SDRAM_TYPE_MASK) >> EMIF_REG_SDRAM_TYPE_SHIFT;
 }
