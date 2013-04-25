@@ -212,7 +212,8 @@ void emif_update_timings(u32 base, const struct emif_regs *regs)
 	writel(regs->temp_alert_config, &emif->emif_temp_alert_config);
 	writel(regs->emif_ddr_phy_ctlr_1, &emif->emif_ddr_phy_ctrl_1_shdw);
 
-	if (omap_revision() >= OMAP5430_ES1_0) {
+	if ((omap_revision() >= OMAP5430_ES1_0) ||
+				(omap_revision() == DRA752_ES1_0)) {
 		writel(EMIF_L3_CONFIG_VAL_SYS_10_MPU_5_LL_0,
 			&emif->emif_l3_config);
 	} else if (omap_revision() >= OMAP4460_ES1_0) {
@@ -276,6 +277,7 @@ static void ddr3_init(u32 base, const struct emif_regs *regs)
 	 * defined, contents of mode Registers must be fully initialized.
 	 * H/W takes care of this initialization
 	 */
+	writel(regs->sdram_config2, &emif->emif_lpddr2_nvm_config);
 	writel(regs->sdram_config_init, &emif->emif_sdram_config);
 
 	writel(regs->emif_ddr_phy_ctlr_1_init, &emif->emif_ddr_phy_ctrl_1);

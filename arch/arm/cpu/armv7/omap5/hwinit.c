@@ -111,6 +111,30 @@ static void io_settings_ddr3(void)
 		(*ctrl)->control_port_emif2_sdram_config);
 }
 
+static void io_settings_ddr3_dra(void)
+{
+	const struct ctrl_ioregs *ioregs;
+
+	get_ioregs(&ioregs);
+	writel(ioregs->ctrl_ddr3ch, (*ctrl)->control_ddr3ch1_0);
+	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch1_0);
+	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch1_1);
+
+	writel(ioregs->ctrl_ddr3ch, (*ctrl)->control_ddr3ch2_0);
+	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch2_0);
+	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch2_1);
+
+	writel(ioregs->ctrl_ddrio_0, (*ctrl)->control_ddrio_0);
+	writel(ioregs->ctrl_ddrio_1, (*ctrl)->control_ddrio_1);
+	writel(ioregs->ctrl_ddrio_2, (*ctrl)->control_ddrio_2);
+
+	writel(ioregs->ctrl_lpddr2ch, (*ctrl)->control_lpddr2ch1_0);
+	writel(ioregs->ctrl_lpddr2ch, (*ctrl)->control_lpddr2ch1_1);
+
+	writel(ioregs->ctrl_emif_sdram_config_ext,
+				(*ctrl)->control_ddr_control_ext_0);
+}
+
 /*
  * Some tuning of IOs for optimal power and performance
  */
@@ -174,8 +198,10 @@ void do_io_settings(void)
 
 	if (emif_sdram_type() == EMIF_SDRAM_TYPE_LPDDR2)
 		io_settings_lpddr2();
-	else
+	else if (is_omap54xx())
 		io_settings_ddr3();
+	else
+		io_settings_ddr3_dra();
 
 	/* Efuse settings */
 	writel(EFUSE_1, (*ctrl)->control_efuse_1);

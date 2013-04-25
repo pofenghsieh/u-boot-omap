@@ -398,6 +398,7 @@ struct omap_sys_ctrl_regs {
 	u32 control_ddrio_0;
 	u32 control_ddrio_1;
 	u32 control_ddrio_2;
+	u32 control_ddr_control_ext_0;
 	u32 control_lpddr2io1_0;
 	u32 control_lpddr2io1_1;
 	u32 control_lpddr2io1_2;
@@ -423,6 +424,8 @@ struct omap_sys_ctrl_regs {
 	u32 control_port_emif2_sdram_config;
 	u32 control_emif1_sdram_config_ext;
 	u32 control_emif2_sdram_config_ext;
+	u32 control_emif1_sdram_config_ext_1;
+	u32 control_emif2_sdram_config_ext_2;
 	u32 control_smart1nopmio_padconf_0;
 	u32 control_smart1nopmio_padconf_1;
 	u32 control_padconf_mode;
