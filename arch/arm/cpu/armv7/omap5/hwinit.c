@@ -350,7 +350,7 @@ void init_omap_revision(void)
 		*omap_si_rev = DRA752_ES1_0;
 		break;
 	default:
-		*omap_si_rev = OMAP5430_SILICON_ID_INVALID;
+		*omap_si_rev = DRA752_ES1_0;
 	}
 }
 
