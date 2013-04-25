@@ -328,10 +328,6 @@ void init_omap_revision(void)
 	unsigned int rev = cortex_rev();
 
 	unlock_ctrl_module();
-#ifdef CONFIG_ZEBU
-	*omap_si_rev = DRA752_ES1_0;
-	return;
-#endif
 
 	switch (readl(CONTROL_ID_CODE)) {
 	case OMAP5430_CONTROL_ID_CODE_ES1_0:

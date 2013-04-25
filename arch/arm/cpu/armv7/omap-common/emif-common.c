@@ -74,14 +74,10 @@ inline u32 emif_num(u32 base)
  */
 u32 emif_sdram_type()
 {
-#ifndef CONFIG_ZEBU
 	struct emif_reg_struct *emif = (struct emif_reg_struct *)EMIF1_BASE;
 
 	return (readl(&emif->emif_sdram_config) &
 		EMIF_REG_SDRAM_TYPE_MASK) >> EMIF_REG_SDRAM_TYPE_SHIFT;
-#else
-	return EMIF_SDRAM_TYPE_DDR3;
-#endif
 }
 
 static inline u32 get_mr(u32 base, u32 cs, u32 mr_addr)
