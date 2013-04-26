@@ -27,6 +27,18 @@
 #include <asm/omap_common.h>
 #include <asm/arch/clocks.h>
 
+/*
+ * struct crossbar_entry - map IRQ_CROSSBAR inputline <crossbar_irq> to
+ * <module_irq> line for the corresponding INTC/DREQ.
+ *
+ * @module_irq:		Interrupt/DREQ line No. for corresponding module.
+ * @crossbar_irq:	Input line no. of CROSSBAR
+ */
+struct crossbar_entry {
+	u16 module_irq;
+	u16 crossbar_irq;
+};
+
 struct pad_conf_entry {
 	u32 offset;
 	u32 val;
@@ -67,6 +79,7 @@ void force_emif_self_refresh(void);
 void get_ioregs(const struct ctrl_ioregs **regs);
 void srcomp_enable(void);
 void unlock_ctrl_module(void);
+void set_crossbar_regs(void);
 
 /*
  * This is used to verify if the configuration header

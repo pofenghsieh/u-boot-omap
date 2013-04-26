@@ -225,6 +225,9 @@ struct s32ktimer {
 #define MMR4_UNLOCK_VALUE		0x1EBF131D
 #define MMR5_UNLOCK_VALUE		0x6F361E05
 
+/* CROSSBAR */
+#define CROSSBAR_MPU_IRQ		0x0
+#define CROSSBAR_SDMA			0x1
 #ifndef __ASSEMBLY__
 struct srcomp_params {
 	s8 divide_factor;

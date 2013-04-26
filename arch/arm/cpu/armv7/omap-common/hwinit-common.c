@@ -116,6 +116,10 @@ void __weak srcomp_enable(void)
 {
 }
 
+void __weak set_crossbar_regs(void)
+{
+}
+
 /*
  * Routine: s_init
  * Description: Does early system init of watchdog, muxing,  andclocks
@@ -159,6 +163,9 @@ void s_init(void)
 	zebu_sdram_init();
 #endif
 	init_boot_params();
+#endif
+#ifndef CONFIG_SPL_BUILD
+	set_crossbar_regs();
 #endif
 }
 
