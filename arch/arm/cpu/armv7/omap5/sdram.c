@@ -199,6 +199,54 @@ const struct emif_regs emif_2_regs_ddr3_532_mhz_1cs_dra_es1 = {
 	.emif_rd_wr_exec_thresh         = 0x00000305
 };
 
+const struct emif_regs emif_1_regs_ddr3_532_mhz_1cs_dra_es1_trfc160 = {
+	.sdram_config_init              = 0x61851ab2,
+	.sdram_config                   = 0x61851ab2,
+	.sdram_config2			= 0x08000000,
+	.ref_ctrl                       = 0x00001035,
+	.sdram_tim1                     = 0xCCCF36B3,
+	.sdram_tim2                     = 0x305A7FDA,
+	.sdram_tim3                     = 0x027F8558,
+	.read_idle_ctrl                 = 0x00050000,
+	.zq_config                      = 0x0007190B,
+	.temp_alert_config              = 0x00000000,
+	.emif_ddr_phy_ctlr_1_init       = 0x0020400A,
+	.emif_ddr_phy_ctlr_1            = 0x0024400A,
+	.emif_ddr_ext_phy_ctrl_1        = 0x04040100,
+	.emif_ddr_ext_phy_ctrl_2        = 0x00000000,
+	.emif_ddr_ext_phy_ctrl_3        = 0x00000000,
+	.emif_ddr_ext_phy_ctrl_4        = 0x00000000,
+	.emif_ddr_ext_phy_ctrl_5        = 0x00000000,
+	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_ctl             = 0x00000000,
+	.emif_rd_wr_exec_thresh         = 0x00000305
+};
+
+const struct emif_regs emif_2_regs_ddr3_532_mhz_1cs_dra_es1_trfc160 = {
+	.sdram_config_init              = 0x61851B32,
+	.sdram_config                   = 0x61851B32,
+	.sdram_config2			= 0x08000000,
+	.ref_ctrl                       = 0x00001035,
+	.sdram_tim1                     = 0xCCCF36B3,
+	.sdram_tim2                     = 0x305A7FDA,
+	.sdram_tim3                     = 0x027F8558,
+	.read_idle_ctrl                 = 0x00050000,
+	.zq_config                      = 0x0007190B,
+	.temp_alert_config              = 0x00000000,
+	.emif_ddr_phy_ctlr_1_init       = 0x0020400A,
+	.emif_ddr_phy_ctlr_1            = 0x0024400A,
+	.emif_ddr_ext_phy_ctrl_1        = 0x04040100,
+	.emif_ddr_ext_phy_ctrl_2        = 0x00000000,
+	.emif_ddr_ext_phy_ctrl_3        = 0x00000000,
+	.emif_ddr_ext_phy_ctrl_4        = 0x00000000,
+	.emif_ddr_ext_phy_ctrl_5        = 0x00000000,
+	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_ctl             = 0x00000000,
+	.emif_rd_wr_exec_thresh         = 0x00000305
+};
+
 const struct dmm_lisa_map_regs lisa_map_4G_x_2_x_2 = {
 	.dmm_lisa_map_0 = 0x0,
 	.dmm_lisa_map_1 = 0x0,
