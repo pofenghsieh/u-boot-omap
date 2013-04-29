@@ -51,4 +51,7 @@
 #define NON_SECURE_SRAM_START	0x40300000
 #define NON_SECURE_SRAM_END	0x40380000	/* Not inclusive */
 
+#define CONFIG_SYS_DCACHE_OFF
+#define CONFIG_SYS_ICACHE_OFF
+
 #endif /* __CONFIG_DRA7XX_EVM_H */
