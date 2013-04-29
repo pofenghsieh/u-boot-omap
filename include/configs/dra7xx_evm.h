@@ -42,4 +42,13 @@
 
 #define CONFIG_SYS_ENABLE_PADS_ALL
 #define CONFIG_SYS_OMAP_ABE_SYSCK
+
+/*
+ * Non-secure SRAM Addresses
+ * Non-secure RAM starts at 0x40300000 for GP devices. But we keep SRAM_BASE
+ * at 0x40304000(EMU base) so that our code works for both EMU and GP
+ */
+#define NON_SECURE_SRAM_START	0x40300000
+#define NON_SECURE_SRAM_END	0x40380000	/* Not inclusive */
+
 #endif /* __CONFIG_DRA7XX_EVM_H */
