@@ -41,4 +41,7 @@
 
 #define CONFIG_SYS_PROMPT		"OMAP5430 EVM # "
 
+/* Clock Defines */
+#define V_OSCK			19200000	/* Clock output from T2 */
+
 #endif /* __CONFIG_OMAP5_EVM_H */

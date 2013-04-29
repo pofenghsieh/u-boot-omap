@@ -84,6 +84,10 @@ static inline u32 __get_sys_clk_index(void)
 		 * for the dpll param array.
 		 */
 		ind &= CM_SYS_CLKSEL_SYS_CLKSEL_MASK;
+#ifdef CONFIG_DRA7XX
+		/* Fix me, hardcoding to be removed */
+		ind = 7;
+#endif
 	}
 	return ind;
 }

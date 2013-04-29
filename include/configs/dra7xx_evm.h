@@ -37,6 +37,9 @@
 #define CONFIG_SYS_NS16550_COM1		UART1_BASE
 #define CONFIG_BAUDRATE			115200
 
+/* Clock Defines */
+#define V_OSCK			20000000	/* Clock output from T2 */
+
 #define CONFIG_SYS_ENABLE_PADS_ALL
 #define CONFIG_SYS_OMAP_ABE_SYSCK
 #endif /* __CONFIG_DRA7XX_EVM_H */
