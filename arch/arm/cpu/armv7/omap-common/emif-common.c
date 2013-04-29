@@ -33,6 +33,8 @@
 #include <asm/utils.h>
 #include <linux/compiler.h>
 
+#define GEL_CONFIG
+
 static int emif1_enabled = -1, emif2_enabled = -1;
 
 void set_lpmode_selfrefresh(u32 base)
@@ -1348,6 +1350,351 @@ void zebu_sdram_init(void)
 
 }
 
+#define INFO_PRINT 1
+#define GEL_TextOut printf
+
+void DRA7xx_DDR3_config(void)
+{
+int loop_index, dummy_read;
+
+	// EIF - DDR Overall Configuration  -
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> Overall DDR configuration\n");
+	}
+
+	// EIF - DDR IOs CONFIG
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF1 and EIF1 DDR IOs config (CTRL_ODULE_CORE_PAD odule)\n");
+	}
+
+	*(int*)(0x4A002E30)= 0x80808080;     //CONTROL_DDR3CH1_0 -- channel_1 CDs / 40Oh Ron (011) / SR=slowest-3 (111) on CDs but CLK SR=slow (011) / No pulls (00)
+	*(int*)(0x4A002E34)= 0x80808080;     //CONTROL_DDR3CH2_0 -- channel_2 CDs / 40Oh Ron (011) / SR=slowest-3 (111) on CDs but CLK SR=slow (011) / No pulls (00)
+	*(int*)(0x4A002E38)= 0x40404040;     //CONTROL_DDRCH1_0 -- channel_1 DATA byte 0+1 / 40Oh Ron (011) / SR=faster (001) / Pull-up (10) on DQS / No pull (00) on DQ
+	*(int*)(0x4A002E3C)= 0x40404040;     //CONTROL_DDRCH1_1 -- channel_1 DATA byte 2+3 / 40Oh Ron (011) / SR=faster (001) / Pull-up (10) on DQS / No pull (00) on DQ
+	*(int*)(0x4A002E40)= 0x40404040;     //CONTROL_DDRCH2_0 -- channel_2 DATA byte 0+1 / 40Oh Ron (011) / SR=faster (001) / Pull-up (10) on DQS / No pull (00) on DQ
+	*(int*)(0x4A002E44)= 0x40404040;     //CONTROL_DDRCH2_1 -- channel_2 DATA byte 2+3 / 40Oh Ron (011) / SR=faster (001) / Pull-up (10) on DQS / No pull (00) on DQ
+	*(int*)(0x4A002E48)= 0x40404040;     //CONTROL_LPDDR2CH1_0 -- channel_1 LPDDR2 CD PHYs IOs not used on OAP5432
+	*(int*)(0x4A002E4C)= 0x40404040;     //CONTROL_CONTROL_LPDDR2CH1_1 -- channel_1 LPDDR2 CD PHYs IOs not used on OAP5432
+
+	*(int*)(0x4A002E50)= 0xA2084210;     //DDRIO_0 -- VREF cells (CH1 DQ3/0 INT 2uA / Cap to GND / CD1/0 DDR3 INT-OUT 32uA / Cap to GND)
+	*(int*)(0x4A002E54)= 0x84210840;     //DDRIO_1 -- VREF cells (CH1 OUT 32uA Cap to GND / CH2 DQ3/0 INT 2uA / Cap to GND / CH2 OUT 32uA Cap to GND)
+	*(int*)(0x4A002E58)= 0x84210000;     //DDRIO_2 -- VREF cells (LPDDR2 CH1/2 CA INT/OUT - unused on OAP5432)
+	*(int*)(0x4A002E88)= 0xA2000000;	 //CONTROL_DDRIO_EXT_0
+
+
+	// EIF1 and EIF2 PHYs extra CONFIG - CTRL_ODULE_WKUP
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> DDR PHY config (CTRL_ODULE_WKUP odule)\n");
+	}
+
+	*(int*)(0x4AE0C144)= 0x0000C1A7;     //EIF1_SDRA_CONFIG_EXT -- cslice_en[2:0]=111 / Local_odt=01 / dyn_pwrdn=1 / dis_reset=1 / rd_lvl_saples=11 (128)
+	*(int*)(0x4AE0C148)= 0x0000C1A7;     //EIF2_SDRA_CONFIG_EXT -- cslice_en[2:0]=111 / Local_odt=01 / dyn_pwrdn=1 / dis_reset=1 / rd_lvl_saples=11 (128)
+
+	*(int*)(0x4AE0CDC8)= 0x45145100;     //EFUSE0 -- IOs p/n setting since devices are not yet tried
+	*(int*)(0x4AE0CDCC)= 0x45145100;     //EFUSE1 -- IOs p/n setting since devices are not yet tried
+	*(int*)(0x4AE0CDD0)= 0x45145100;     //EFUSE2 -- IOs p/n setting since devices are not yet tried
+	*(int*)(0x4AE0CDD4)= 0x45145100;     //EFUSE3 -- IOs p/n setting since devices are not yet tried
+
+	// EIF1 controller CONFIG
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF1 ctrl + associated DDR PHYs initial config (EIF1 odule)\n");
+	}
+
+	//*(int*)(0x4C000010)= 0x00001035;     //SDRA_REF_CTRL --
+	//*(int*)(0x4C000014)= 0x00001035;     //SDRA_REF_CTRL_SHDW --
+	*(int*)(0x4C000018)= 0xCCCF36B3;     //SDRA_TI_1 --
+	*(int*)(0x4C00001C)= 0xCCCF36B3;     //SDRA_TI_1_SHDW --
+	*(int*)(0x4C000020)= 0x308F7FDA;     //SDRA_TI_2 --
+	*(int*)(0x4C000024)= 0x308F7FDA;     //SDRA_TI_2_SHDW --
+	*(int*)(0x4C000028)= 0x027F88A8;     //SDRA_TI_3 --
+	*(int*)(0x4C00002C)= 0x027F88A8;     //SDRA_TI_3_SHDW --
+	*(int*)(0x4C000030)= 0x00000000;     //LPDDR2_NV_TI --
+	*(int*)(0x4C000034)= 0x00000000;     //LPDDR2_NV_TI_SHDW --
+	*(int*)(0x4C000038)= 0x00000000;     //PWR_GT_CTRL --
+	*(int*)(0x4C00003C)= 0x00000000;     //PWR_GT_CTRL_SHDW --
+	*(int*)(0x4C000054)= 0x0A500000;     //OCP_CONFIG --
+	*(int*)(0x4C000060)= 0x00002011;     //IODFT_TLGC --
+	*(int*)(0x4C000098)= 0x00050000;     //DLL_CALIB_CTRL --
+	*(int*)(0x4C00009C)= 0x00050000;     //DLL_CALIB_CTRL_SHDW --
+	*(int*)(0x4C0000C8)= 0x0007190B;     //ZQ_CONFIG --
+	*(int*)(0x4C0000CC)= 0x00000000;     //TEP_ALERT_CONFIG --
+	*(int*)(0x4C0000D4)= 0x00000000;     //RDWR_LVL_RP_WIN --
+	*(int*)(0x4C0000D8)= 0x00000000;     //RDWR_LVL_RP_CTRL --
+	*(int*)(0x4C0000DC)= 0x00000000;     //RDWR_LVL_CTRL -- force RDWRLVLFULL_START=0 for now / No increental LVL
+	*(int*)(0x4C0000E4)= 0x0020400A;     //DDR_PHY_CTRL_1 -- force invert_clkout=0 for now
+	*(int*)(0x4C0000E8)= 0x0020400A;     //DDR_PHY_CTRL_1_SHDW -- force invert_clkout=0 for now
+	*(int*)(0x4C0000EC)= 0x00000000;     //DDR_PHY_CTRL_2 --
+	*(int*)(0x4C000100)= 0x00000000;     //PRI_COS_AP --
+	*(int*)(0x4C000104)= 0x00000000;     //CONNID_COS_1_AP --
+	*(int*)(0x4C000108)= 0x00000000;     //CONNID_COS_2_AP --
+	*(int*)(0x4C000120)= 0x00000305;     //RD_WR_EXEC_THRSH --
+	*(int*)(0x4C000124)= 0x00FFFFFF;     //COS_CONFIG --
+	*(int*)(0x4C000200)= 0x04040100;     //EXT_PHY_CTRL_1 --
+	*(int*)(0x4C000204)= 0x04040100;     //EXT_PHY_CTRL_1_SHDW --
+	*(int*)(0x4C000208)= 0x01000100;     //EXT_PHY_CTRL_2 --
+	*(int*)(0x4C00020C)= 0x01000100;     //EXT_PHY_CTRL_2_SHDW --
+	*(int*)(0x4C000210)= 0x01000100;     //EXT_PHY_CTRL_3 --
+	*(int*)(0x4C000214)= 0x01000100;     //EXT_PHY_CTRL_3_SHDW --
+	*(int*)(0x4C000218)= 0x01000100;     //EXT_PHY_CTRL_4 --
+	*(int*)(0x4C00021C)= 0x01000100;     //EXT_PHY_CTRL_4_SHDW --
+	*(int*)(0x4C000220)= 0x01000100;     //EXT_PHY_CTRL_5 --
+	*(int*)(0x4C000224)= 0x01000100;     //EXT_PHY_CTRL_5_SHDW --
+	*(int*)(0x4C000228)= 0x01000100;     //EXT_PHY_CTRL_6 --
+	*(int*)(0x4C00022C)= 0x01000100;     //EXT_PHY_CTRL_6_SHDW --
+	*(int*)(0x4C000230)= 0x01000100;     //EXT_PHY_CTRL_7 --
+	*(int*)(0x4C000234)= 0x01000100;     //EXT_PHY_CTRL_7_SHDW --
+	*(int*)(0x4C000238)= 0x01000100;     //EXT_PHY_CTRL_8 --
+	*(int*)(0x4C00023C)= 0x01000100;     //EXT_PHY_CTRL_8_SHDW --
+	*(int*)(0x4C000240)= 0x01000100;     //EXT_PHY_CTRL_9 --
+	*(int*)(0x4C000244)= 0x01000100;     //EXT_PHY_CTRL_9_SHDW --
+	*(int*)(0x4C000248)= 0x01000100;     //EXT_PHY_CTRL_10 --
+	*(int*)(0x4C00024C)= 0x01000100;     //EXT_PHY_CTRL_10_SHDW --
+	*(int*)(0x4C000250)= 0x01000100;     //EXT_PHY_CTRL_11 --
+	*(int*)(0x4C000254)= 0x01000100;     //EXT_PHY_CTRL_11_SHDW --
+	*(int*)(0x4C000258)= 0x0;     //EXT_PHY_CTRL_12 --
+	*(int*)(0x4C00025C)= 0x0;     //EXT_PHY_CTRL_12_SHDW --
+	*(int*)(0x4C000260)= 0x0;     //EXT_PHY_CTRL_13 --
+	*(int*)(0x4C000264)= 0x0;     //EXT_PHY_CTRL_13_SHDW --
+	*(int*)(0x4C000268)= 0x0;     //EXT_PHY_CTRL_14 --
+	*(int*)(0x4C00026C)= 0x0;     //EXT_PHY_CTRL_14_SHDW --
+	*(int*)(0x4C000270)= 0x0;     //EXT_PHY_CTRL_15 --
+	*(int*)(0x4C000274)= 0x0;     //EXT_PHY_CTRL_15_SHDW --
+	*(int*)(0x4C000278)= 0x0;     //EXT_PHY_CTRL_16 --
+	*(int*)(0x4C00027C)= 0x0;     //EXT_PHY_CTRL_16_SHDW --
+	*(int*)(0x4C000280)= 0x0;     //EXT_PHY_CTRL_17 --
+	*(int*)(0x4C000284)= 0x0;     //EXT_PHY_CTRL_17_SHDW --
+	*(int*)(0x4C000288)= 0x0;     //EXT_PHY_CTRL_18 --
+	*(int*)(0x4C00028C)= 0x0;     //EXT_PHY_CTRL_18_SHDW --
+	*(int*)(0x4C000290)= 0x0;     //EXT_PHY_CTRL_19 --
+	*(int*)(0x4C000294)= 0x0;     //EXT_PHY_CTRL_19_SHDW --
+	*(int*)(0x4C000298)= 0x0;     //EXT_PHY_CTRL_20 --
+	*(int*)(0x4C00029C)= 0x0;     //EXT_PHY_CTRL_20_SHDW --
+	*(int*)(0x4C0002A0)= 0x0;     //EXT_PHY_CTRL_21 --
+	*(int*)(0x4C0002A4)= 0x0;     //EXT_PHY_CTRL_21_SHDW --
+	*(int*)(0x4C0002A8)= 0;     //EXT_PHY_CTRL_22 --
+	*(int*)(0x4C0002AC)= 0;     //EXT_PHY_CTRL_22_SHDW --
+	*(int*)(0x4C0002B0)= 0x600020;     //EXT_PHY_CTRL_23 --
+	*(int*)(0x4C0002B4)= 0x600020;     //EXT_PHY_CTRL_23_SHDW --
+	*(int*)(0x4C0002B8)= 0x40010080;     //EXT_PHY_CTRL_24 --
+	*(int*)(0x4C0002BC)= 0x40010080;     //EXT_PHY_CTRL_24_SHDW --
+	*(int*)(0x4C0002C0)= 0x8102040;     //EXT_PHY_CTRL_25 --
+	*(int*)(0x4C0002C4)= 0x8102040;     //EXT_PHY_CTRL_25_SHDW --
+	*(int*)(0x4C0002C8)= 0x0;     //EXT_PHY_CTRL_26 --
+	*(int*)(0x4C0002CC)= 0x0;     //EXT_PHY_CTRL_26_SHDW --
+	*(int*)(0x4C0002D0)= 0x0;     //EXT_PHY_CTRL_27 --
+	*(int*)(0x4C0002D4)= 0x0;     //EXT_PHY_CTRL_27_SHDW --
+	*(int*)(0x4C0002D8)= 0x0;     //EXT_PHY_CTRL_28 --
+	*(int*)(0x4C0002DC)= 0x0;     //EXT_PHY_CTRL_28_SHDW --
+	*(int*)(0x4C0002E0)= 0x0;     //EXT_PHY_CTRL_29 --
+	*(int*)(0x4C0002E4)= 0x0;     //EXT_PHY_CTRL_29_SHDW --
+	*(int*)(0x4C0002E8)= 0x0;     //EXT_PHY_CTRL_30 --
+	*(int*)(0x4C0002EC)= 0x0;     //EXT_PHY_CTRL_30_SHDW --
+	*(int*)(0x4C000014)= 0x00001035;     //SDRA_REF_CTRL_SHDW --
+	*(int*)(0x4C000010)= 0x00001035;     //SDRA_REF_CTRL --
+	*(int*)(0x4C00000C)= 0x08000000;     //SDRA_CONFIG_2 --
+	*(int*)(0x4C000008)= 0x61851AB2;     //SDRA_CONFIG --
+
+	// EIF1 controller CONFIG - enter self-refresh and configure invert_clkout
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> Configure EIF1 DDR in Self Refresh (CKE=0 and clk stopped) and configure invert_clkout\n");
+	}
+
+	*(int*)(0x4C000038)= 0x00000200;     //PWR_GT_CTRL -- Enter "self refresh" ode
+	for (loop_index=0;loop_index<0xF;loop_index++) {dummy_read=*(int*)(0x4AE0CDC8); }    // Insert 16 duy read
+	*(int*)(0x4C0000E4)= 0x0024400A;     //DDR_PHY_CTRL_1 -- Set invert_clkout (if activated)
+	*(int*)(0x4C0000E8)= 0x0024400A;     //DDR_PHY_CTRL_1_SHDW -- Set invert_clkout (if activated)
+	for (loop_index=0;loop_index<0xF;loop_index++) {dummy_read=*(int*)(0x4AE0CDC8); }    // Insert 16 duy read
+	*(int*)(0x4C000038)= 0x00000000;     //PWR_GT_CTRL -- Exit "self refresh" ode
+
+	// EIF1 channel - Launch full leveling (WR_LVL + READ_GATE_LVL + READ_LVL)
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF1 channel - Launch full leveling (WR_LVL + READ_GATE_LVL + READ_VLV)\n");
+	}
+
+	//*(int*)(0x4C0000DC)= 0x80000000;     //RDWR_LVL_CTRL -- force RDWRLVLFULL_START=1 / Launch full leveling
+	dummy_read=*(int*)(0x4AE0CDC8);    // Wait for EIF1 to be done with Full_LVL (SW stalling - EIF keeps IDLE_ack adderted until Full_LVL copletion)
+
+	// EIF1 channel - Put back the Read Data Eye LVL nu_of_saples=4
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF1 channel - Put back the Read Data Eye LVL nu_of_saples=4\n");
+	}
+
+	*(int*)(0x4AE0C144)= 0x000001A7;     //EIF1_SDRA_CONFIG_EXT -- cslice_en[2:0]=111 / Local_odt=01 / dyn_pwrdn=1 / dis_reset=1 / rd_lvl_saples=00 (4)
+
+	// EIF1 channel - Launch 8 increental WR_LVL (to copensate for a PHY liitation)
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF1 channel - Launch 8 increental WR_LVL (to copensate for a PHY liitation)\n");
+	}
+
+	*(int*)(0x4C0000DC)= 0x01000002;     //RDWR_LVL_CTRL -- force RDWRLVLFULL_START=0 / Set Write Leveling period = 2
+	for (loop_index=0;loop_index<0xF;loop_index++) {dummy_read=*(int*)(0x4AE0CDC8); }    // Insert 4096 duy read (should be at least 128us)
+
+	// EIF1 channel - Turn-OFF any increental LVL for first saples debug
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF1 channel - Turn-OFF any increental LVL for first saples debug\n");
+	}
+
+	*(int*)(0x4C0000DC)= 0x00000000;     //RDWR_LVL_CTRL -- Turn-OFF any increental LVL for first saples debug
+
+
+
+	// EIF2 controller CONFIG
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF2 ctrl + associated DDR PHYs initial config (EIF2 odule)\n");
+	}
+
+	*(int*)(0x4D000018)= 0xCCCF36B3;     //SDRA_TI_1 --
+	*(int*)(0x4D00001C)= 0xCCCF36B3;     //SDRA_TI_1_SHDW --
+	*(int*)(0x4D000020)= 0x308F7FDA;     //SDRA_TI_2 --
+	*(int*)(0x4D000024)= 0x308F7FDA;     //SDRA_TI_2_SHDW --
+	*(int*)(0x4D000028)= 0x027F88A8;     //SDRA_TI_3 --
+	*(int*)(0x4D00002C)= 0x027F88A8;     //SDRA_TI_3_SHDW --
+	*(int*)(0x4D000030)= 0x00000000;     //LPDDR2_NV_TI --
+	*(int*)(0x4D000034)= 0x00000000;     //LPDDR2_NV_TI_SHDW --
+	*(int*)(0x4D000038)= 0x00000000;     //PWR_GT_CTRL --
+	*(int*)(0x4D00003C)= 0x00000000;     //PWR_GT_CTRL_SHDW --
+	*(int*)(0x4D000054)= 0x0A500000;     //OCP_CONFIG --
+	*(int*)(0x4D000060)= 0x00002011;     //IODFT_TLGC --
+	*(int*)(0x4D000098)= 0x00050000;     //DLL_CALIB_CTRL --
+	*(int*)(0x4D00009C)= 0x00050000;     //DLL_CALIB_CTRL_SHDW --
+	*(int*)(0x4D0000C8)= 0x0007190B;     //ZQ_CONFIG --
+	*(int*)(0x4D0000CC)= 0x00000000;     //TEP_ALERT_CONFIG --
+	*(int*)(0x4D0000D4)= 0x00000000;     //RDWR_LVL_RP_WIN --
+	*(int*)(0x4D0000D8)= 0x00000000;     //RDWR_LVL_RP_CTRL --
+	*(int*)(0x4D0000DC)= 0x00000000;     //RDWR_LVL_CTRL -- force RDWRLVLFULL_START=0 for now / No increental LVL
+	*(int*)(0x4D0000E4)= 0x0E20400A;     //DDR_PHY_CTRL_1 -- force invert_clkout=0 for now
+	*(int*)(0x4D0000E8)= 0x0020400A;     //DDR_PHY_CTRL_1_SHDW -- force invert_clkout=0 for now
+	*(int*)(0x4D0000EC)= 0x00000000;     //DDR_PHY_CTRL_2 --
+	*(int*)(0x4D000100)= 0x00000000;     //PRI_COS_AP --
+	*(int*)(0x4D000104)= 0x00000000;     //CONNID_COS_1_AP --
+	*(int*)(0x4D000108)= 0x00000000;     //CONNID_COS_2_AP --
+	*(int*)(0x4D000120)= 0x00000305;     //RD_WR_EXEC_THRSH --
+	*(int*)(0x4D000124)= 0x00FFFFFF;     //COS_CONFIG --
+	*(int*)(0x4D000200)= 0x04040100;     //EXT_PHY_CTRL_1 --
+	*(int*)(0x4D000204)= 0x04040100;     //EXT_PHY_CTRL_1_SHDW --
+	*(int*)(0x4D000208)= 0x01000100;     //EXT_PHY_CTRL_2 --
+	*(int*)(0x4D00020C)= 0x01000100;     //EXT_PHY_CTRL_2_SHDW --
+	*(int*)(0x4D000210)= 0x01000100;     //EXT_PHY_CTRL_3 --
+	*(int*)(0x4D000214)= 0x01000100;     //EXT_PHY_CTRL_3_SHDW --
+	*(int*)(0x4D000218)= 0x01000100;     //EXT_PHY_CTRL_4 --
+	*(int*)(0x4D00021C)= 0x01000100;     //EXT_PHY_CTRL_4_SHDW --
+	*(int*)(0x4D000220)= 0x01000100;     //EXT_PHY_CTRL_5 --
+	*(int*)(0x4D000224)= 0x01000100;     //EXT_PHY_CTRL_5_SHDW --
+	*(int*)(0x4D000228)= 0x01000100;     //EXT_PHY_CTRL_6 --
+	*(int*)(0x4D00022C)= 0x01000100;     //EXT_PHY_CTRL_6_SHDW --
+	*(int*)(0x4D000230)= 0x01000100;     //EXT_PHY_CTRL_7 --
+	*(int*)(0x4D000234)= 0x01000100;     //EXT_PHY_CTRL_7_SHDW --
+	*(int*)(0x4D000238)= 0x01000100;     //EXT_PHY_CTRL_8 --
+	*(int*)(0x4D00023C)= 0x01000100;     //EXT_PHY_CTRL_8_SHDW --
+	*(int*)(0x4D000240)= 0x01000100;     //EXT_PHY_CTRL_9 --
+	*(int*)(0x4D000244)= 0x01000100;     //EXT_PHY_CTRL_9_SHDW --
+	*(int*)(0x4D000248)= 0x01000100;     //EXT_PHY_CTRL_10 --
+	*(int*)(0x4D00024C)= 0x01000100;     //EXT_PHY_CTRL_10_SHDW --
+	*(int*)(0x4D000250)= 0x01000100;     //EXT_PHY_CTRL_11 --
+	*(int*)(0x4D000254)= 0x01000100;     //EXT_PHY_CTRL_11_SHDW --
+	*(int*)(0x4D000258)= 0;     //EXT_PHY_CTRL_12 --
+	*(int*)(0x4D00025C)= 0;     //EXT_PHY_CTRL_12_SHDW --
+	*(int*)(0x4D000260)= 0;     //EXT_PHY_CTRL_13 --
+	*(int*)(0x4D000264)= 0;     //EXT_PHY_CTRL_13_SHDW --
+	*(int*)(0x4D000268)= 0;     //EXT_PHY_CTRL_14 --
+	*(int*)(0x4D00026C)= 0;     //EXT_PHY_CTRL_14_SHDW --
+	*(int*)(0x4D000270)= 0;     //EXT_PHY_CTRL_15 --
+	*(int*)(0x4D000274)= 0;     //EXT_PHY_CTRL_15_SHDW --
+	*(int*)(0x4D000278)= 0;     //EXT_PHY_CTRL_16 --
+	*(int*)(0x4D00027C)= 0;     //EXT_PHY_CTRL_16_SHDW --
+	*(int*)(0x4D000280)= 0x0;     //EXT_PHY_CTRL_17 --
+	*(int*)(0x4D000284)= 0x0;     //EXT_PHY_CTRL_17_SHDW --
+	*(int*)(0x4D000288)= 0x0;     //EXT_PHY_CTRL_18 --
+	*(int*)(0x4D00028C)= 0x0;     //EXT_PHY_CTRL_18_SHDW --
+	*(int*)(0x4D000290)= 0x0;     //EXT_PHY_CTRL_19 --
+	*(int*)(0x4D000294)= 0x0;     //EXT_PHY_CTRL_19_SHDW --
+	*(int*)(0x4D000298)= 0x0;     //EXT_PHY_CTRL_20 --
+	*(int*)(0x4D00029C)= 0x0;     //EXT_PHY_CTRL_20_SHDW --
+	*(int*)(0x4D0002A0)= 0x0;     //EXT_PHY_CTRL_21 --
+	*(int*)(0x4D0002A4)= 0x0;     //EXT_PHY_CTRL_21_SHDW --
+	*(int*)(0x4D0002A8)= 0;     //EXT_PHY_CTRL_22 --
+	*(int*)(0x4D0002AC)= 0;     //EXT_PHY_CTRL_22_SHDW --
+	*(int*)(0x4D0002B0)= 0x600020;     //EXT_PHY_CTRL_23 --
+	*(int*)(0x4D0002B4)= 0x600020;     //EXT_PHY_CTRL_23_SHDW --
+	*(int*)(0x4D0002B8)= 0x40010080;     //EXT_PHY_CTRL_24 --
+	*(int*)(0x4D0002BC)= 0x40010080;     //EXT_PHY_CTRL_24_SHDW --
+	*(int*)(0x4D0002C0)= 0x8102040;     //EXT_PHY_CTRL_25 --
+	*(int*)(0x4D0002C4)= 0x8102040;     //EXT_PHY_CTRL_25_SHDW --
+	*(int*)(0x4D0002C8)= 0x0;     //EXT_PHY_CTRL_26 --
+	*(int*)(0x4D0002CC)= 0x0;     //EXT_PHY_CTRL_26_SHDW --
+	*(int*)(0x4D0002D0)= 0x0;     //EXT_PHY_CTRL_27 --
+	*(int*)(0x4D0002D4)= 0x0;     //EXT_PHY_CTRL_27_SHDW --
+	*(int*)(0x4D0002D8)= 0x0;     //EXT_PHY_CTRL_28 --
+	*(int*)(0x4D0002DC)= 0x0;     //EXT_PHY_CTRL_28_SHDW --
+	*(int*)(0x4D0002E0)= 0x0;     //EXT_PHY_CTRL_29 --
+	*(int*)(0x4D0002E4)= 0x0;     //EXT_PHY_CTRL_29_SHDW --
+	*(int*)(0x4D0002E8)= 0x0;     //EXT_PHY_CTRL_30 --
+	*(int*)(0x4D0002EC)= 0x0;     //EXT_PHY_CTRL_30_SHDW --
+	*(int*)(0x4D000014)= 0x00001035;     //SDRA_REF_CTRL_SHDW --
+	*(int*)(0x4D000010)= 0x00001035;     //SDRA_REF_CTRL --
+	*(int*)(0x4D00000C)= 0x08000000;     //SDRA_CONFIG_2 --
+	*(int*)(0x4D000008)= 0x61851B32;     //SDRA_CONFIG --
+
+	// EIF2 controller CONFIG - enter self-refresh and confirgure invert_clkout
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> Configure EIF2 DDR in Self Refresh (CKE=0 and clk stopped) and configure invert_clkout\n");
+	}
+
+	*(int*)(0x4D000038)= 0x00000200;     //PWR_GT_CTRL -- Enter "self refresh" ode
+	for (loop_index=0;loop_index<0xF;loop_index++) {dummy_read=*(int*)(0x4AE0CDC8); }    // Insert 16 duy read
+	*(int*)(0x4D0000E4)= 0x0024400A;     //DDR_PHY_CTRL_1 -- Set invert_clkout (if activated)
+	*(int*)(0x4D0000E8)= 0x0024400A;     //DDR_PHY_CTRL_1_SHDW -- Set invert_clkout (if activated)
+	for (loop_index=0;loop_index<0xF;loop_index++) {dummy_read=*(int*)(0x4AE0CDC8); }    // Insert 16 duy read
+	*(int*)(0x4D000038)= 0x00000000;     //PWR_GT_CTRL -- Exit "self refresh" ode
+
+	// EIF2 channel - Launch full leveling (WR_LVL + READ_GATE_LVL + READ_VLV)
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF2 channel - Launch full leveling (WR_LVL + READ_GATE_LVL + READ_VLV)\n");
+	}
+
+	//*(int*)(0x4D0000DC)= 0x80000000;     //RDWR_LVL_CTRL -- force RDWRLVLFULL_START=1 / Launch full leveling
+	dummy_read=*(int*)(0x4AE0CDC8);    // Wait for EIF2 to be done with Full_LVL (SW stalling - EIF keeps IDLE_ack adderted until Full_LVL copletion)
+
+	// EIF2 channel - Put back the Read Data Eye LVL nu_of_saples=4
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF2 channel - Put back the Read Data Eye LVL nu_of_saples=4\n");
+	}
+
+	*(int*)(0x4AE0C148)= 0x000001A7;     //EIF2_SDRA_CONFIG_EXT -- cslice_en[2:0]=111 / Local_odt=01 / dyn_pwrdn=1 / dis_reset=1 / rd_lvl_saples=00 (4)
+
+	// EIF2 channel - Launch 8 increental WR_LVL (to copensate for a PHY liitation)
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF2 channel - Launch 8 increental WR_LVL (to copensate for a PHY liitation)\n");
+	}
+
+	*(int*)(0x4D0000DC)= 0x01000002;     //RDWR_LVL_CTRL -- force RDWRLVLFULL_START=0 / Set Write Leveling period = 2
+
+	for (loop_index=0;loop_index<0xF;loop_index++) {dummy_read=*(int*)(0x4AE0CDC8); }    // Insert 4096 duy read (should be at least 128us)
+
+	// EIF2 channel - Turn-OFF any increental LVL for first saples debug
+	if (INFO_PRINT) {
+		GEL_TextOut(">> START ==> EIF2 channel - Turn-OFF any increental LVL for first saples debug\n");
+	}
+
+	*(int*)(0x4D0000DC)= 0x00000000;     //RDWR_LVL_CTRL -- Turn-OFF any increental LVL for first saples debug
+
+
+	*(int*)(0x482AF040) = 0x80500100;
+	//*(int*)(0x482AF044) = 0xC0600200;
+	// EIF - DDR Overall Configuration  - COPLETED
+
+	*(int*)(0x4e000040) = 0x80500100;
+
+	if (INFO_PRINT) {
+		GEL_TextOut(">> END ==> overall DDR configuration copleted / DDR eory can now be accessed\n");
+	}
+	//Why??
+	*(int*)(0x4C000008)= 0x61851AB2;     //SDRA_CONFIG --
+	*(int*)(0x4D000008)= 0x61851B32;     //SDRA_CONFIG --
+
+}
+
+
 /*
  * SDRAM initialization:
  * SDRAM initialization has two parts:
@@ -1378,6 +1725,8 @@ void sdram_init(void)
 	in_sdram = running_from_sdram();
 	debug("in_sdram = %d\n", in_sdram);
 
+
+#ifndef GEL_CONFIG
 	if (!in_sdram) {
 		if ((sdram_type == EMIF_SDRAM_TYPE_LPDDR2) && !warm_reset())
 			bypass_dpll((*prcm)->cm_clkmode_dpll_core);
@@ -1404,7 +1753,9 @@ void sdram_init(void)
 	/* for the shadow registers to take effect */
 	if (sdram_type == EMIF_SDRAM_TYPE_LPDDR2)
 		freq_update_core();
-
+#else
+	DRA7xx_DDR3_config();
+#endif
 	/* Do some testing after the init */
 	if (!in_sdram) {
 		size_prog = omap_sdram_size();
