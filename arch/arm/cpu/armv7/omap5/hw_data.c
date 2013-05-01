@@ -236,8 +236,10 @@ static const struct dpll_params abe_dpll_params_32k_196608khz = {
 };
 
 /* ABE M & N values with sysclk2(22.5792 MHz) as input */
-static const struct dpll_params abe_dpll_params_sysclk2_361267khz = {
-	16, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1
+static const struct dpll_params
+		abe_dpll_params_sysclk2_361267khz[NUM_SYS_CLKS] = {
+	{ 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 },
+	{16, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
 static const struct dpll_params usb_dpll_params_1920mhz[NUM_SYS_CLKS] = {
@@ -353,7 +355,7 @@ struct dplls dra7xx_dplls = {
 	.mpu = mpu_dpll_params_1ghz,
 	.core = core_dpll_params_2128mhz_dra7xx,
 	.per = per_dpll_params_768mhz_dra7xx,
-	.abe = &abe_dpll_params_sysclk2_361267khz,
+	.abe = abe_dpll_params_sysclk2_361267khz,
 	.iva = iva_dpll_params_2330mhz_dra7xx,
 	.usb = usb_dpll_params_1920mhz,
 	.ddr = ddr_dpll_params_2128mhz,
