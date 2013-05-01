@@ -1350,7 +1350,7 @@ void zebu_sdram_init(void)
 
 }
 
-#define INFO_PRINT 1
+#define INFO_PRINT 0
 #define GEL_TextOut printf
 
 void DRA7xx_DDR3_config(void)
