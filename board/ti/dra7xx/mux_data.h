@@ -37,6 +37,16 @@ const struct pad_conf_entry core_padconf_array_essential[] = {
 	{MMC1_DAT3, (IEN | PTU | PDIS | M0)},
 	{MMC1_SDCD, (FSC | IEN | PTU | PDIS | M0)},
 	{MMC1_SDWP, (FSC | IEN | PTD | PEN | M14)},
+	{GPMC_A19, (IEN | PTU | M1)}, /* mmc2_dat4 */
+	{GPMC_A20, (IEN | PTU | M1)}, /* mmc2_dat5 */
+	{GPMC_A21, (IEN | PTU | M1)}, /* mmc2_dat6 */
+	{GPMC_A22, (IEN | PTU | M1)}, /* mmc2_dat7 */
+	{GPMC_A23, (IEN | PTU | M1)}, /* mmc2_clk */
+	{GPMC_A24, (IEN | PTU | M1)}, /* mmc2_dat0 */
+	{GPMC_A25, (IEN | PTU | M1)}, /* mmc2_dat1 */
+	{GPMC_A26, (IEN | PTU | M1)}, /* mmc2_dat2 */
+	{GPMC_A27, (IEN | PTU | M1)}, /* mmc2_dat3 */
+	{GPMC_CS1, (IEN | PTU | M1)}, /* mmm2_cmd */
 	{UART1_RXD, (FSC | IEN | PTU | PDIS | M0)},
 	{UART1_TXD, (FSC | IEN | PTU | PDIS | M0)},
 	{UART1_CTSN, (IEN | PTU | PDIS | M3)},
@@ -81,16 +91,6 @@ const struct pad_conf_entry core_padconf_array_non_essential[] = {
 	{GPMC_A16, (IEN | PDIS | M1)},
 	{GPMC_A17, (IEN | PDIS | M1)},
 	{GPMC_A18, (IEN | PDIS | M1)},
-	{GPMC_A19, (IEN | PDIS | M1)},
-	{GPMC_A20, (IEN | PDIS | M1)},
-	{GPMC_A21, (IEN | PDIS | M1)},
-	{GPMC_A22, (IEN | PDIS | M1)},
-	{GPMC_A23, (IEN | PDIS | M1)},
-	{GPMC_A24, (IEN | PDIS | M1)},
-	{GPMC_A25, (IEN | PDIS | M1)},
-	{GPMC_A26, (IEN | PDIS | M1)},
-	{GPMC_A27, (IEN | PDIS | M1)},
-	{GPMC_CS1, (IEN | PTU | PDIS | M1)},
 	{GPMC_CS0, (IEN | PTU | PDIS | M15)},
 	{GPMC_CS2, (IEN | PTU | PDIS | M1)},
 	{GPMC_CS3, (IEN | PTU | PDIS | M3)},
