@@ -152,7 +152,7 @@ void s_init(void)
 	gd = &gdata;
 
 	preloader_console_init();
-	do_io_settings();
+	//do_io_settings();
 #endif
 	prcm_init();
 #ifdef CONFIG_SPL_BUILD
