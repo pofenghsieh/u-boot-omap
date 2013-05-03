@@ -479,11 +479,11 @@ static void setup_non_essential_dplls(void)
 			      DPLL_LOCK, "eve");
 	}
 
-	if ((*dplls_data)->dsp) {
+	/*if ((*dplls_data)->dsp) {
 		params = &(*dplls_data)->dsp[sysclk_ind];
 		do_setup_dpll((*prcm)->cm_clkmode_dpll_dsp, params,
 			      DPLL_LOCK, "dsp");
-	}
+	}*/
 
 	if ((*dplls_data)->gpu) {
 		params = &(*dplls_data)->gpu[sysclk_ind];
@@ -491,7 +491,7 @@ static void setup_non_essential_dplls(void)
 			      DPLL_LOCK, "gpu");
 	}
 
-	if ((*dplls_data)->gmac) {
+	/*if ((*dplls_data)->gmac) {
 		params = &(*dplls_data)->gmac[sysclk_ind];
 		do_setup_dpll((*prcm)->cm_clkmode_dpll_gmac, params,
 			      DPLL_LOCK, "gmac");
@@ -501,7 +501,7 @@ static void setup_non_essential_dplls(void)
 		params = &(*dplls_data)->pcie_ref[sysclk_ind];
 		do_setup_dpll((*prcm)->cm_clkmode_dpll_pcie_ref, params,
 			      DPLL_LOCK, "pcie_ref");
-	}
+	}*/
 }
 
 u32 get_offset_code(u32 volt_offset, struct pmic_data *pmic)
