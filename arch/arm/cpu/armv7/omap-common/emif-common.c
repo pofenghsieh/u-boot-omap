@@ -1687,11 +1687,23 @@ void DRA7xx_DDR3_config(void)
 	*(int*)(0x4D0000DC)= 0x00000000;     //RDWR_LVL_CTRL -- Turn-OFF any incremental LVL for first samples debug
 
 
+
+#if defined(EMIF1)
+	/* EMIF1, 512MB only */
+	*(int*)(0x482AF040) = 0x80500100;
+
+	*(int*)(0x4e000040) = 0x80500100;
+#elif defined(EMIF1_EMIF2)
+	/* EMIF1 and 2 with 1GB interleaved */
+	*(int*)(0x482AF040) = 0x80640300;
+
+	*(int*)(0x4e000040) = 0x80640300;
+#else
+	/* EMIF2, 1GB only */
 	*(int*)(0x482AF040) = 0x80600200;
-	*(int*)(0x482AF044) = 0xC0500100;
 
 	*(int*)(0x4e000040) = 0x80600200;
-	*(int*)(0x4e000044) = 0xC0500100;
+#endif
 
 	// EMIF - DDR Overall Configuration  - COMPLETED 
 	if (INFO_PRINT) {

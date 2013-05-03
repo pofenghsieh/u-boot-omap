@@ -54,4 +54,6 @@
 #define CONFIG_SYS_DCACHE_OFF
 #define CONFIG_SYS_ICACHE_OFF
 
+#define EMIF1_EMIF2
+
 #endif /* __CONFIG_DRA7XX_EVM_H */
