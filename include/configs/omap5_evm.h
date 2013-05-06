@@ -34,11 +34,6 @@
 #define CONFIG_SYS_NS16550_COM3		UART3_BASE
 #define CONFIG_BAUDRATE			115200
 
-/* TWL6035 */
-#ifndef CONFIG_SPL_BUILD
-#define CONFIG_PALMAS_POWER
-#endif
-
 #define CONFIG_SYS_PROMPT		"OMAP5430 EVM # "
 
 /* Clock Defines */
