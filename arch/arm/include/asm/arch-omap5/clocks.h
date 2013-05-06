@@ -66,6 +66,9 @@
 /* CM_IDLEST_DPLL fields */
 #define ST_DPLL_CLK_MASK		1
 
+/* CM_AUTOIDLE_DPLL fields */
+#define CM_CLKMODE_AUTO_DPLLMODE_MASK	(0x7 << 0)
+
 /* SGX */
 #define CLKSEL_GPU_HYD_GCLK_MASK		(1 << 25)
 #define CLKSEL_GPU_CORE_GCLK_MASK		(1 << 24)

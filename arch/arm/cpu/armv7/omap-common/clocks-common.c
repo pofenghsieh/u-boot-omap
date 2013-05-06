@@ -237,6 +237,10 @@ static void do_setup_dpll(u32 const base, const struct dpll_params *params,
 
 	temp = readl(&dpll_regs->cm_clksel_dpll);
 
+	/* Clear Automatic control Over DPLL activity */
+	clrbits_le32(&dpll_regs->cm_autoidle_dpll,
+		     CM_CLKMODE_AUTO_DPLLMODE_MASK);
+
 	if (check_for_lock(base)) {
 		/*
 		 * The Dpll has already been locked by rom code using CH.
