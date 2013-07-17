@@ -642,10 +642,33 @@ int fastboot_oem(const char *cmd)
 static void cb_oem(struct usb_ep *ep, struct usb_request *req)
 {
 	char *cmd = req->buf;
+#ifdef CONFIG_SPL_SPI_SUPPORT
+	char *sf_erase[4] = {"sf", "erase", "0", "20000"};
+	int status;
+	char *sf_probe[3] = {"sf", "probe", "0"};
+	if (strncmp(req->buf + 4, "spi", 3) == 0) {
+		boot_from_spi = 1;
+		status = do_spi_flash(NULL, 0, 3, sf_probe);
+		if (status) {
+			fastboot_tx_write_str("FAIL:Could not probe SPI");
+			return;
+		}
+		status = do_spi_flash(NULL, 0, 4, sf_erase);
+		if (status) {
+			fastboot_tx_write_str("FAIL:Could not erase SPI");
+			return;
+		}
+		fastboot_tx_write_str("OKAY");
+		return;
+	}else if (strncmp(req->buf + 4, "mmc", 3) == 0) {
+		boot_from_spi = 0;
+		fastboot_tx_write_str("OKAY");
+		return;
+	}
+#endif
 
-	int r = fastboot_oem(cmd + 4);
-	if (r < 0) {
-		fastboot_tx_write_str("FAIL");
+	if (fastboot_oem(cmd + 4) < 0) {
+		fastboot_tx_write_str("FAIL:Unable to create partitions");
 	} else {
 		fastboot_tx_write_str("OKAY");
 	}
