@@ -25,6 +25,8 @@
 #endif
 #include <usb/fastboot.h>
 #include <command.h>
+#include <asm/io.h>
+#include <asm/omap_common.h>
 
 #define FASTBOOT_VERSION		"0.4"
 
@@ -41,11 +43,23 @@
 
 #define EP_BUFFER_SIZE			4096
 
+#define CONTROL_STATUS  0x4A002134
+#define DEVICETYPE_MASK  (0x7 << 6)
+
 /* To support the Android-style naming of flash */
 #define MAX_PTN 16
 static fastboot_ptentry ptable[MAX_PTN];
 static unsigned int pcount;
 /* static int static_pcount = -1; */
+
+/* omap-type */
+typedef enum {
+        OMAP_TYPE_TEST,
+        OMAP_TYPE_EMU,
+        OMAP_TYPE_SEC,
+        OMAP_TYPE_GP,
+        OMAP_TYPE_BAD,
+} omap_type;
 
 struct f_fastboot {
 	struct usb_function usb_function;
@@ -381,6 +395,32 @@ static int strcmp_l1(const char *s1, const char *s2)
 	return strncmp(s1, s2, strlen(s1));
 }
 
+static char *get_cpu_type(void)
+{
+	static char proc_type[8];
+	unsigned int value;
+
+	value = readl(CONTROL_STATUS);
+	value &= DEVICETYPE_MASK;
+
+	switch (value >> 6) {
+	case OMAP_TYPE_EMU:
+		strcpy(proc_type, "EMU");
+		break;
+	case OMAP_TYPE_SEC:
+		strcpy(proc_type, "HS");
+		break;
+	case OMAP_TYPE_GP:
+		strcpy(proc_type, "GP");
+		break;
+	default:
+		strcpy(proc_type, "unknown");
+		break;
+	}
+
+	return proc_type;
+}
+
 static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 {
 	char *cmd = req->buf;
@@ -424,6 +464,14 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strncat(response, "J6ECO", sizeof(response));
 			break;
 		default:
+			strcpy(response, "FAILValue not set");
+		}
+	} else if (!strcmp_l1("secure", cmd)) {
+
+		s = get_cpu_type();
+		if (s)
+			strncat(response, s, sizeof(response));
+		else
 			strcpy(response, "FAILValue not set");
 	} else {
 		error("unknown variable: %s\n", cmd);
