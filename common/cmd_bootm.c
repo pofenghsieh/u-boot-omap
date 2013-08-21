@@ -29,6 +29,10 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined(CONFIG_CMD_FASTBOOT)
+extern int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[]);
+#endif
+
 #if defined(CONFIG_CMD_IMI)
 static int image_info(unsigned long addr);
 #endif
@@ -700,6 +704,10 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		boot_from_mmc = 1;
 		addr = CONFIG_ADDR_DOWNLOAD;
 	}
+
+	if (check_fastboot()) {
+		goto fail;
+	}
 	mmc = find_mmc_device(mmcc);
 	if (mmc == NULL) {
 		return -1;
@@ -720,15 +728,15 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		pte = fastboot_flash_find_ptn(ptn);
 		if (!pte) {
 			printf("booti: cannot find '%s' partition\n", ptn);
-			return -1;
+			goto fail;
 		}
 		num_sectors =  1;
 		mmc->block_dev.block_read(mmcc, pte->start,num_sectors, (void*)hdr);
 		if (android_image_check_header(hdr)) {
 			printf("booti: bad boot image magic\n");
-			return -1;
+			goto fail;
 		}
-		/* read kernel */
+
 		bootimg_print_image_hdr(hdr);
 		printf("\n\nramdisk sector count:%d", (int)(hdr->ramdisk_size /
 							mmc->block_dev.blksz));
@@ -738,7 +746,7 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 						(void*)hdr->kernel_addr);
 		if (status < 0) {
 			printf("booti: Could not read kernel image\n");
-			return -1;
+			goto fail;
 		}
 		/* read ramdisk */
 		sector += _ALIGN(hdr->kernel_size, hdr->page_size) /
@@ -748,7 +756,7 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 						(void*)hdr->ramdisk_addr);
 		if(status < 0) {
 			printf("booti: Could not read ramdisk\n");
-			return -1;
+			goto fail;
 		}
 	}else {
 		u32 kaddr, raddr;
@@ -758,7 +766,7 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		status = android_image_check_header(hdr);
 		if (status != 0) {
 			printf("booti: bad boot image magic\n");
-			return -1;
+			goto fail;
 		}
 
 		kaddr = addr + hdr->page_size;
@@ -779,12 +787,12 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	status = do_fdt(NULL, 0, 3, fdt_addr);
 	if (status) {
 		printf("booti: Could not set FDT address\n");
-		return -1;
+		goto fail;
 	}
 	status = do_fdt(NULL, 0, 4, fdt_resize);
 	if (status) {
 		printf("booti: Could not resize FDT\n");
-		return -1;
+		goto fail;
 	}
 
 	fdt_chosen[2] = start;
@@ -795,7 +803,7 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	status = do_fdt(NULL, 0, 4, fdt_chosen);
 	if (status) {
 		printf("booti: Could not set initrd_start and initrd_end\n");
-		return -1;
+		goto fail;
 	}
 
 	theKernel = (void (*)(int, int, void *))(hdr->kernel_addr);
@@ -805,7 +813,8 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	theKernel(0, cfg_machine_type, (void *)dbt_addr);
 
 	puts("booti: Control returned to monitor - resetting...\n");
-	do_reset(cmdtp, flag, argc, argv);
+fail:
+	do_fastboot(cmdtp, flag, argc, argv);
 	return 1;
 }
 

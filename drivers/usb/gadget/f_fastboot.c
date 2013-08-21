@@ -737,6 +737,12 @@ static void cb_oem(struct usb_ep *ep, struct usb_request *req)
 }
 #endif
 
+static void cb_reboot_bootloader(struct usb_ep *ep, struct usb_request *req)
+{
+	fastboot_tx_write_str("OKAY");
+	fastboot_reboot_bootloader();
+}
+
 struct cmd_dispatch_info {
 	char *cmd;
 	void (*cb)(struct usb_ep *ep, struct usb_request *req);
@@ -744,6 +750,9 @@ struct cmd_dispatch_info {
 
 static const struct cmd_dispatch_info cmd_dispatch_info[] = {
 	{
+		.cmd = "reboot-bootloader",
+		.cb = cb_reboot_bootloader,
+	}, {
 		.cmd = "reboot",
 		.cb = cb_reboot,
 	}, {
