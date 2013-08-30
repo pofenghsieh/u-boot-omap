@@ -27,6 +27,7 @@
 #include <command.h>
 #include <asm/io.h>
 #include <asm/omap_common.h>
+#include <android_image.h>
 
 #define FASTBOOT_VERSION		"0.4"
 
@@ -144,6 +145,7 @@ static struct usb_gadget_strings *fastboot_strings[] = {
 };
 
 static void rx_handler_command(struct usb_ep *ep, struct usb_request *req);
+static int fastboot_update_zimage(void);
 
 /*
  * Android style flash utilties */
@@ -608,6 +610,152 @@ static void cb_boot(struct usb_ep *ep, struct usb_request *req)
 }
 
 #ifdef CONFIG_FASTBOOT_FLASH
+
+static u32 fastboot_get_boot_ptn(struct andr_img_hdr *hdr, char *response,
+	                                   block_dev_desc_t *dev_desc)
+{
+	u32 hdr_sectors = 0;
+	u32 sector_size;
+	int status = 0;
+	strcpy(response, "OKAY");
+	disk_partition_t info;
+
+	status = get_partition_info_efi_by_name(dev_desc, "boot", &info);
+	if (status) {
+		strcpy(response, "FAILCannot find boot partition");
+		goto out;
+	}
+
+	/* Read the boot image header */
+	sector_size = info.blksz;
+	hdr_sectors = (sizeof(struct andr_img_hdr)/sector_size) + 1;
+	status = dev_desc->block_read(dev_desc->dev, info.start,
+				      hdr_sectors, (void *)hdr);
+
+	if (status < 0) {
+		strcpy(response, "FAILCannot read hdr from boot partition");
+		goto out;
+	}
+	if (android_image_check_header(hdr) != 0) {
+		printf("bad boot image magic\n");
+		strcpy(response, "FAILBoot partition not initialized");
+		goto out;
+	}
+
+	return hdr_sectors;
+
+out:
+	strcpy(response, "INFO");
+	fastboot_tx_write_str(response);
+
+	return -1;
+}
+
+#define CEIL(a, b) (((a) / (b)) + ((a % b) > 0 ? 1 : 0))
+
+static int fastboot_update_zimage()
+{
+	struct andr_img_hdr *hdr = NULL;
+	u8 *ramdisk_buffer;
+	u32 ramdisk_sector_start, ramdisk_sectors;
+	u32 kernel_sector_start, kernel_sectors;
+	u32 hdr_sectors = 0;
+	u32 sectors_per_page = 0;
+	int ret = 0;
+	block_dev_desc_t *dev_desc;
+	disk_partition_t info;
+	char response[RESPONSE_LEN];
+	u32 addr = CONFIG_USB_FASTBOOT_BUF_ADDR;
+
+	strcpy(response, "OKAY");
+	printf("Flashing zImage...%d bytes\n", download_bytes);
+
+	dev_desc = get_dev("mmc", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	if (!dev_desc || dev_desc->type == DEV_TYPE_UNKNOWN) {
+		sprintf(response + strlen(response),
+			"FAILINVALID mmc device");
+		ret = -1;
+		goto out;
+	}
+
+	addr += CEIL(download_bytes, 0x1000) * 0x1000;
+	hdr = (struct andr_img_hdr *) addr;
+
+	hdr_sectors = fastboot_get_boot_ptn(hdr, response, dev_desc);
+	if (hdr_sectors <= 0) {
+		sprintf(response + strlen(response),
+			"FAILINVALID number of boot sectors %d", hdr_sectors);
+		ret = -1;
+		goto out;
+	}
+	ret = get_partition_info_efi_by_name(dev_desc, "boot", &info);
+	if (ret) {
+		strcpy(response, "FAILCannot find boot partition");
+		ret = -1;
+		goto out;
+	}
+
+	/* Extract ramdisk location and read it into local buffer */
+	sectors_per_page = hdr->page_size / info.blksz;
+	ramdisk_sector_start = info.start + sectors_per_page;
+	ramdisk_sector_start += CEIL(hdr->kernel_size, hdr->page_size)*
+				     sectors_per_page;
+	ramdisk_sectors = CEIL(hdr->ramdisk_size, hdr->page_size)*
+			       sectors_per_page;
+
+	ramdisk_buffer = (u8 *)hdr;
+	ramdisk_buffer += (hdr_sectors * info.blksz);
+	ret = dev_desc->block_read(dev_desc->dev, ramdisk_sector_start,
+				   ramdisk_sectors, ramdisk_buffer);
+	if (ret < 0) {
+		sprintf(response, "FAILCannot read ramdisk from boot "
+			"partition");
+		ret = -1;
+		goto out;
+	}
+
+	/* Change the boot img hdr */
+	hdr->kernel_size = download_bytes;
+	ret = dev_desc->block_write(dev_desc->dev, info.start,
+				    hdr_sectors, (void *)hdr);
+	if (ret < 0) {
+		sprintf(response, "FAILCannot writeback boot img hdr");
+		ret = -1;
+		goto out;
+	}
+
+	/* Write the new downloaded kernel*/
+	kernel_sector_start = info.start + sectors_per_page;
+	kernel_sectors = CEIL(hdr->kernel_size, hdr->page_size)*
+			      sectors_per_page;
+	ret = dev_desc->block_write(dev_desc->dev, kernel_sector_start,
+				    kernel_sectors,
+				    (const void *)CONFIG_USB_FASTBOOT_BUF_ADDR);
+	if (ret < 0) {
+		sprintf(response, "FAILCannot write new kernel");
+		ret = -1;
+		goto out;
+	}
+
+	/* Write the saved Ramdisk back */
+	ramdisk_sector_start = info.start + sectors_per_page;
+	ramdisk_sector_start += CEIL(hdr->kernel_size, hdr->page_size)*
+				     sectors_per_page;
+	ret = dev_desc->block_write(dev_desc->dev, ramdisk_sector_start,
+				    ramdisk_sectors, ramdisk_buffer);
+	if (ret < 0) {
+		sprintf(response, "FAILCannot write back original ramdisk");
+		ret = -1;
+		goto out;
+	}
+	fastboot_tx_write_str(response);
+	return 0;
+
+out:
+	fastboot_tx_write_str(response);
+	return ret;
+}
+
 #ifdef CONFIG_SPL_SPI_SUPPORT
 int boot_from_spi = 0;
 extern int do_spi_flash(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
@@ -692,6 +840,11 @@ static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 		return;
 	}
 #endif
+	if (!strcmp(cmd, "zImage") || !strcmp(cmd, "zimage")) {
+		fastboot_update_zimage();
+		return;
+	}
+
 #ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	fb_mmc_flash_write(cmd, (void *)CONFIG_USB_FASTBOOT_BUF_ADDR,
 			   download_bytes, response);
