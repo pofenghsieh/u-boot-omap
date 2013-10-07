@@ -76,14 +76,11 @@ static int mmc_load_image_raw_os(struct mmc *mmc)
 }
 #endif
 
-void spl_mmc_load_image(void)
+void spl_mmc_init(struct mmc **mmc)
 {
-	struct mmc *mmc;
 	int err;
-	u32 boot_mode;
 	u32 boot_device;
 	u8 device;
-	printf("%s\n",__func__);
 	boot_device = spl_boot_device();
 	if(boot_device == BOOT_DEVICE_MMC1) {
 		device = 0;
@@ -93,21 +90,31 @@ void spl_mmc_load_image(void)
 
 	mmc_initialize(gd->bd);
 	/* We register only one device. So, the dev id is always 0 */
-	mmc = find_mmc_device(device);
-	if (!mmc) {
+	*mmc = find_mmc_device(device);
+	if (!*mmc) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		puts("spl: mmc device not found!!\n");
 #endif
 		hang();
 	}
 
-	err = mmc_init(mmc);
+	err = mmc_init(*mmc);
 	if (err) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("spl: mmc init failed: err - %d\n", err);
 #endif
 		hang();
 	}
+}
+
+void spl_mmc_load_image(void)
+{
+	struct mmc *mmc;
+	int err = 0;
+	u32 boot_mode;
+	printf("%s\n", __func__);
+
+	spl_mmc_init(&mmc);
 
 	boot_mode = spl_boot_mode();
 	if (boot_mode == MMCSD_MODE_RAW) {

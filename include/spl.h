@@ -10,6 +10,7 @@
 /* Platform-specific defines */
 #include <linux/compiler.h>
 #include <asm/spl.h>
+#include <mmc.h>
 
 
 /* Boot type */
@@ -71,6 +72,8 @@ void spl_sata_load_image(void);
 /* SPL FAT image functions */
 int spl_load_image_fat(block_dev_desc_t *block_dev, int partition, const char *filename);
 int spl_load_image_fat_os(block_dev_desc_t *block_dev, int partition);
+
+void spl_mmc_init(struct mmc **mmc);
 
 #ifdef CONFIG_SPL_BOARD_INIT
 void spl_board_init(void);
