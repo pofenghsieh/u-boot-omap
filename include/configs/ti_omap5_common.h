@@ -172,6 +172,7 @@
  * print some information.
  */
 #define CONFIG_SPL_TEXT_BASE		0x40300000
+#define CONFIG_SPL_IMAGE_OFFSET		0x00000350
 #define CONFIG_SPL_MAX_SIZE		(0x4031E000 - CONFIG_SPL_TEXT_BASE)
 #define CONFIG_SPL_DISPLAY_PRINT
 #define CONFIG_SPL_LDSCRIPT "$(CPUDIR)/omap-common/u-boot-spl.lds"

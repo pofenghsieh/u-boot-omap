@@ -87,6 +87,14 @@ _fiq:			.word fiq
 	.balignl 16,0xdeadbeef
 
 /*
+ * These are defined in the board-specific linker script.
+ */
+.global _end_ofs
+_end_ofs:
+	.word _end - _start
+
+
+/*
  *************************************************************************
  *
  * Interrupt handling
