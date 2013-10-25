@@ -171,7 +171,7 @@ void fastboot_flash_dump_ptn(void)
 	for (n = 0; n < pcount; n++) {
 		fastboot_ptentry *ptn = ptable + n;
 		printf("ptn %d name='%s'", n, ptn->name);
-		printf(" start=%d len=%d\n", ptn->start, ptn->length);
+		printf(" start=%d len=%llu\n", ptn->start, ptn->length);
 	}
 }
 

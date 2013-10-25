@@ -54,10 +54,10 @@ void fb_mmc_get_ptn_size(const char *cmd, char *response)
 		return;
 	}
 
-	sz = (info.size * info.blksz) >> 10;
+	sz = (info.size * (u64)info.blksz) >> 10;
 
 	if (sz >= 0xFFFFFFFF) {
-		sz_mb = (u32)(sz >> 20);
+		sz_mb = (u32)(sz >> 10);
 		sprintf(buf, "0x%d MB", sz_mb);
 		fastboot_okay(buf);
 	} else {
