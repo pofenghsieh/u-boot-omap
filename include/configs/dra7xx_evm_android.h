@@ -97,7 +97,6 @@
 #define CONFIG_NET_MULTI
 #define CONFIG_PHY_GIGE
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_ADDR			2
 
 #define CONFIG_USB_DWC3		1
 #define CONFIG_USB_DWC3_UDC_REGS		((void *)0x48890000)

@@ -126,7 +126,6 @@
 #define CONFIG_NET_MULTI
 #define CONFIG_PHY_GIGE
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_ADDR			2
 
 /* Enable this flag if you want to boot IPU  */
 #undef CONFIG_LATE_ATTACH_BOOTIPU2
