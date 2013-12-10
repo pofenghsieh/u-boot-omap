@@ -293,6 +293,9 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 			debug("tx done, status %08x\n", status);
 		}
 		if (rxp) {
+			#ifdef CONFIG_DRA7XX
+				udelay(500);
+			#endif
 			if (flags & SPI_6WIRE) {
 				debug("rx cmd %08x dc %08x\n",
 				      qslave->cmd | QSPI_RD_QUAD, qslave->dc);
