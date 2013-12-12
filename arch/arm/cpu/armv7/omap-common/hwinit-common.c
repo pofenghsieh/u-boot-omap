@@ -40,21 +40,18 @@
 #define ARMV7_DCACHE_WRITEBACK  0xe
 #define	ARMV7_DOMAIN_CLIENT	1
 #define ARMV7_DOMAIN_MASK	(0x3 << 0)
-#define COUNTER32K_CR	0x4AE04030
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_DRA7XX)
+#if defined(CONFIG_DRA7XX) && defined(CONFIG_BOOTIPU1)
+
+#define COUNTER32K_CR	0x4AE04030
+
 u32 read_fast_counter(void)
 {
 	u32 reg_val = (u32) __raw_readw(COUNTER32K_CR);
 	reg_val |= (u32)(__raw_readw(COUNTER32K_CR+2) << 16);
 	return reg_val;
-}
-#else
-u32 read_fast_counter(void)
-{
-	return 0;
 }
 #endif
 
@@ -124,6 +121,11 @@ void spl_display_print(void)
 
 void __weak srcomp_enable(void)
 {
+}
+
+u32 __weak authenticate_image_signature(u32 start_addr, u32 size)
+{
+	return 1;
 }
 
 static void save_omap_boot_params(void)
@@ -220,8 +222,11 @@ void s_init(void)
 	set_mux_conf_regs();
 #ifdef CONFIG_SPL_BUILD
 	srcomp_enable();
+#endif
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_XIP_NOR)
 	setup_clocks_for_console();
-
+#endif
+#ifdef CONFIG_SPL_BUILD
 	gd = &gdata;
 
 	preloader_console_init();
