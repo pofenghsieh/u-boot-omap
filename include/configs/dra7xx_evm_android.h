@@ -123,7 +123,8 @@
 
 
 /* Enable this flag if you want IPU based early camera */
-#define CONFIG_BOOTIPU1
+/* Disabled IPU1 booting option for the demo */
+/* #define CONFIG_BOOTIPU1 */
 
 #ifdef CONFIG_BOOTIPU1
 #undef CONFIG_BOOTDELAY
