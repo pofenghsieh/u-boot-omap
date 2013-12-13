@@ -432,6 +432,12 @@ static void setup_dplls(void)
 	do_setup_dpll((*prcm)->cm_clkmode_dpll_gmac, params,
 		      DPLL_LOCK, "gmac");
 #endif
+	/* IVA */
+	clrsetbits_le32((*prcm)->cm_bypclk_dpll_iva,
+		CM_BYPCLK_DPLL_IVA_CLKSEL_MASK, DPLL_IVA_CLKSEL_CORE_X2_DIV_2);
+
+	params = get_iva_dpll_params(*dplls_data);
+	do_setup_dpll((*prcm)->cm_clkmode_dpll_iva, params, DPLL_LOCK, "iva");
 }
 
 #ifdef CONFIG_SYS_CLOCKS_ENABLE_ALL
@@ -439,13 +445,6 @@ static void setup_non_essential_dplls(void)
 {
 	u32 abe_ref_clk;
 	const struct dpll_params *params;
-
-	/* IVA */
-	clrsetbits_le32((*prcm)->cm_bypclk_dpll_iva,
-		CM_BYPCLK_DPLL_IVA_CLKSEL_MASK, DPLL_IVA_CLKSEL_CORE_X2_DIV_2);
-
-	params = get_iva_dpll_params(*dplls_data);
-	do_setup_dpll((*prcm)->cm_clkmode_dpll_iva, params, DPLL_LOCK, "iva");
 
 	/* Configure ABE dpll */
 	params = get_abe_dpll_params(*dplls_data);
