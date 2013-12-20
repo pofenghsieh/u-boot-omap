@@ -15,10 +15,18 @@
 
 #include <common.h>
 #include <command.h>
+#include <errno.h>
+#include <linux/compat.h>
 #include <linux/ctype.h>
+#include <linux/list.h>
+#include <malloc.h>
 #include <net.h>
 #include <elf.h>
 #include <vxworks.h>
+
+#ifdef CONFIG_IPU_RESOURCE_TABLE_MAPPING
+#include "remoteproc.h"
+#endif
 
 #if defined(CONFIG_WALNUT) || defined(CONFIG_SYS_VXWORKS_MAC_PTR)
 DECLARE_GLOBAL_DATA_PTR;
@@ -272,6 +280,290 @@ int do_bootvx(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 #endif
 
+#ifdef CONFIG_IPU_RESOURCE_TABLE_MAPPING
+static struct resource_table *table;
+static struct list_head mappings;
+
+typedef int (*handle_resource_t)(void *, int offset, int avail);
+
+void *alloc_mem(unsigned long len, unsigned long align);
+unsigned int config_pagetable(unsigned int virt, unsigned int phys,
+                              unsigned int len);
+
+int va_to_pa(int va)
+{
+	struct mem_entry *maps = NULL;
+
+	list_for_each_entry(maps, &mappings, node) {
+		if (va >= maps->da && va < (maps->da + maps->len)) {
+			return maps->dma + (va - maps->da);
+		}
+	}
+
+	return 0;
+}
+
+
+static int handle_trace(struct fw_rsc_trace *rsc, int offset, int avail)
+{
+	if (sizeof(*rsc) > avail) {
+		printf("trace rsc is truncated\n");
+		return -EINVAL;
+	}
+
+	/* make sure reserved bytes are zeroes */
+	if (rsc->reserved) {
+		printf("trace rsc has non zero reserved bytes\n");
+		return -EINVAL;
+	}
+
+	debug("trace rsc: da 0x%x, len 0x%x\n", rsc->da, rsc->len);
+
+	return 0;
+}
+
+static int handle_devmem(struct fw_rsc_devmem *rsc, int offset, int avail)
+{
+	struct mem_entry *mapping;
+
+	if (sizeof(*rsc) > avail) {
+		printf("devmem rsc is truncated\n");
+		return -EINVAL;
+	}
+
+	/* make sure reserved bytes are zeroes */
+	if (rsc->reserved) {
+		printf("devmem rsc has non zero reserved bytes\n");
+		return -EINVAL;
+	}
+
+	debug("devmem rsc: pa 0x%x, da 0x%x, len 0x%x\n",
+					rsc->pa, rsc->da, rsc->len);
+
+	config_pagetable(rsc->da, rsc->pa, rsc->len);
+
+	mapping = kzalloc(sizeof(*mapping), GFP_KERNEL);
+	if (!mapping) {
+		printf("kzalloc mapping failed\n");
+		return -ENOMEM;
+	}
+
+	/*
+	 * We'll need this info later when we'll want to unmap everything
+	 * (e.g. on shutdown).
+	 *
+	 * We can't trust the remote processor not to change the resource
+	 * table, so we must maintain this info independently.
+	 */
+	mapping->dma = rsc->pa;
+	mapping->da = rsc->da;
+	mapping->len = rsc->len;
+	list_add_tail(&mapping->node, &mappings);
+
+	debug("mapped devmem pa 0x%x, da 0x%x, len 0x%x\n",
+					rsc->pa, rsc->da, rsc->len);
+
+	return 0;
+}
+
+static int handle_carveout(struct fw_rsc_carveout *rsc, int offset, int avail)
+{
+	struct mem_entry *mapping;
+
+	if (sizeof(*rsc) > avail) {
+		printf("carveout rsc is truncated\n");
+		return -EINVAL;
+	}
+
+	/* make sure reserved bytes are zeroes */
+	if (rsc->reserved) {
+		printf("carveout rsc has non zero reserved bytes\n");
+		return -EINVAL;
+	}
+
+	debug("carveout rsc: da %x, pa %x, len %x, flags %x\n",
+			rsc->da, rsc->pa, rsc->len, rsc->flags);
+
+	rsc->pa = (int)alloc_mem(rsc->len, 8);
+	config_pagetable(rsc->da, rsc->pa, rsc->len);
+
+	/*
+	 * Ok, this is non-standard.
+	 *
+	 * Sometimes we can't rely on the generic iommu-based DMA API
+	 * to dynamically allocate the device address and then set the IOMMU
+	 * tables accordingly, because some remote processors might
+	 * _require_ us to use hard coded device addresses that their
+	 * firmware was compiled with.
+	 *
+	 * In this case, we must use the IOMMU API directly and map
+	 * the memory to the device address as expected by the remote
+	 * processor.
+	 *
+	 * Obviously such remote processor devices should not be configured
+	 * to use the iommu-based DMA API: we expect 'dma' to contain the
+	 * physical address in this case.
+	 */
+	mapping = kzalloc(sizeof(*mapping), GFP_KERNEL);
+	if (!mapping) {
+		printf("kzalloc mapping failed\n");
+		return -ENOMEM;
+	}
+
+	/*
+	 * We'll need this info later when we'll want to unmap
+	 * everything (e.g. on shutdown).
+	 *
+	 * We can't trust the remote processor not to change the
+	 * resource table, so we must maintain this info independently.
+	 */
+	mapping->dma = rsc->pa;
+	mapping->da = rsc->da;
+	mapping->len = rsc->len;
+	list_add_tail(&mapping->node, &mappings);
+
+	debug("carveout mapped 0x%x to 0x%x\n", rsc->da, rsc->pa);
+
+	return 0;
+}
+
+/*
+ * A lookup table for resource handlers. The indices are defined in
+ * enum fw_resource_type.
+ */
+static handle_resource_t loading_handlers[RSC_LAST] = {
+	[RSC_CARVEOUT] = (handle_resource_t)handle_carveout,
+	[RSC_DEVMEM] = (handle_resource_t)handle_devmem,
+	[RSC_TRACE] = (handle_resource_t)handle_trace,
+	[RSC_VDEV] = NULL, /* VDEVs were handled upon registration */
+};
+
+/* handle firmware resource entries before booting the remote processor */
+static int handle_resources(int len, handle_resource_t handlers[RSC_LAST])
+{
+	handle_resource_t handler;
+	int ret = 0, i;
+	void *pa;
+
+	pa = alloc_mem(0x3000, 2);
+	debug("dummy alloc_mem(0x3000, 2) for vring = %p\n", pa);
+	pa = alloc_mem(0x3000, 2);
+	debug("dummy alloc_mem(0x3000, 2) for vring = %p\n", pa);
+
+	for (i = 0; i < table->num; i++) {
+		int offset = table->offset[i];
+		struct fw_rsc_hdr *hdr = (void *)table + offset;
+		int avail = len - offset - sizeof(*hdr);
+		void *rsc = (void *)hdr + sizeof(*hdr);
+
+		/* make sure table isn't truncated */
+		if (avail < 0) {
+			printf("rsc table is truncated\n");
+			return -EINVAL;
+		}
+
+		debug("rsc: type %d\n", hdr->type);
+
+		if (hdr->type >= RSC_LAST) {
+			printf("unsupported resource %d\n", hdr->type);
+			continue;
+		}
+
+		handler = handlers[hdr->type];
+		if (!handler)
+			continue;
+
+		ret = handler(rsc, offset + sizeof(*hdr), avail);
+		if (ret)
+			break;
+	}
+
+	return ret;
+}
+
+static Elf32_Shdr *
+find_table(unsigned int addr)
+{
+	Elf32_Ehdr *ehdr;               /* Elf header structure pointer     */
+	Elf32_Shdr *shdr;               /* Section header structure pointer */
+	Elf32_Shdr sectionheader;
+	int i;
+	u8 *elf_data;
+	char *name_table;
+	struct resource_table *ptable;
+
+	ehdr = (Elf32_Ehdr *)addr;
+	elf_data = (u8 *)ehdr;
+	shdr = (Elf32_Shdr *)(elf_data + ehdr->e_shoff);
+	memcpy(&sectionheader, &shdr[ehdr->e_shstrndx], sizeof (sectionheader));
+	name_table = (char *)(elf_data + sectionheader.sh_offset);
+
+	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
+		memcpy(&sectionheader, shdr, sizeof (sectionheader));
+		u32 size = sectionheader.sh_size;
+		u32 offset = sectionheader.sh_offset;
+
+		if (strcmp(name_table + sectionheader.sh_name,
+				".resource_table"))
+			continue;
+
+		ptable = (struct resource_table *)(elf_data + offset);
+
+		/* make sure table has at least the header */
+		if (sizeof(struct resource_table) > size) {
+			printf("header-less resource table\n");
+			return NULL;
+		}
+
+		/* we don't support any version beyond the first */
+		if (ptable->ver != 1) {
+			printf("unsupported fw ver: %d\n", ptable->ver);
+			return NULL;
+		}
+
+		/* make sure reserved bytes are zeroes */
+		if (ptable->reserved[0] || ptable->reserved[1]) {
+			printf("non zero reserved bytes\n");
+			return NULL;
+		}
+
+		/* make sure the offsets array isn't truncated */
+		if (ptable->num * sizeof(ptable->offset[0]) +
+			sizeof(struct resource_table) > size) {
+			printf("resource table incomplete\n");
+			return NULL;
+		}
+
+		return shdr;
+	}
+
+	return NULL;
+}
+
+static struct resource_table *
+find_resource_table(unsigned int addr, int *tablesz)
+{
+	Elf32_Shdr *shdr;
+	Elf32_Shdr sectionheader;
+	struct resource_table *ptable;
+	u8 *elf_data = (u8 *)addr;
+
+	shdr = find_table(addr);
+	if (!shdr) {
+		printf("find_resource_table: failed to get resource section header\n");
+		return NULL;
+	}
+
+	memcpy(&sectionheader, shdr, sizeof (sectionheader));
+	ptable = (struct resource_table *)(elf_data + sectionheader.sh_offset);
+	if (tablesz)
+		*tablesz = sectionheader.sh_size;
+
+	return ptable;
+}
+
+#endif
+
 /* ======================================================================
  * A very simple elf loader, assumes the image is valid, returns the
  * entry point address.
@@ -280,37 +572,79 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 {
 	Elf32_Ehdr *ehdr;		/* Elf header structure pointer     */
 	Elf32_Phdr *phdr;		/* Program header structure pointer */
-#ifdef CONFIG_BOOTIPU1
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
 	Elf32_Phdr proghdr;
+	struct resource_table *ptable = NULL;
+	int tablesz;
+	int va;
+	int pa;
 #endif
 	int i;
 
 	ehdr = (Elf32_Ehdr *) addr;
 	phdr = (Elf32_Phdr *) (addr + ehdr->e_phoff);
 
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+# ifdef CONFIG_IPU_RESOURCE_TABLE_MAPPING
+	ptable = find_resource_table(IPU_LOAD_ADDR, &tablesz);
+	if (!ptable) {
+		printf("spl_boot_ipu: failed to find resource table\n");
+	}
+	else {
+		printf("spl_boot_ipu: found resource table\n");
+
+		table = kzalloc(tablesz, GFP_KERNEL);
+		if (!table) {
+			printf("resource table alloc failed!\n");
+			return 1;
+		}
+
+		memcpy(table, ptable, tablesz);
+
+		INIT_LIST_HEAD(&mappings);
+
+		handle_resources(tablesz, loading_handlers);
+	}
+# endif
+#endif
+
 	/* Load each program header */
 	for (i = 0; i < ehdr->e_phnum; ++i) {
-#ifdef CONFIG_BOOTIPU1
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
 		memcpy(&proghdr, phdr, sizeof(Elf32_Phdr));
-		if (proghdr.p_paddr < 0x4000) {
-			/* L2_BOOT mapping of IPU1: Cortex M4 - VA 0x0 = PA 0x58820000 */
-			proghdr.p_paddr += 0x58820000;
-		} else if (proghdr.p_paddr >= 0x00300000 && proghdr.p_paddr < 0x00320000) {
-			/* OCMC mapping of Cortex M4 - VA 0x00300000 = PA 0x40300000 */
-			proghdr.p_paddr += 0x40000000;
-		} else if (proghdr.p_paddr >= 0x20004000 &&  proghdr.p_paddr < 0x20040000) {
-			/* L2_RAM mapping of IPU1: Cortex M4 - VA 0x20004000 = PA 0x58824000 */
-			proghdr.p_paddr += 0x38820000; /* section.addr - 0x20000000 + 0x58820000; */
+		if (!ptable) {
+			if (proghdr.p_paddr < 0x4000) {
+				/* L2_BOOT mapping of IPU1: Cortex M4 - VA 0x0 = PA 0x58820000 */
+				proghdr.p_paddr += 0x58820000;
+			} else if (proghdr.p_paddr >= 0x00300000 && proghdr.p_paddr < 0x00320000) {
+				/* OCMC mapping of Cortex M4 - VA 0x00300000 = PA 0x40300000 */
+				proghdr.p_paddr += 0x40000000;
+			} else if (proghdr.p_paddr >= 0x20004000 &&  proghdr.p_paddr < 0x20040000) {
+				/* L2_RAM mapping of IPU1: Cortex M4 - VA 0x20004000 = PA 0x58824000 */
+				proghdr.p_paddr += 0x38820000; /* section.addr - 0x20000000 + 0x58820000; */
+			}
+		} else {
+			va = proghdr.p_paddr;
+			pa = va_to_pa(va);
+			if (pa)
+				proghdr.p_paddr = pa;
 		}
+
 		void *dst = (void *)(uintptr_t) proghdr.p_paddr;
 		void *src = (void *) addr + proghdr.p_offset;
 		debug("Loading phdr %i to 0x%p (%i bytes)\n",
 			i, dst, proghdr.p_filesz);
 		if (proghdr.p_filesz)
 			memcpy(dst, src, proghdr.p_filesz);
-		if ((proghdr.p_filesz != proghdr.p_memsz) && (proghdr.p_paddr-0x58820000) > 0x4000 && proghdr.p_memsz>9 )
-			memset(dst + proghdr.p_filesz, 0x00,
-				   proghdr.p_memsz - proghdr.p_filesz);
+		if (!ptable) {
+			if ((proghdr.p_filesz != proghdr.p_memsz) && (proghdr.p_paddr-0x58820000) > 0x4000 && proghdr.p_memsz>9 )
+				memset(dst + proghdr.p_filesz, 0x00,
+					   proghdr.p_memsz - proghdr.p_filesz);
+		} else {
+			if (proghdr.p_filesz != proghdr.p_memsz)
+				memset(dst + proghdr.p_filesz, 0x00,
+					   proghdr.p_memsz - proghdr.p_filesz);
+		}
 		/*Don't have to flush cache if greater than 15MB */
 		if (proghdr.p_memsz < 15*1024*1024)
 			flush_cache((unsigned long)dst, proghdr.p_filesz);

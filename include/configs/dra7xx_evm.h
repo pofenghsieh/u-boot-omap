@@ -132,6 +132,7 @@
 #define IPU_LOAD_ADDR		0xa0fff000
 #define CONFIG_SPL_MMC_LOAD_IPU
 #define CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME       "dra7-ipu1-fw.xem4"
+#define CONFIG_IPU_RESOURCE_TABLE_MAPPING
 #endif
 
 #ifdef CONFIG_HS_AUTH
