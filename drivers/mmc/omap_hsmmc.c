@@ -63,6 +63,8 @@ struct omap_hsmmc_data {
 static int mmc_read_data(struct hsmmc *mmc_base, char *buf, unsigned int size);
 static int mmc_write_data(struct hsmmc *mmc_base, const char *buf,
 			unsigned int siz);
+static int mmc_adma_read(struct hsmmc *mmc_base, char *buf,
+			unsigned int size, unsigned int start_sec);
 
 #ifdef OMAP_HSMMC_USE_GPIO
 static int omap_mmc_setup_gpio_in(int gpio, const char *label)
@@ -256,7 +258,7 @@ static int omap_hsmmc_init_setup(struct mmc *mmc)
 
 	writel(readl(&mmc_base->hctl) | SDBP_PWRON, &mmc_base->hctl);
 
-	writel(IE_BADA | IE_CERR | IE_DEB | IE_DCRC | IE_DTO | IE_CIE |
+	writel(IE_BADA | IE_CERR | IE_ADMAE | IE_DEB | IE_DCRC | IE_DTO | IE_CIE |
 		IE_CEB | IE_CCRC | IE_CTO | IE_BRR | IE_BWR | IE_TC | IE_CC,
 		&mmc_base->ie);
 
@@ -319,6 +321,12 @@ static int omap_hsmmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	ulong start;
 
 	mmc_base = ((struct omap_hsmmc_data *)mmc->priv)->base_addr;
+
+	if (!IS_SD(mmc) && data && ((cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK) ||
+			(cmd->cmdidx == MMC_CMD_READ_SINGLE_BLOCK))) {
+		return mmc_adma_read(mmc_base, data->dest, data->blocks,
+				cmd->cmdarg);
+	}
 	start = get_timer(0);
 	while ((readl(&mmc_base->pstate) & (DATI_MASK | CMDI_MASK)) != 0) {
 		if (get_timer(0) - start > MAX_RETRY_MS) {
@@ -430,6 +438,143 @@ static int omap_hsmmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 				data->blocksize * data->blocks);
 	}
 	return 0;
+}
+
+static struct mmc_adma_desc_table *adma_desc = NULL;
+static int mmc_pop_dma_desc(ulong sectors, void *data)
+{
+	int total_length = 0;
+	int remaining_data = 0;
+	int i = 0;
+
+	total_length = ((u32)sectors * MMCSD_SECTOR_SIZE);
+	if (total_length <= MMC_ADMA_MAX_XFER) {
+		adma_desc = (struct mmc_adma_desc_table *)
+				memalign(ARCH_DMA_MINALIGN,
+					 sizeof(struct mmc_adma_desc_table));
+
+		if (!adma_desc)
+			return -1;
+
+		adma_desc->desc_length_attr =
+				(total_length << HSMMC_BLK_NBLK_SHIFT) |
+				(MMCADMA_DESC_TBL_ACT2 |
+				 MMCADMA_DESC_TBL_END |
+				 MMCADMA_DESC_TBL_VALID);
+		adma_desc->desc_addr = (u32)data;
+
+	} else {
+		adma_desc = (struct mmc_adma_desc_table *)
+				memalign(ARCH_DMA_MINALIGN,
+					 (u32)((total_length / MMC_ADMA_MAX_XFER) + 1) *
+					 sizeof(struct mmc_adma_desc_table));
+		if (!adma_desc)
+			return -1;
+
+		do {
+			if (total_length <= MMC_ADMA_MAX_XFER)
+				adma_desc[i].desc_length_attr =
+					(total_length << HSMMC_BLK_NBLK_SHIFT) |
+					(MMCADMA_DESC_TBL_ACT2 |
+					 MMCADMA_DESC_TBL_VALID);
+			else
+				adma_desc[i].desc_length_attr =
+					(MMC_ADMA_MAX_XFER <<
+						HSMMC_BLK_NBLK_SHIFT) |
+					(MMCADMA_DESC_TBL_ACT2 |
+					MMCADMA_DESC_TBL_VALID);
+
+			adma_desc[i].desc_addr =
+					(u32)data + remaining_data;
+			remaining_data += MMC_ADMA_MAX_XFER;
+			if (total_length <= MMC_ADMA_MAX_XFER)
+				break;
+
+			total_length -= MMC_ADMA_MAX_XFER;
+			i++;
+
+		} while (total_length >= 0);
+		adma_desc[i].desc_length_attr |= MMCADMA_DESC_TBL_END;
+	}
+	flush_dcache_range((u32)adma_desc,
+			   (u32)&adma_desc[i+1] + ARCH_DMA_MINALIGN);
+	return 0;
+}
+
+static int mmc_prepare_adma(struct hsmmc *mmc_base, char *buf,
+				unsigned int size, unsigned int start_sec)
+{
+	int n;
+	u32 blkreg;
+
+	n = readl(&mmc_base->hctl);
+	/* Configure the MMC for 32-bit Address ADMA */
+	writel(n | MMCADMA_HCTL_DMAS_32BIT, &mmc_base->hctl);
+	n = readl(&mmc_base->con);
+	/* Configure the MMC for ADMA */
+	writel(n | MMCADMA_CONN_DMA_MNS, &mmc_base->con);
+	blkreg = readl(&mmc_base->blk);
+	blkreg &= ~HSMMC_BLK_NBLK_MASK;
+	writel((MMCSD_SECTOR_SIZE |
+			(u32)size << HSMMC_BLK_NBLK_SHIFT), &mmc_base->blk);
+
+	if (mmc_pop_dma_desc(size, (void*)buf)) {
+		return -1;
+	}
+	writel((u32)adma_desc, &mmc_base->admasal);
+	writel(start_sec, &mmc_base->arg);
+	return 0;
+}
+
+static int mmc_adma_read(struct hsmmc *mmc_base, char *buf,
+			unsigned int size, unsigned int start_sec)
+{
+	int ret = 0;
+	int n, m;
+	memset(buf, 0, 512);
+
+	if (mmc_prepare_adma(mmc_base, buf, size, start_sec)) {
+		ret = -1;
+		goto exit;
+	}
+
+	flush_dcache_range((u32)buf,
+			   (u32)buf + (MMCSD_SECTOR_SIZE * size) + \
+			   ARCH_DMA_MINALIGN);
+
+	writel((MMCSD_CMD18 |
+			MMCHS_MMCHS_CMD_ACEN_ENABLECMD12 |
+			MMCHS_MMCHS_CMD_BCE_ENABLE |
+			MMCHS_MMCHS_CMD_MSBS_MULTIBLK |
+			MMCHS_MMCHS_CMD_DE_ENABLE), &mmc_base->cmd);
+
+	do {
+		n = readl(&mmc_base->stat);
+		if ((n & (MMC_STAT_TC | MMC_STAT_CC)) ==
+				(MMC_STAT_TC | MMC_STAT_CC)) {
+			break;
+		}
+		if (n & MMC_STAT_ERR) {
+			printf("MMCHS_STAT = 0x%08x\n", n);
+			if (n & MMC_STAT_ADMAE) {
+				m = readl(&mmc_base->admaes);
+				printf("MMCHS_ADMAES = 0x%08x\n", m);
+			}
+			ret = -1;
+			break;
+		}
+	} while (1);
+
+	writel(n, &mmc_base->stat);
+	invalidate_dcache_range((u32)buf,
+				(u32)buf + (MMCSD_SECTOR_SIZE * size) + \
+				ARCH_DMA_MINALIGN);
+exit:
+	if (adma_desc)
+		free(adma_desc);
+	adma_desc = NULL;
+
+	return ret;
 }
 
 static int mmc_read_data(struct hsmmc *mmc_base, char *buf, unsigned int size)
