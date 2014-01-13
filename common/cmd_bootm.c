@@ -668,6 +668,7 @@ bootimg_print_image_hdr (struct andr_img_hdr *hdr)
 
 #define TOSTRING(x) #x
 #define STR(x) TOSTRING(x)
+#define MAX_BOOTARGS_SIZE 512
 
 int do_fdt(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 
@@ -686,6 +687,8 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	char* fdt_addr[3] = { "fdt", "addr", STR(DEVICE_TREE) };
 	char* fdt_resize[2] = { "fdt", "resize"};
 	char* fdt_chosen[4] = { "fdt", "chosen", NULL, NULL};
+	char* fdt_bootargs[5] = { "fdt", "set", "/chosen", "bootargs", NULL};
+	char bootargs_str[MAX_BOOTARGS_SIZE];
 	char start[32];
 	char end[32];
 
@@ -808,6 +811,14 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (status) {
 		printf("booti: Could not set initrd_start and initrd_end\n");
 		goto fail;
+	}
+	fdt_bootargs[4] = bootargs_str;
+	sprintf(bootargs_str, "androidboot.serialno=%s ", getenv("serial#") ? : "");
+	if (strlen((char*)hdr->cmdline))
+		strcat(bootargs_str, (char*)hdr->cmdline);
+	status = do_fdt(NULL, 0, 5, fdt_bootargs);
+	if (status) {
+		printf("booti: Warning: Could not set bootargs\n");
 	}
 
 	theKernel = (void (*)(int, int, void *))(hdr->kernel_addr);
