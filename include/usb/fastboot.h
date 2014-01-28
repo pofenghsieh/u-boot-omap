@@ -109,6 +109,8 @@ extern int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 
 __weak int check_fastboot(void);
 
+__weak int check_recovery(void);
+
 __weak void fastboot_reboot_bootloader(void);
 
 #endif
