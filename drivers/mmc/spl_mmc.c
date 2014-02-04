@@ -147,6 +147,26 @@ end:
 		hang();
 	}
 }
+
+#ifdef CONFIG_SPL_MMC_LOAD_IPU
+void spl_mmc_load_ipu()
+{
+	s32 err;
+
+	printf("spl: loading ipu image %s\n",
+			CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME);
+
+	/* load the IPU image */
+        err = file_fat_read(CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME,
+                                (u8 *)IPU_LOAD_ADDR, 0);
+
+	if (err <= 0) {
+                printf("spl: error reading image %s, err - %d\n",
+                        CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME, err);
+                hang();
+        }
+}
+#endif
 #endif
 
 void spl_mmc_init(struct mmc **mmc)

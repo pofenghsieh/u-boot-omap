@@ -40,7 +40,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_SPL_EARLY_BOOT
 extern u32 spl_boot_linux(void);
-# ifdef CONFIG_BOOTIPU1
+# if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
 extern u32 spl_boot_ipu(void);
 # endif
 #endif
@@ -239,6 +239,14 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:
 		spl_mmc_load_image();
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU1
+# ifdef CONFIG_SPL_MMC_LOAD_IPU
+		spl_mmc_load_ipu();
+# endif
+		if (spl_boot_ipu()) {
+			puts("Error loading IPU!, fall back to u-boot...\n");
+		}
+#endif
 		break;
 #endif
 #ifdef CONFIG_SPL_NAND_SUPPORT

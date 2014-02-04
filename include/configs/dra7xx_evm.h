@@ -123,13 +123,15 @@
 #define CONFIG_PHY_ADDR			2
 
 /* Enable this flag if you want IPU based early camera */
-#undef CONFIG_BOOTIPU1
+#define CONFIG_LATE_ATTACH_BOOTIPU1
 
-#ifdef CONFIG_BOOTIPU1
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU1
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTDELAY		3
 #define CONFIG_CMD_ELF
 #define IPU_LOAD_ADDR		0xa0fff000
+#define CONFIG_SPL_MMC_LOAD_IPU
+#define CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME       "dra7-ipu1-fw.xem4"
 #endif
 
 #ifdef CONFIG_HS_AUTH

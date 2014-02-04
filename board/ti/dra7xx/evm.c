@@ -92,7 +92,7 @@ const struct omap_sysinfo sysinfo = {
 	"Board: DRA7xx\n"
 };
 
-#ifdef CONFIG_BOOTIPU1
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
 #define L4_CFG_TARG                  0x4A000000
 #define L4_WKUP_TARG                 0x4AE00000
 #define IPU2_TARGET_TARG             0x55000000
@@ -128,6 +128,7 @@ const struct omap_sysinfo sysinfo = {
 #define CM_L3INIT_CLKSTCTRL	     (L3INIT_CM_CORE + 0x00)
 #define CM_GMAC_CLKSTCTRL	     (L3INIT_CM_CORE + 0xC0)
 #define CM_L4PER_CLKSTCTRL	     (L4PER_CM_CORE + 0x000)
+#define CM_L4PER_TIMER11_CLKCTRL     (CM_L4PER_CLKSTCTRL + 0x30)
 #define CM_L4PER2_CLKSTCTRL	     (L4PER_CM_CORE + 0x1FC)
 #define CM_L4PER3_CLKSTCTRL	     (L4PER_CM_CORE + 0x210)
 #define CM_MPU_CLKSTCTRL	     (MPU_CM_CORE_AON + 0x00)
@@ -212,7 +213,9 @@ void enable_ipu(void)
 	__raw_writel(0x2, CM_DMA_CLKSTCTRL);
 	__raw_writel(0x2, CM_COREAON_CLKSTCTRL);
 	__raw_writel(0x2, CM_DSS_CLKSTCTRL);
-
+# ifdef CONFIG_LATE_ATTACH_BOOTIPU1
+	__raw_writel(0x2, CM_L4PER_CLKSTCTRL);
+# endif
 	/* enable power domain transitions (sw_wkup mode) */
 	__raw_writel(0x2, CM_IPU1_CLKSTCTRL);
 	__raw_writel(0x2, CM_IPU_CLKSTCTRL);
@@ -233,6 +236,10 @@ void enable_ipu(void)
 	__raw_writel((reg & ~0x00000003)|0x2, CM_L4PER_I2C2_CLKCTRL);
 	reg = __raw_readl(CM_VPE_VPE_CLKCTRL);
 	__raw_writel((reg & ~0x00000003)|0x1, CM_VPE_VPE_CLKCTRL);
+# ifdef CONFIG_LATE_ATTACH_BOOTIPU1
+	reg = __raw_readl(CM_L4PER_TIMER11_CLKCTRL);
+	__raw_writel((reg & ~0x00000003)|0x2, CM_L4PER_TIMER11_CLKCTRL);
+# endif
 
 	/* enable DSS */
 	reg = __raw_readl(CTRL_CORE_CONTROL_IO_2);
@@ -298,19 +305,17 @@ void setup_ipu_mmu(void)
 
 }
 
-
-struct ipu_image_data {
-	struct fastboot_ptentry *pte;
-	int ipu_image_sz;
-	u32 ipu_image_load_addr;
-};
-
-static struct ipu_image_data *ipu_data;
-
 extern int valid_elf_image(unsigned long addr);
 extern unsigned long load_elf_image_phdr(unsigned long addr);
 
-u32 spl_boot_ipu(void){
+u32 spl_boot_ipu(void)
+{
+#if !defined(CONFIG_BOOTIPU1) && defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+	/* Enable IPU clocks */
+	enable_ipu();
+	ipu_systemReset();
+	setup_ipu_mmu();
+#endif
 	if (valid_elf_image(IPU_LOAD_ADDR)) {
 		load_elf_image_phdr(IPU_LOAD_ADDR);
 		reset_ipu();
@@ -320,6 +325,16 @@ u32 spl_boot_ipu(void){
 	}
 	return 1;
 }
+#endif
+
+#ifdef CONFIG_BOOTIPU1
+struct ipu_image_data {
+	struct fastboot_ptentry *pte;
+	int ipu_image_sz;
+	u32 ipu_image_load_addr;
+};
+
+static struct ipu_image_data *ipu_data;
 
 /**
  * find_ipu_image(void) - Find the ipu image.
@@ -509,8 +524,7 @@ int board_init(void)
 
 	/* workaround to enable PMIC 32Khz output to wlink8 module */
 	pmic_set_32Khz_clock();
-
-#ifdef CONFIG_BOOTIPU1
+#if defined(CONFIG_BOOTIPU1)
 	/* Enable IPU clocks */
 	enable_ipu();
 	ipu_systemReset();
