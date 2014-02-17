@@ -92,7 +92,8 @@ const struct omap_sysinfo sysinfo = {
 	"Board: DRA7xx\n"
 };
 
-#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) \
+			|| defined(CONFIG_LATE_ATTACH_BOOTIPU2)
 #define L4_CFG_TARG                  0x4A000000
 #define L4_WKUP_TARG                 0x4AE00000
 #define IPU2_TARGET_TARG             0x55000000
@@ -129,6 +130,7 @@ const struct omap_sysinfo sysinfo = {
 #define CM_GMAC_CLKSTCTRL	     (L3INIT_CM_CORE + 0xC0)
 #define CM_L4PER_CLKSTCTRL	     (L4PER_CM_CORE + 0x000)
 #define CM_L4PER_TIMER11_CLKCTRL     (CM_L4PER_CLKSTCTRL + 0x30)
+#define CM_L4PER_TIMER3_CLKCTRL      (CM_L4PER_CLKSTCTRL + 0x40)
 #define CM_L4PER2_CLKSTCTRL	     (L4PER_CM_CORE + 0x1FC)
 #define CM_L4PER3_CLKSTCTRL	     (L4PER_CM_CORE + 0x210)
 #define CM_MPU_CLKSTCTRL	     (MPU_CM_CORE_AON + 0x00)
@@ -162,10 +164,14 @@ const struct omap_sysinfo sysinfo = {
 #define CM_DSS_DSS_CLKCTRL	     (DSS_CM_CORE + 0x20)
 #define CM_VPE_VPE_CLKCTRL	     (VPE_CM_CORE_AON + 0x04)
 
+#define RM_IPU2_RSTCTRL              (CORE_PRM + 0x210)
+#define RM_IPU2_RSTST                (CORE_PRM + 0x214)
+
 #define CTRL_CORE_CONTROL_IO_2	     (CTRL_MODULE_CORE + 0x558)
 
 #define IPU1_BASE_ADDR               (IPU1_TARGET_TARG + 0x20000)
 #define IPU1_MMU_CFG                 (IPU1_TARGET_TARG + 0x80000)
+#define IPU2_MMU_CFG                 (IPU2_TARGET_TARG + 0x80000)
 
 #define CTRL_CORE_CORTEX_M4_MMUADDRTRANSLTR	0x4A002358
 #define CTRL_CORE_CORTEX_M4_MMUADDRLOGICTR	0x4A00235C
@@ -186,7 +192,12 @@ const struct omap_sysinfo sysinfo = {
 			__raw_writel(flags, IPU1_MMU_CFG+0xA20 + pageNum*0x4);
 
 # ifdef CONFIG_IPU_RESOURCE_TABLE_MAPPING
+# ifdef CONFIG_LATE_ATTACH_BOOTIPU1
 #define IPU_MMU_REGS         IPU1_MMU_CFG + 0x2000
+# endif
+# ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+#define IPU_MMU_REGS         IPU2_MMU_CFG + 0x2000
+# endif
 
 #define MMU_REVISION            IPU_MMU_REGS + 0x00
 #define MMU_IRQSTATUS           IPU_MMU_REGS + 0x18
@@ -243,8 +254,15 @@ const struct omap_sysinfo sysinfo = {
  * case the firmware is using pretty much *all* of the reserved area), but
  * there doesn't seem to be a better location to place it.
 */
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU1
 #define PAGE_TABLE_SIZE 0x00004000
 #define PAGE_TABLE_PHYS (DRA7_RPROC_CMA_BASE_IPU1 + DRA7_RPROC_CMA_SIZE_IPU1 - PAGE_TABLE_SIZE)
+#endif
+
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+#define PAGE_TABLE_SIZE 0x00004000
+#define PAGE_TABLE_PHYS (DRA7_RPROC_CMA_BASE_IPU2 + DRA7_RPROC_CMA_SIZE_IPU2 - PAGE_TABLE_SIZE)
+#endif
 
 #define PAGE_SHIFT 12
 #define PAGE_SIZE  (1 << PAGE_SHIFT)
@@ -266,10 +284,19 @@ const struct omap_sysinfo sysinfo = {
 
 unsigned int *page_table = (unsigned int *)PAGE_TABLE_PHYS;
 
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU1
 unsigned long mem_base = DRA7_RPROC_CMA_BASE_IPU1;
 unsigned long mem_size = DRA7_RPROC_CMA_SIZE_IPU1;
 unsigned long mem_bitmap[BITS_TO_LONGS(DRA7_RPROC_CMA_SIZE_IPU1 >> PAGE_SHIFT)];
 unsigned long mem_count = DRA7_RPROC_CMA_SIZE_IPU1 >> PAGE_SHIFT;
+#endif
+
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+unsigned long mem_base = DRA7_RPROC_CMA_BASE_IPU2;
+unsigned long mem_size = DRA7_RPROC_CMA_SIZE_IPU2;
+unsigned long mem_bitmap[BITS_TO_LONGS(DRA7_RPROC_CMA_SIZE_IPU2 >> PAGE_SHIFT)];
+unsigned long mem_count = DRA7_RPROC_CMA_SIZE_IPU2 >> PAGE_SHIFT;
+#endif
 
 void bitmap_set(unsigned long *map, int start, int nr)
 {
@@ -475,16 +502,23 @@ static void config_iommu(void)
 
 void reset_ipu(void)
 {
-	/* printf("bringing IPU1-M4 out of reset\n"); */
-
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU1) || defined(CONFIG_BOOTIPU1)
 	/* bring the IPU1 out of reset */
 	__raw_writel(0x0, RM_IPU1_RSTCTRL);
 
-	/* printf("checking if IPU1 is ready or not\n"); */
 	/* check module is functional or not */
-	/* printf("!! value = 0x%x !!\n",__raw_readl(RM_IPU1_RSTST)); */
 	while(((__raw_readl(RM_IPU1_RSTST)&0x7)!=0x7));
 	__raw_writel(0x7, RM_IPU1_RSTST);
+#endif
+
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+	/* bring the IPU2 out of reset */
+	__raw_writel(0x0, RM_IPU2_RSTCTRL);
+
+	/* check module is functional or not */
+	while(((__raw_readl(RM_IPU2_RSTST)&0x7)!=0x7));
+	__raw_writel(0x7, RM_IPU2_RSTST);
+#endif
 }
 
 void enable_ipu(void)
@@ -500,11 +534,16 @@ void enable_ipu(void)
 	__raw_writel(0x2, CM_DMA_CLKSTCTRL);
 	__raw_writel(0x2, CM_COREAON_CLKSTCTRL);
 	__raw_writel(0x2, CM_DSS_CLKSTCTRL);
-# ifdef CONFIG_LATE_ATTACH_BOOTIPU1
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU2)
 	__raw_writel(0x2, CM_L4PER_CLKSTCTRL);
-# endif
+#endif
 	/* enable power domain transitions (sw_wkup mode) */
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU1) || defined(CONFIG_BOOTIPU1)
 	__raw_writel(0x2, CM_IPU1_CLKSTCTRL);
+#endif
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+	__raw_writel(0x2, CM_IPU2_CLKSTCTRL);
+#endif
 	__raw_writel(0x2, CM_IPU_CLKSTCTRL);
 	__raw_writel(0x2, CM_VPE_CLKSTCTRL);
 
@@ -528,6 +567,11 @@ void enable_ipu(void)
 	__raw_writel((reg & ~0x00000003)|0x2, CM_L4PER_TIMER11_CLKCTRL);
 # endif
 
+# ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+	reg = __raw_readl(CM_L4PER_TIMER3_CLKCTRL);
+	__raw_writel((reg & ~0x00000003)|0x2, CM_L4PER_TIMER3_CLKCTRL);
+# endif
+
 	/* enable DSS */
 	reg = __raw_readl(CTRL_CORE_CONTROL_IO_2);
 	__raw_writel((reg | 0x1), CTRL_CORE_CONTROL_IO_2);
@@ -537,6 +581,7 @@ void enable_ipu(void)
 	/* checking if DSS is enabled */
 	while ((__raw_readl(CM_DSS_DSS_CLKCTRL) & 0x00030000) != 0);
 
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU1) || defined(CONFIG_BOOTIPU1)
 	/* enable IPU1 clocks / hw_auto mode */
 	reg = __raw_readl(CM_IPU1_IPU1_CLKCTRL);
 	__raw_writel(((reg & ~0x00000003) | 0x01000000 | 0x1), CM_IPU1_IPU1_CLKCTRL);
@@ -546,10 +591,24 @@ void enable_ipu(void)
 
 	/* checking if clocks are enabled */
 	while (((__raw_readl(CM_IPU1_CLKSTCTRL) & 0x100) >> 8) != 1);
+#endif
+
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+	/* enable IPU2 clocks / hw_auto mode */
+	reg = __raw_readl(CM_IPU2_IPU2_CLKCTRL);
+	__raw_writel(((reg & ~0x00000003) | 0x01000000 | 0x1), CM_IPU2_IPU2_CLKCTRL);
+
+	/* checking if IPU1 module is enabled */
+	while ((__raw_readl(CM_IPU2_IPU2_CLKCTRL) & 0x00030000) == 0x00030000);
+
+	/* checking if clocks are enabled */
+	while (((__raw_readl(CM_IPU2_CLKSTCTRL) & 0x100) >> 8) != 1);
+#endif
 }
 
 void ipu_systemReset(void)
 {
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU1) || defined(CONFIG_BOOTIPU1)
 	/*Assert the IPU1 - CPU0,CPU1 & MMU,cache*/
 	__raw_writel(0x7, RM_IPU1_RSTCTRL);
 
@@ -558,6 +617,18 @@ void ipu_systemReset(void)
 	__raw_writel(0x3, RM_IPU1_RSTCTRL);
 
 	while((__raw_readl(RM_IPU1_RSTST) & 0x4) != 0x4);
+#endif
+
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+	/*Assert the IPU2 - CPU0,CPU1 & MMU,cache*/
+	__raw_writel(0x7, RM_IPU2_RSTCTRL);
+
+	/* Bring the IPU Unicache/MMU out of reset*/
+	__raw_writel(0x7, RM_IPU2_RSTST);
+	__raw_writel(0x3, RM_IPU2_RSTCTRL);
+
+	while((__raw_readl(RM_IPU2_RSTST) & 0x4) != 0x4);
+#endif
 }
 
 void setup_ipu_mmu(void)
@@ -596,7 +667,8 @@ extern unsigned long load_elf_image_phdr(unsigned long addr);
 
 u32 spl_boot_ipu(void)
 {
-#if !defined(CONFIG_BOOTIPU1) && defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+#if !defined(CONFIG_BOOTIPU1) && (defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
+				defined(CONFIG_LATE_ATTACH_BOOTIPU2))
 	/* Enable IPU clocks */
 	enable_ipu();
 	ipu_systemReset();

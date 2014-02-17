@@ -572,7 +572,8 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 {
 	Elf32_Ehdr *ehdr;		/* Elf header structure pointer     */
 	Elf32_Phdr *phdr;		/* Program header structure pointer */
-#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
+				defined(CONFIG_LATE_ATTACH_BOOTIPU2)
 	Elf32_Phdr proghdr;
 	struct resource_table *ptable = NULL;
 	int tablesz;
@@ -584,7 +585,8 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 	ehdr = (Elf32_Ehdr *) addr;
 	phdr = (Elf32_Phdr *) (addr + ehdr->e_phoff);
 
-#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
+				defined(CONFIG_LATE_ATTACH_BOOTIPU2)
 # ifdef CONFIG_IPU_RESOURCE_TABLE_MAPPING
 	ptable = find_resource_table(IPU_LOAD_ADDR, &tablesz);
 	if (!ptable) {
@@ -610,7 +612,8 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 
 	/* Load each program header */
 	for (i = 0; i < ehdr->e_phnum; ++i) {
-#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1)
+#if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
+				defined(CONFIG_LATE_ATTACH_BOOTIPU2)
 		memcpy(&proghdr, phdr, sizeof(Elf32_Phdr));
 		if (!ptable) {
 			if (proghdr.p_paddr < 0x4000) {
