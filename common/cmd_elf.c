@@ -303,6 +303,32 @@ int va_to_pa(int va)
 	return 0;
 }
 
+/* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
+struct vring_desc {
+	/* Address (guest-physical). */
+	__u64 addr;
+	/* Length. */
+	__u32 len;
+	/* The flags as indicated above. */
+	__u16 flags;
+	/* We chain unused descriptors via this, too */
+	__u16 next;
+};
+
+/* u32 is used here for ids for padding reasons. */
+struct vring_used_elem {
+	/* Index of start of used descriptor chain. */
+	__u32 id;
+	/* Total length of the descriptor chain which was used (written to) */
+	__u32 len;
+};
+
+static unsigned vring_size(unsigned int num, unsigned long align)
+{
+	return ((sizeof(struct vring_desc) * num + sizeof(__u16) * (3 + num)
+			+ align - 1) & ~(align - 1))
+		+ sizeof(__u16) * 3 + sizeof(struct vring_used_elem) * num;
+}
 
 static int handle_trace(struct fw_rsc_trace *rsc, int offset, int avail)
 {
@@ -427,6 +453,93 @@ static int handle_carveout(struct fw_rsc_carveout *rsc, int offset, int avail)
 	return 0;
 }
 
+#define PAGE_SHIFT 12
+#define PAGE_SIZE  (1 << PAGE_SHIFT)
+#define PAGE_ALIGN(x) (((x) + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1))
+
+static int
+alloc_vring(struct fw_rsc_vdev *rsc, int i)
+{
+	struct fw_rsc_vdev_vring *vring = &rsc->vring[i];
+	int size;
+	int order;
+	void *pa;
+
+	debug("vdev rsc: vring%d: da %x, qsz %d, align %d\n",
+		i, vring->da, vring->num, vring->align);
+
+	/* make sure reserved bytes are zeroes */
+	if (vring->reserved) {
+		printf("vring rsc has non zero reserved bytes\n");
+		return -EINVAL;
+	}
+
+	/* verify queue size and vring alignment are sane */
+	if (!vring->num || !vring->align) {
+		printf("invalid qsz (%d) or alignment (%d)\n",
+		vring->num, vring->align);
+		return -EINVAL;
+	}
+
+	/* actual size of vring (in bytes) */
+	size = PAGE_ALIGN(vring_size(vring->num, vring->align));
+	order = vring->align >> PAGE_SHIFT;
+
+	pa = alloc_mem(size, order);
+	debug("alloc_mem(%#x, %d): %p\n", size, order, pa);
+
+	return pa == NULL;
+}
+
+#define RPMSG_NUM_BUFS         (512)
+#define RPMSG_BUF_SIZE         (512)
+#define RPMSG_TOTAL_BUF_SPACE  (RPMSG_NUM_BUFS * RPMSG_BUF_SIZE)
+
+static int handle_vdev(struct fw_rsc_vdev *rsc, int offset, int avail)
+{
+	int i, ret;
+	void *pa;
+
+	/* make sure resource isn't truncated */
+	if (sizeof(*rsc) + rsc->num_of_vrings * sizeof(struct fw_rsc_vdev_vring)
+				+ rsc->config_len > avail) {
+		printf("vdev rsc is truncated\n");
+		return -EINVAL;
+	}
+
+	/* make sure reserved bytes are zeroes */
+	if (rsc->reserved[0] || rsc->reserved[1]) {
+		printf("vdev rsc has non zero reserved bytes\n");
+		return -EINVAL;
+	}
+
+	debug("vdev rsc: id %d, dfeatures %x, cfg len %d, %d vrings\n",
+		rsc->id, rsc->dfeatures, rsc->config_len, rsc->num_of_vrings);
+
+	/* we currently support only two vrings per rvdev */
+	if (rsc->num_of_vrings > 2) {
+		printf("too many vrings: %d\n", rsc->num_of_vrings);
+		return -EINVAL;
+	}
+
+
+	/* allocate the vrings */
+	for (i = 0; i < rsc->num_of_vrings; i++) {
+		ret = alloc_vring(rsc, i);
+		if (ret)
+			goto alloc_error;
+	}
+
+	pa = alloc_mem(RPMSG_TOTAL_BUF_SPACE, 6);
+	debug("vring buffer alloc_mem(%#x, 6): %p\n",
+		RPMSG_TOTAL_BUF_SPACE, pa);
+
+	return 0;
+
+alloc_error:
+	return ret;
+}
+
 /*
  * A lookup table for resource handlers. The indices are defined in
  * enum fw_resource_type.
@@ -435,7 +548,7 @@ static handle_resource_t loading_handlers[RSC_LAST] = {
 	[RSC_CARVEOUT] = (handle_resource_t)handle_carveout,
 	[RSC_DEVMEM] = (handle_resource_t)handle_devmem,
 	[RSC_TRACE] = (handle_resource_t)handle_trace,
-	[RSC_VDEV] = NULL, /* VDEVs were handled upon registration */
+	[RSC_VDEV] = (handle_resource_t)handle_vdev,
 };
 
 /* handle firmware resource entries before booting the remote processor */
@@ -443,12 +556,6 @@ static int handle_resources(int len, handle_resource_t handlers[RSC_LAST])
 {
 	handle_resource_t handler;
 	int ret = 0, i;
-	void *pa;
-
-	pa = alloc_mem(0x3000, 2);
-	debug("dummy alloc_mem(0x3000, 2) for vring = %p\n", pa);
-	pa = alloc_mem(0x3000, 2);
-	debug("dummy alloc_mem(0x3000, 2) for vring = %p\n", pa);
 
 	for (i = 0; i < table->num; i++) {
 		int offset = table->offset[i];
@@ -579,6 +686,7 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 	int tablesz;
 	int va;
 	int pa;
+	int ret;
 #endif
 	int i;
 
@@ -598,14 +706,18 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 		table = kzalloc(tablesz, GFP_KERNEL);
 		if (!table) {
 			printf("resource table alloc failed!\n");
-			return 1;
+			return 0;
 		}
 
 		memcpy(table, ptable, tablesz);
 
 		INIT_LIST_HEAD(&mappings);
 
-		handle_resources(tablesz, loading_handlers);
+		ret = handle_resources(tablesz, loading_handlers);
+		if (ret) {
+			printf("handle_resources failed: %d\n", ret);
+			return 0;
+		}
 	}
 # endif
 #endif
