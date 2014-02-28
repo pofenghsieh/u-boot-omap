@@ -18,6 +18,10 @@
 
 #include <common.h>
 #include <spl.h>
+#include <spi_flash.h>
+#ifdef	CONFIG_SPL_EDMA_SUPPORT
+#include <edma.h>
+#endif
 #include <asm/omap_common.h>
 #include <asm/arch/omap.h>
 #include <asm/arch/mmc_host_def.h>
@@ -73,9 +77,10 @@ int board_mmc_init(bd_t *bis)
 #endif
 	case BOOT_DEVICE_SPI:
 	case BOOT_DEVICE_SPI_4:
-#ifdef CONFIG_EARLY_BOOT_INIT
-		omap_mmc_init(0, 0, 0, -1, -1);
+#ifdef CONFIG_SPL_EARLY_BOOT
+		omap_mmc_init(1, 0, 0, -1, -1);
 #endif
+        break;
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:
 		omap_mmc_init(1, 0, 0, -1, -1);
@@ -225,6 +230,7 @@ static int spl_fdt(int argc, char * const argv[])
 	return 0;
 }
 
+#ifdef CONFIG_SPL_EARLY_BOOT_ANDROID
 u32 spl_boot_linux(void)
 {
 	struct mmc *mmc;
@@ -238,6 +244,16 @@ u32 spl_boot_linux(void)
 	char end[32];
 
 	spl_mmc_init(&mmc);
+
+# if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
+					defined(CONFIG_LATE_ATTACH_BOOTIPU2)
+	/* Clock and MMU initialization done in spl_board_init */
+	spl_mmc_load_image_raw(mmc, LOAD_IPU);
+	if (spl_boot_ipu()){
+		puts("Error loading IPU!, fall back to u-boot...\n");
+		return 1;
+	}
+# endif
 	spl_mmc_load_image_raw(mmc, LOAD_KERNEL);
 	debug("kernel: start %x end %x\n",
 		spl_kernel_boot.kernel_addr,
@@ -299,6 +315,56 @@ u32 spl_boot_linux(void)
 	// We shouldn't get here!
 	return 1;
 }
+#elif defined(CONFIG_SPL_EARLY_BOOT)
+u32 spl_boot_linux()
+{
+	struct spi_flash *flash;
+	struct mmc *mmc;
+	image_header_t image_header;
+	void (*entry_point)(int zero, int arch, void *);
+	const int DTB_SIZE = 0x10000;
+
+	spl_mmc_init(&mmc);
+	if (!mmc){
+		puts("spl: mmc device not found!!\n");
+		hang();
+	}
+
+#if defined(CONFIG_SPL_EDMA_SUPPORT)
+      edma3_init(0);
+      edma3_request_channel(EDMA3_CHANNEL_TYPE_DMA,1,1,0);
+#endif
+
+	flash = spi_flash_probe(CONFIG_SPL_SPI_BUS, CONFIG_SPL_SPI_CS,
+				CONFIG_SF_DEFAULT_SPEED, SPI_MODE_3);
+	if (!flash) {
+		puts("SPI probe failed.\n");
+		hang();
+	}
+
+    /* Early boot changes*/
+	/*TODO: Add IPU changes here*/
+
+    /*1) Read & parse the uImage header(image_header_t)*/
+    spi_flash_read(flash, CONFIG_SYS_SPI_UIMAGE_OFFS,sizeof(image_header_t),(void*)&image_header);
+    spl_image.flags |= SPL_COPY_PAYLOAD_ONLY;
+    spl_parse_image_header(&image_header);
+
+    /* 2) Load the kernel */
+    spi_flash_read(flash,CONFIG_SYS_SPI_UIMAGE_OFFS + sizeof(image_header_t),
+                   spl_image.size,(void*)spl_image.load_addr);
+    entry_point = (void(*)(int,int,void*))spl_image.entry_point;
+
+    /*3) Load the dtb file*/
+    spi_flash_read(flash, CONFIG_SYS_SPI_DTB_OFFS, DTB_SIZE, \
+				  (void*)DEVICE_TREE);
+
+    /*4) Jump to kernel entry point */
+    printf("\n starting kernel ...\n");
+    entry_point(0,CONFIG_BOARD_MACH_TYPE,(void*)DEVICE_TREE);
+
+}
+#endif
 
 static void spl_bootimg_print_image_hdr (const struct boot_img_hdr *hdr)
 {

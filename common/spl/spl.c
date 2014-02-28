@@ -194,20 +194,8 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 #ifdef CONFIG_SPL_EARLY_BOOT
 	if (omap_sysboot() == SYS_BOOT_QSPI_PROD) {
-# if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
-					defined(CONFIG_LATE_ATTACH_BOOTIPU2)
-		spl_mmc_init(&mmc);
-		/* Clock and MMU initialization done in spl_board_init */
-		spl_mmc_load_image_raw(mmc, LOAD_IPU);
-		if (spl_boot_ipu()) {
-			puts("Error loading IPU!, fall back to u-boot...\n");
-		} else {
-# else
-		{
-# endif
-			if (spl_boot_linux())
-				puts("Error booting Linux, fall back to u-boot...\n");
-		}
+        if (spl_boot_linux())
+			puts("Error booting Linux, fall back to u-boot...\n");
 	}
 #endif
 
