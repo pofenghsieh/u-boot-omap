@@ -270,6 +270,7 @@ LIBS-y += drivers/block/libblock.o
 LIBS-$(CONFIG_BOOTCOUNT_LIMIT) += drivers/bootcount/libbootcount.o
 LIBS-y += drivers/crypto/libcrypto.o
 LIBS-y += drivers/dma/libdma.o
+LIBS-$(CONFIG_SPL_EDMA_SUPPORT) += drivers/edma/libedma.o
 LIBS-y += drivers/fpga/libfpga.o
 LIBS-y += drivers/gpio/libgpio.o
 LIBS-y += drivers/hwmon/libhwmon.o

@@ -358,6 +358,10 @@ struct prcm_regs {
 	u32 cm_gmac_gmac_clkctrl;
 	u32 cm_gmac_clkstctrl;
 	u32 prm_io_pmctrl;
+
+	/*l3main1 edma*/
+	u32 cm_l3main1_tptc1_clkctrl;
+	u32 cm_l3main1_tptc2_clkctrl;
 };
 
 struct omap_sys_ctrl_regs {
