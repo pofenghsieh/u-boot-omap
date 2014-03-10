@@ -13,6 +13,9 @@
 #include <spi.h>
 #include <spi_flash.h>
 #include <watchdog.h>
+#include <edma.h>
+#include <hw_edma_tpcc.h>
+#include <hw_edma_tc.h>
 
 #include "spi_flash_internal.h"
 
@@ -277,6 +280,76 @@ int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
 	return ret;
 }
 
+#if defined(CONFIG_SPL_EDMA_SUPPORT)
+/*Adding edma support */
+void qspi_readsectors_edma(void *dst_addr, void *src_offset_addr, unsigned int length,
+                           unsigned int edma_ch_num)
+{
+    EDMA3CCPaRAMEntry edma_param;
+    int           b_cnt_value = 1;
+    int           rem_bytes  = 0;
+    int           a_cnt_value = length;
+    unsigned int          addr      = (unsigned int) (dst_addr);
+    unsigned int          max_acnt  = 0x7FFFU;
+    if (length > max_acnt)
+    {
+        b_cnt_value = (length / max_acnt);
+        rem_bytes  = (length % max_acnt);
+        a_cnt_value = max_acnt;
+    }
+
+    /* Compute QSPI address and size */
+    edma_param.opt      = 0;
+    edma_param.src_addr  = ((unsigned int) src_offset_addr);
+    edma_param.dest_addr = addr;
+    edma_param.a_cnt     = a_cnt_value;
+    edma_param.b_cnt     = b_cnt_value;
+    edma_param.c_cnt     = 1;
+    edma_param.src_bidx  = a_cnt_value;
+    edma_param.dest_bidx = a_cnt_value;
+    edma_param.src_cidx  = 0;
+    edma_param.dest_cidx = 0;
+    edma_param.link_addr = 0xFFFF;
+    edma_param.opt     |=
+        (EDMA_TPCC_OPT_TCINTEN_MASK |
+         ((edma_ch_num <<
+           EDMA_TPCC_OPT_TCC_SHIFT) &
+          EDMA_TPCC_OPT_TCC_MASK) | EDMA_TPCC_OPT_SYNCDIM_MASK);
+
+    edma3_set_param(edma_ch_num, &edma_param);
+    edma3_enable_transfer(edma_ch_num, EDMA3_TRIG_MODE_MANUAL);
+
+    while (!(edma3_get_intr_status() & (1 << edma_ch_num))) ;
+    edma3_clr_intr(edma_ch_num);
+    if (rem_bytes != 0)
+    {
+        /* Compute QSPI address and size */
+        edma_param.opt     = 0;
+        edma_param.src_addr =
+             (b_cnt_value * max_acnt) + ((unsigned int) src_offset_addr);
+        edma_param.dest_addr = (addr + (max_acnt * b_cnt_value));
+        edma_param.a_cnt     = rem_bytes;
+        edma_param.b_cnt     = 1;
+        edma_param.c_cnt     = 1;
+        edma_param.src_bidx  = rem_bytes;
+        edma_param.dest_bidx = rem_bytes;
+        edma_param.src_cidx  = 0;
+        edma_param.dest_cidx = 0;
+        edma_param.link_addr = 0xFFFF;
+        edma_param.opt     |=
+            (EDMA_TPCC_OPT_TCINTEN_MASK |
+             ((edma_ch_num << EDMA_TPCC_OPT_TCC_SHIFT) & EDMA_TPCC_OPT_TCC_MASK));
+        edma3_set_param(edma_ch_num, &edma_param);
+        edma3_enable_transfer(edma_ch_num,
+                            EDMA3_TRIG_MODE_MANUAL);
+
+        while (!(edma3_get_intr_status() & (1 << edma_ch_num))) ;
+        edma3_clr_intr(edma_ch_num);
+    }
+    *((unsigned int *) src_offset_addr) += length;
+}
+#endif
+
 int spi_flash_cmd_read_quad(struct spi_flash *flash, u32 offset,
 		size_t len, void *data)
 {
@@ -291,7 +364,13 @@ int spi_flash_cmd_read_quad(struct spi_flash *flash, u32 offset,
 	/* Handle memory-mapped SPI */
 	if (flash->memory_map) {
 		spi_xfer(flash->spi, 0, NULL, NULL, SPI_XFER_MEM_MAP);
-		memcpy(data, flash->memory_map + offset, len);
+
+       #if defined(CONFIG_SPL_EDMA_SUPPORT)
+         qspi_readsectors_edma(data,flash->memory_map+offset,len,1);
+       #else
+         memcpy(data, flash->memory_map + offset, len);
+       #endif
+
 		spi_xfer(flash->spi, 0, NULL, NULL, SPI_XFER_MEM_MAP_END);
 		return 0;
 	}

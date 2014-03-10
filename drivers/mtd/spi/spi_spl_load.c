@@ -25,6 +25,7 @@
 #include <common.h>
 #include <spi_flash.h>
 #include <spl.h>
+#include <edma.h>
 
 /*
  * The main entry for SPI booting. It's necessary that SDRAM is already
@@ -40,6 +41,11 @@ void spl_spi_load_image(void)
 	/*
 	 * Load U-Boot image from SPI flash into RAM
 	 */
+
+#if defined(CONFIG_SPL_EDMA_SUPPORT)
+	edma3_init(0);
+	edma3_request_channel(EDMA3_CHANNEL_TYPE_DMA,1,1,0);
+#endif
 
 	flash = spi_flash_probe(CONFIG_SPL_SPI_BUS, CONFIG_SPL_SPI_CS,
 				CONFIG_SF_DEFAULT_SPEED, SPI_MODE_3);
@@ -61,7 +67,6 @@ void spl_spi_load_image(void)
 
 	/* use CONFIG_SYS_TEXT_BASE as temporary storage area */
 	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
-
 	/* Load u-boot, mkimage header is 64 bytes. */
 	spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS, 0x40,
 			(void *) header);
