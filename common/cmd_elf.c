@@ -718,6 +718,9 @@ unsigned long load_elf_image_phdr(unsigned long addr)
 			printf("handle_resources failed: %d\n", ret);
 			return 0;
 		}
+		/* Update the resource table with the information related to physical
+		   address of the carveout entries */
+		memcpy(ptable, table, tablesz);
 	}
 # endif
 #endif
