@@ -48,6 +48,17 @@ void spl_spi_load_image(void)
 		hang();
 	}
 
+# if defined(CONFIG_BOOTIPU1) || defined(CONFIG_LATE_ATTACH_BOOTIPU1) || \
+					defined(CONFIG_LATE_ATTACH_BOOTIPU2)
+	/*Load the IPU image & boot the slave core*/
+	spi_flash_read(flash,CONFIG_SYS_SPI_IPU_OFFS,CONFIS_SYS_SPI_IPU_SIZE, \
+				  (void*)IPU_LOAD_ADDR);
+	if (spl_boot_ipu()){
+		puts("Error loading IPU!, fall back to u-boot...\n");
+		return 1;
+	}
+#endif
+
 	/* use CONFIG_SYS_TEXT_BASE as temporary storage area */
 	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
 
