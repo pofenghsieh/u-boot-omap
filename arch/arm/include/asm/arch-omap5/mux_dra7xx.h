@@ -28,16 +28,16 @@
 
 #include <asm/types.h>
 
-#define FSC	(1 << 19)
-#define SSC	(0 << 19)
+#define FSC	(0 << 19)
+#define SSC	(1 << 19)
 
 #define IEN	(1 << 18)
 #define IDIS	(0 << 18)
 
 #define PTU	(1 << 17)
 #define PTD	(0 << 17)
-#define PEN	(1 << 16)
-#define PDIS	(0 << 16)
+#define PEN	(0 << 16)
+#define PDIS	(1 << 16)
 
 #define WKEN	(1 << 24)
 #define WKDIS	(0 << 24)
