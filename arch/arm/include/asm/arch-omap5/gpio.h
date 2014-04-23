@@ -46,5 +46,10 @@
 #define OMAP54XX_GPIO4_BASE		0x48059000
 #define OMAP54XX_GPIO5_BASE		0x4805B000
 #define OMAP54XX_GPIO6_BASE		0x4805D000
+#define OMAP54XX_GPIO7_BASE		0x48051000
+#define OMAP54XX_GPIO8_BASE		0x48053000
+
+/* GPIO bank indexes start at 1, numbers start at 0 */
+#define GPIO_NUM(_bank,_num)		(((_bank)-1)*32 + (_num))
 
 #endif /* _GPIO_OMAP5_H */
