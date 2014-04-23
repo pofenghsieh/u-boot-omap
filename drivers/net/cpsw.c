@@ -113,6 +113,8 @@ struct cpsw_slave_regs {
 	u32	ts_ctl;
 	u32	ts_seq_ltype;
 	u32	ts_vlan;
+#elif defined(CONFIG_DRA7XX)
+	u32	ts_seq_ltype;
 #endif
 	u32	sa_lo;
 	u32	sa_hi;
