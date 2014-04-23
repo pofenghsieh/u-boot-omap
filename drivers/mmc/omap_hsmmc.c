@@ -315,8 +315,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	mmc_base = ((struct omap_hsmmc_data *)mmc->priv)->base_addr;
 
-	if (!IS_SD(mmc) && data && ((cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK) ||
-			(cmd->cmdidx == MMC_CMD_READ_SINGLE_BLOCK))) {
+	if (!IS_SD(mmc) && data && (cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK)){
 		return mmc_adma_read(mmc_base, data->dest, data->blocks,
 				cmd->cmdarg);
 	}
