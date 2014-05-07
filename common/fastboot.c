@@ -33,8 +33,9 @@ static struct usb_gadget_strings def_fb_strings = {
 DECLARE_GLOBAL_DATA_PTR;
 #define SZ_16M                          0x01000000
 #define SZ_512M                         0x20000000
+#define SZ_768M                         0x30000000
 #define CFG_FASTBOOT_TRANSFER_BUFFER (void *)(gd->bd->bi_dram[0].start + SZ_16M)
-#define CFG_FASTBOOT_TRANSFER_BUFFER_SIZE (SZ_512M - SZ_16M)
+#define CFG_FASTBOOT_TRANSFER_BUFFER_SIZE (SZ_768M - SZ_16M)
 
 int fastboot_board_init(struct fastboot_config *interface,
 		struct usb_gadget_strings **str) {

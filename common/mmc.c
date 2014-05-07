@@ -426,7 +426,7 @@ static struct _partition partitions[] = {
 	{ "crypto", 16 },
 	{ "recovery", 10*1024 },
 	{ "boot", 10*1024 },
-	{ "system", 512*1024 },
+	{ "system", 768*1024 },
 	{ "cache", 256*1024 },
 	{ "ipu", 1024 },
 	{ "userdata", 0},
