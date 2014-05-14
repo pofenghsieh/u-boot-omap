@@ -66,6 +66,7 @@
 #include <mmc.h>
 #include <malloc.h>
 #include <asm/io.h>
+#include <asm/omap_common.h>
 #include <asm-generic/gpio.h>
 #include "g_fastboot.h"
 
@@ -201,6 +202,18 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strncat(response, s, sizeof(response));
 		else
 			strcpy(response, "FAILValue not set");
+	} else if (!strcmp_l1("cpu", cmd)) {
+		switch (omap_revision()) {
+		case DRA752_ES1_0:
+		case DRA752_ES1_1:
+			strncat(response, "J6", sizeof(response));
+			break;
+		case DRA722_ES1_0:
+			strncat(response, "J6ECO", sizeof(response));
+			break;
+		default:
+			strcpy(response, "FAILValue not set");
+		}
 	} else if (!strcmp_l1("secure", cmd)) {
 
 		s = get_cpu_type();
