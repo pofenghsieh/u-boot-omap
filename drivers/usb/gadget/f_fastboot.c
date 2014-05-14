@@ -414,6 +414,17 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strncat(response, s, chars_left);
 		else
 			strcpy(response, "FAILValue not set");
+	} else if (!strcmp_l1("cpu", cmd)) {
+		switch (omap_revision()) {
+		case DRA752_ES1_0:
+		case DRA752_ES1_1:
+			strncat(response, "J6", sizeof(response));
+			break;
+		case DRA722_ES1_0:
+			strncat(response, "J6ECO", sizeof(response));
+			break;
+		default:
+			strcpy(response, "FAILValue not set");
 	} else {
 		error("unknown variable: %s\n", cmd);
 		strcpy(response, "FAILVariable not implemented");
