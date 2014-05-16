@@ -146,4 +146,6 @@
 #define CONFIG_HS_ENFORCE_AUTH
 #endif
 
+#define CONFIG_DDR_666MHZ
+
 #endif /* __CONFIG_DRA7XX_EVM_H */
