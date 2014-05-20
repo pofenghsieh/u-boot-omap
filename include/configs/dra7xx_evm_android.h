@@ -132,6 +132,4 @@
 #define IPU_LOAD_ADDR		0xa0fff000
 #endif
 
-#define CONFIG_DDR_666MHZ
-
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H   */

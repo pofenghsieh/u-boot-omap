@@ -307,10 +307,8 @@ static void emif_get_reg_dump_sdp(u32 emif_nr, const struct emif_regs **regs)
 		}
 		break;
 	case DRA722_ES1_0:
-#ifdef CONFIG_DDR_666MHZ
 		*regs = &emif_1_regs_ddr3_666_mhz_1cs_dra_es1;
 		break;
-#endif
 	default:
 		*regs = &emif_1_regs_ddr3_532_mhz_1cs_dra_es1;
 	}
@@ -542,11 +540,7 @@ static void emif_get_ext_phy_ctrl_const_regs(u32 emif_nr, const u32 **regs)
 			*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif2;
 		break;
 	case DRA722_ES1_0:
-#ifdef CONFIG_DDR_666MHZ
 		*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif1_666MHZ;
-#else
-		*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif1;
-#endif
 		break;
 	default:
 		*regs = ddr3_ext_phy_ctrl_const_base_es2;

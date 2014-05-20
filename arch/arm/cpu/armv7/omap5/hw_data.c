@@ -319,11 +319,7 @@ struct dplls dra72x_dplls = {
 	.abe = abe_dpll_params_sysclk2_361267khz,
 	.iva = iva_dpll_params_2330mhz_dra7xx,
 	.usb = usb_dpll_params_1920mhz,
-#ifdef CONFIG_DDR_666MHZ
 	.ddr = ddr_dpll_params_2664mhz,
-#else
-	.ddr = ddr_dpll_params_2128mhz,
-#endif
 	.gmac = gmac_dpll_params_2000mhz,
 };
 
@@ -757,11 +753,7 @@ const struct ctrl_ioregs ioregs_dra7xx_es1 = {
 const struct ctrl_ioregs ioregs_dra72x_es1 = {
 	.ctrl_ddrch = 0x40404040,
 	.ctrl_lpddr2ch = 0x40404040,
-#ifdef CONFIG_DDR_666MHZ
 	.ctrl_ddr3ch = 0x60606080,
-#else
-	.ctrl_ddr3ch = 0x80808080,
-#endif
 	.ctrl_ddrio_0 = 0xbae8c631,
 	.ctrl_ddrio_1 = 0xb46318d8,
 	.ctrl_ddrio_2 = 0x84210000,
