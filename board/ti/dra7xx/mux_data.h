@@ -118,6 +118,7 @@ const struct pad_conf_entry core_padconf_array_essential[] = {
 	{GPMC_CS0, (IEN | PTU | PDIS | M15)},
 	{GPMC_CS2, (IEN | PTU | PDIS | M1)},    /* QSPI1_CS0 */
 	{GPMC_CS3, (IEN | PTU | PDIS | M1)},    /* QSPI1_CS1*/
+	{SPI1_CS1, ((0 << 18) | (1 << 16) | M14) },	/* GPIO7_11 -> VTT enable*/
 #endif
 	{MDIO_MCLK, (PTU | PEN | M0)},		/* MDIO_MCLK  */
 	{MDIO_D, (IEN | PTU | PEN | M0)},	/* MDIO_D  */
@@ -341,7 +342,6 @@ const struct pad_conf_entry core_padconf_array_non_essential[] = {
 	{SPI1_D1, (IEN | PDIS | M0)},
 	{SPI1_D0, (IEN | PDIS | M0)},
 	{SPI1_CS0, (IEN | PTU | PDIS | M0)},
-	{SPI1_CS1, (IEN | PTU | PDIS | M0)},
 	{SPI1_CS2, (FSC | IEN | PTU | PDIS | M6)},
 	{SPI1_CS3, (FSC | IEN | PTU | PEN | M6)},
 	{SPI2_SCLK, (IEN | PDIS | M1)},

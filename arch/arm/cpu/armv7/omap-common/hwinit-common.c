@@ -183,6 +183,23 @@ void __weak arm_errata_798870(void)
 {
 }
 
+
+#define GPIO7_BASE 0x48051000
+void vtt_enable(void)
+{
+	u32 temp;
+
+	/* enable module */
+	writel(0x0, GPIO7_BASE + 0x0130);
+
+	/*enable output for GPIO7_11*/
+	writel((1 << 11), GPIO7_BASE + 0x0194);
+	temp = readl(GPIO7_BASE + 0x0134);
+	temp = temp & ~(1 << 11);
+	writel(temp, GPIO7_BASE + 0x0134);
+	writel(0x800, GPIO7_BASE + 0x13C);
+}
+
 /*
  * Routine: s_init
  * Description: Does early system init of watchdog, muxing,  andclocks
@@ -236,6 +253,7 @@ void s_init(void)
 #endif
 
 #ifdef CONFIG_SPL_BUILD
+	vtt_enable();
 	/* For regular u-boot sdram_init() is called from dram_init() */
 	sdram_init();
 	gd->bd->bi_dram[0].start = CONFIG_SYS_SDRAM_BASE;
