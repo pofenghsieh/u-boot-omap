@@ -488,6 +488,8 @@ alloc_vring(struct fw_rsc_vdev *rsc, int i)
 	pa = alloc_mem(size, order);
 	debug("alloc_mem(%#x, %d): %p\n", size, order, pa);
 
+	vring->da = pa;
+
 	return pa == NULL;
 }
 
