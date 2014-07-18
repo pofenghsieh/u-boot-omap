@@ -610,7 +610,7 @@ static int cpsw_update_link(struct cpsw_priv *priv)
 
 	for_active_slave(slave, priv)
 		cpsw_slave_update_link(slave, priv, &link);
-	priv->mdio_link = readl(&mdio_regs->link);
+	priv->mdio_link = readl(&mdio_regs->link) & priv->phy_mask;
 	return link;
 }
 
