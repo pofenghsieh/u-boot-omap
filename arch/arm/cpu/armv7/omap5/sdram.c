@@ -168,18 +168,18 @@ const struct emif_regs emif_1_regs_ddr3_532_mhz_1cs_dra_es1 = {
 	.sdram_tim1                     = 0xCCCF36B3,
 	.sdram_tim2                     = 0x308F7FDA,
 	.sdram_tim3                     = 0x027F88A8,
-	.read_idle_ctrl                 = 0x00050000,
+	.read_idle_ctrl                 = 0x00050001,
 	.zq_config                      = 0x0007190B,
 	.temp_alert_config              = 0x00000000,
-	.emif_ddr_phy_ctlr_1_init       = 0x0E20400A,
+	.emif_ddr_phy_ctlr_1_init       = 0x0E24400A,
 	.emif_ddr_phy_ctlr_1            = 0x0E24400A,
-	.emif_ddr_ext_phy_ctrl_1        = 0x04040100,
-	.emif_ddr_ext_phy_ctrl_2        = 0x009E009E,
-	.emif_ddr_ext_phy_ctrl_3        = 0x009E009E,
-	.emif_ddr_ext_phy_ctrl_4        = 0x009E009E,
-	.emif_ddr_ext_phy_ctrl_5        = 0x009E009E,
+	.emif_ddr_ext_phy_ctrl_1        = 0x10040100,
+	.emif_ddr_ext_phy_ctrl_2        = 0x00BB00BB,
+	.emif_ddr_ext_phy_ctrl_3        = 0x00BB00BB,
+	.emif_ddr_ext_phy_ctrl_4        = 0x00BB00BB,
+	.emif_ddr_ext_phy_ctrl_5        = 0x00BB00BB,
 	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
-	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x00000000,
 	.emif_rd_wr_lvl_ctl             = 0x00000000,
 	.emif_rd_wr_exec_thresh         = 0x00000305
 };
@@ -194,18 +194,18 @@ const struct emif_regs emif_2_regs_ddr3_532_mhz_1cs_dra_es1 = {
 	.sdram_tim1                     = 0xCCCF36B3,
 	.sdram_tim2                     = 0x308F7FDA,
 	.sdram_tim3                     = 0x027F88A8,
-	.read_idle_ctrl                 = 0x00050000,
+	.read_idle_ctrl                 = 0x00050001,
 	.zq_config                      = 0x0007190B,
 	.temp_alert_config              = 0x00000000,
-	.emif_ddr_phy_ctlr_1_init       = 0x0020400A,
+	.emif_ddr_phy_ctlr_1_init       = 0x0E24400A,
 	.emif_ddr_phy_ctlr_1            = 0x0E24400A,
-	.emif_ddr_ext_phy_ctrl_1        = 0x04040100,
-	.emif_ddr_ext_phy_ctrl_2        = 0x009D009D,
-	.emif_ddr_ext_phy_ctrl_3        = 0x009D009D,
-	.emif_ddr_ext_phy_ctrl_4        = 0x009D009D,
-	.emif_ddr_ext_phy_ctrl_5        = 0x009D009D,
+	.emif_ddr_ext_phy_ctrl_1        = 0x10040100,
+	.emif_ddr_ext_phy_ctrl_2        = 0x00BB00BB,
+	.emif_ddr_ext_phy_ctrl_3        = 0x00BB00BB,
+	.emif_ddr_ext_phy_ctrl_4        = 0x00BB00BB,
+	.emif_ddr_ext_phy_ctrl_5        = 0x00BB00BB,
 	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
-	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x00000000,
 	.emif_rd_wr_lvl_ctl             = 0x00000000,
 	.emif_rd_wr_exec_thresh         = 0x00000305
 };
@@ -446,51 +446,60 @@ const u32 ddr3_ext_phy_ctrl_const_base_es2[EMIF_EXT_PHY_CTRL_CONST_REG] = {
 };
 
 const u32
-dra_ddr3_ext_phy_ctrl_const_base_es1_emif1[EMIF_EXT_PHY_CTRL_CONST_REG] = {
-	0x009E009E,
-	0x002E002E,
-	0x002E002E,
-	0x002E002E,
-	0x002E002E,
-	0x002E002E,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x004D004D,
-	0x0,
-	0x600020,
+dra_ddr3_ext_phy_ctrl_const_base_es1_emif1[] = {
+	0x00BB00BB,
+	0x00440044,
+	0x00440044,
+	0x00440044,
+	0x00440044,
+	0x00440044,
+	0x007F007F,
+	0x007F007F,
+	0x007F007F,
+	0x007F007F,
+	0x007F007F,
+	0x00600060,
+	0x00600060,
+	0x00600060,
+	0x00600060,
+	0x00600060,
+	0x00000000,
+	0x00600020,
 	0x40010080,
-	0x8102040
+	0x08102040,
+	0x0,
+	0x0,
+	0x0,
+	0x0,
+	0x0
 };
 
 const u32
-dra_ddr3_ext_phy_ctrl_const_base_es1_emif2[EMIF_EXT_PHY_CTRL_CONST_REG] = {
-	0x009D009D,
-	0x002D002D,
-	0x002D002D,
-	0x002D002D,
-	0x002D002D,
-	0x002D002D,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x00570057,
-	0x0,
-	0x600020,
+dra_ddr3_ext_phy_ctrl_const_base_es1_emif2[] = {
+	0x00BB00BB,
+	0x00440044,
+	0x00440044,
+	0x00440044,
+	0x00440044,
+	0x00440044,
+	0x007F007F,
+	0x007F007F,
+	0x007F007F,
+	0x007F007F,
+	0x007F007F,
+	0x00600060,
+	0x00600060,
+	0x00600060,
+	0x00600060,
+	0x00600060,
+	0x00000000,
+	0x00600020,
 	0x40010080,
-	0x8102040
+	0x08102040,
+	0x0,
+	0x0,
+	0x0,
+	0x0,
 };
 
 const u32
@@ -530,28 +539,39 @@ const struct lpddr2_mr_regs mr_regs = {
 	.mr16	= MR16_REF_FULL_ARRAY
 };
 
-__weak void emif_get_ext_phy_ctrl_const_regs(u32 emif_nr, const u32 **regs)
+__weak void emif_get_ext_phy_ctrl_const_regs(u32 emif_nr,
+					     const u32 **regs,
+					     u32 *size)
 {
 	switch (omap_revision()) {
 	case OMAP5430_ES1_0:
 	case OMAP5430_ES2_0:
 		*regs = ext_phy_ctrl_const_base;
+		*size = ARRAY_SIZE(ext_phy_ctrl_const_base);
 		break;
 	case OMAP5432_ES1_0:
 		*regs = ddr3_ext_phy_ctrl_const_base_es1;
+		*size = ARRAY_SIZE(ddr3_ext_phy_ctrl_const_base_es1);
 		break;
 	case OMAP5432_ES2_0:
 		*regs = ddr3_ext_phy_ctrl_const_base_es2;
+		*size = ARRAY_SIZE(ddr3_ext_phy_ctrl_const_base_es2);
 		break;
 	case DRA752_ES1_0:
 	case DRA752_ES1_1:
-		if (emif_nr == 1)
+		if (emif_nr == 1) {
 			*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif1;
-		else
+			*size =
+			ARRAY_SIZE(dra_ddr3_ext_phy_ctrl_const_base_es1_emif1);
+		} else {
 			*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif2;
+			*size =
+			ARRAY_SIZE(dra_ddr3_ext_phy_ctrl_const_base_es1_emif2);
+		}
 		break;
 	case DRA722_ES1_0:
 		*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif1_666MHZ;
+		*size = ARRAY_SIZE(ddr3_ext_phy_ctrl_const_base_es2);
 		break;
 	default:
 		*regs = ddr3_ext_phy_ctrl_const_base_es2;
@@ -571,6 +591,7 @@ void do_ext_phy_settings(u32 base, const struct emif_regs *regs)
 	u32 emif_nr;
 	const u32 *ext_phy_ctrl_const_regs;
 	u32 i = 0;
+	u32 size;
 
 	emif_nr = (base == EMIF1_BASE) ? 1 : 2;
 
@@ -590,8 +611,9 @@ void do_ext_phy_settings(u32 base, const struct emif_regs *regs)
 	 * external phy 6-24 registers do not change with
 	 * ddr frequency
 	 */
-	emif_get_ext_phy_ctrl_const_regs(emif_nr, &ext_phy_ctrl_const_regs);
-	for (i = 0; i < EMIF_EXT_PHY_CTRL_CONST_REG; i++) {
+	emif_get_ext_phy_ctrl_const_regs(emif_nr,
+					 &ext_phy_ctrl_const_regs, &size);
+	for (i = 0; i < size; i++) {
 		writel(ext_phy_ctrl_const_regs[i],
 		       emif_ext_phy_ctrl_base++);
 		/* Update shadow registers */
