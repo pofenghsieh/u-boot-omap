@@ -295,7 +295,7 @@ static void ddr3_init(u32 base, const struct emif_regs *regs)
 	writel(regs->sdram_tim2, &emif->emif_sdram_tim_2);
 	writel(regs->sdram_tim3, &emif->emif_sdram_tim_3);
 
-	writel(regs->ref_ctrl, &emif->emif_sdram_ref_ctrl);
+	writel(regs->ref_ctrl_init, &emif->emif_sdram_ref_ctrl);
 	writel(regs->read_idle_ctrl, &emif->emif_read_idlectrl);
 
 	do_ext_phy_settings(base, regs);
@@ -307,6 +307,8 @@ static void ddr3_init(u32 base, const struct emif_regs *regs)
 		ddr3_sw_leveling(base, regs);
 	else
 		ddr3_leveling(base, regs);
+
+	writel(regs->ref_ctrl, &emif->emif_sdram_ref_ctrl);
 }
 
 #ifndef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS

@@ -518,7 +518,7 @@
 		| (RD_RW_LVL_INC_PRE << EMIF_REG_RDWRLVLINC_RMP_PRE_SHIFT))
 
 #define SDRAM_CONFIG_EXT_RD_LVL_11_SAMPLES	0x0000C1A7
-#define SDRAM_CONFIG_EXT_RD_LVL_4_SAMPLES	0x000001A7
+#define SDRAM_CONFIG_EXT_RD_LVL_4_SAMPLES	0x00000127
 #define SDRAM_CONFIG_EXT_RD_LVL_11_SAMPLES_ES2 0x0000C1C7
 
 /* DMM */
@@ -1112,6 +1112,7 @@ struct emif_regs {
 	u32 sdram_config;
 	u32 sdram_config2;
 	u32 ref_ctrl;
+	u32 ref_ctrl_init;
 	u32 sdram_tim1;
 	u32 sdram_tim2;
 	u32 sdram_tim3;
