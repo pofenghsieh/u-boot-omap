@@ -23,6 +23,8 @@
 #ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 #include <fb_mmc.h>
 #endif
+#include <usb/fastboot.h>
+#include <command.h>
 
 #define FASTBOOT_VERSION		"0.4"
 
@@ -38,6 +40,12 @@
 #define RESPONSE_LEN	(64 + 1)
 
 #define EP_BUFFER_SIZE			4096
+
+/* To support the Android-style naming of flash */
+#define MAX_PTN 16
+static fastboot_ptentry ptable[MAX_PTN];
+static unsigned int pcount;
+/* static int static_pcount = -1; */
 
 struct f_fastboot {
 	struct usb_function usb_function;
@@ -122,6 +130,34 @@ static struct usb_gadget_strings *fastboot_strings[] = {
 };
 
 static void rx_handler_command(struct usb_ep *ep, struct usb_request *req);
+
+/*
+ * Android style flash utilties */
+void fastboot_flash_reset_ptn(void)
+{
+#ifdef DEBUG
+	printf("fastboot flash reset partition..!!");
+#endif
+	pcount = 0;
+}
+
+void fastboot_flash_add_ptn(fastboot_ptentry *ptn)
+{
+	if (pcount < MAX_PTN) {
+		memcpy((ptable + pcount), ptn, sizeof(*ptn));
+		pcount++;
+	}
+}
+
+void fastboot_flash_dump_ptn(void)
+{
+	unsigned int n;
+	for (n = 0; n < pcount; n++) {
+		fastboot_ptentry *ptn = ptable + n;
+		printf("ptn %d name='%s'", n, ptn->name);
+		printf(" start=%d len=%d\n", ptn->start, ptn->length);
+	}
+}
 
 static void fastboot_complete(struct usb_ep *ep, struct usb_request *req)
 {
@@ -311,6 +347,21 @@ static int fastboot_tx_write_str(const char *buffer)
 {
 	return fastboot_tx_write(buffer, strlen(buffer));
 }
+
+fastboot_ptentry *fastboot_flash_find_ptn(const char *name)
+{
+	unsigned int n;
+
+	for (n = 0; n < pcount; n++) {
+		/* Make sure a substring is not accepted */
+		if (strlen(name) == strlen(ptable[n].name)) {
+			if (0 == strcmp(ptable[n].name, name))
+				return ptable + n;
+		}
+	}
+	return 0;
+}
+
 
 static void compl_do_reset(struct usb_ep *ep, struct usb_request *req)
 {
@@ -509,6 +560,27 @@ static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 }
 #endif
 
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
+int fastboot_oem(const char *cmd)
+{
+	if (!strcmp(cmd, "format"))
+		return do_format();
+	return -1;
+}
+
+static void cb_oem(struct usb_ep *ep, struct usb_request *req)
+{
+	char *cmd = req->buf;
+
+	int r = fastboot_oem(cmd + 4);
+	if (r < 0) {
+		fastboot_tx_write_str("FAIL");
+	} else {
+		fastboot_tx_write_str("OKAY");
+	}
+}
+#endif
+
 struct cmd_dispatch_info {
 	char *cmd;
 	void (*cb)(struct usb_ep *ep, struct usb_request *req);
@@ -532,6 +604,12 @@ static const struct cmd_dispatch_info cmd_dispatch_info[] = {
 	{
 		.cmd = "flash",
 		.cb = cb_flash,
+	},
+#endif
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
+	{
+		.cmd = "oem",
+		.cb = cb_oem,
 	},
 #endif
 };
@@ -569,3 +647,11 @@ static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 		usb_ep_queue(ep, req, 0);
 	}
 }
+
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
+int board_partition_init(void)
+{
+	board_mmc_fbtptn_init();
+	return 1;
+}
+#endif

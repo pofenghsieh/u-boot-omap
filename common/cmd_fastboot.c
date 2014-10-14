@@ -11,6 +11,7 @@
 #include <command.h>
 #include <g_dnl.h>
 #include <usb.h>
+#include <usb/fastboot.h>
 
 static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
@@ -18,6 +19,9 @@ static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 
 	board_usb_init(0, USB_INIT_DEVICE);
 
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
+	board_partition_init();
+#endif
 	ret = g_dnl_register("usb_dnl_fastboot");
 	if (ret)
 		return ret;
