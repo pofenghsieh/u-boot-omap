@@ -10,10 +10,13 @@
 #include <common.h>
 #include <command.h>
 #include <g_dnl.h>
+#include <usb.h>
 
 static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	int ret;
+
+	board_usb_init(0, USB_INIT_DEVICE);
 
 	ret = g_dnl_register("usb_dnl_fastboot");
 	if (ret)
@@ -26,6 +29,7 @@ static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	}
 
 	g_dnl_unregister();
+	board_usb_cleanup(0, USB_INIT_DEVICE);
 	return CMD_RET_SUCCESS;
 }
 
