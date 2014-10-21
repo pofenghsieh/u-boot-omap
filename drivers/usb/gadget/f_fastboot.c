@@ -370,13 +370,20 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 	fastboot_tx_write_str(response);
 }
 
-static unsigned int rx_bytes_expected(void)
+static unsigned int rx_bytes_expected(unsigned maxpacket)
 {
 	int rx_remain = download_size - download_bytes;
+	int rem = 0;
 	if (rx_remain < 0)
 		return 0;
 	if (rx_remain > EP_BUFFER_SIZE)
 		return EP_BUFFER_SIZE;
+	if (rx_remain < maxpacket) {
+		rx_remain = maxpacket;
+	} else if (rx_remain % maxpacket != 0) {
+		rem = rx_remain % maxpacket;
+		rx_remain = rx_remain + (maxpacket - rem);
+	}
 	return rx_remain;
 }
 
@@ -425,7 +432,7 @@ static void rx_handler_dl_image(struct usb_ep *ep, struct usb_request *req)
 
 		printf("\ndownloading of %d bytes finished\n", download_bytes);
 	} else {
-		req->length = rx_bytes_expected();
+		req->length = rx_bytes_expected(ep->desc->wMaxPacketSize);
 		if (req->length < ep->maxpacket)
 			req->length = ep->maxpacket;
 	}
@@ -453,7 +460,7 @@ static void cb_download(struct usb_ep *ep, struct usb_request *req)
 	} else {
 		sprintf(response, "DATA%08x", download_size);
 		req->complete = rx_handler_dl_image;
-		req->length = rx_bytes_expected();
+		req->length = rx_bytes_expected(ep->desc->wMaxPacketSize);
 		if (req->length < ep->maxpacket)
 			req->length = ep->maxpacket;
 	}
