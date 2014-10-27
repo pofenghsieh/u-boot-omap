@@ -20,12 +20,20 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 	unsigned long err;
 	u32 image_size_sectors;
 	struct image_header *header;
+	u32 boot_device;
+	u8 device;
+	boot_device = spl_boot_device();
+	if(boot_device == BOOT_DEVICE_MMC1) {
+		device = 0;
+	} else {
+		device = 1;
+	}
 
 	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
 						sizeof(struct image_header));
 
 	/* read image header to find the image size & load address */
-	err = mmc->block_dev.block_read(0, sector, 1, header);
+	err = mmc->block_dev.block_read(device, sector, 1, header);
 	if (err == 0)
 		goto end;
 
@@ -39,7 +47,7 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 				mmc->read_bl_len;
 
 	/* Read the header too to avoid extra memcpy */
-	err = mmc->block_dev.block_read(0, sector, image_size_sectors,
+	err = mmc->block_dev.block_read(device, sector, image_size_sectors,
 					(void *)spl_image.load_addr);
 
 end:
@@ -73,10 +81,19 @@ void spl_mmc_load_image(void)
 	struct mmc *mmc;
 	int err;
 	u32 boot_mode;
+	u32 boot_device;
+	u8 device;
+	printf("%s\n",__func__);
+	boot_device = spl_boot_device();
+	if(boot_device == BOOT_DEVICE_MMC1) {
+		device = 0;
+	} else {
+		device = 1;
+	}
 
 	mmc_initialize(gd->bd);
 	/* We register only one device. So, the dev id is always 0 */
-	mmc = find_mmc_device(0);
+	mmc = find_mmc_device(device);
 	if (!mmc) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		puts("spl: mmc device not found!!\n");

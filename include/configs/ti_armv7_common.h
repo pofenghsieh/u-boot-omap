@@ -229,7 +229,7 @@
 #endif
 
 /* RAW SD card / eMMC locations. */
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x300 /* address 0x60000 */
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	512 /* bootloader partition */
 #define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x200 /* 256 KB */
 
 /* FAT sd card locations. */

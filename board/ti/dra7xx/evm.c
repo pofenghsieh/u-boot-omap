@@ -90,6 +90,10 @@ int board_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_CMD_FASTBOOT
+extern int load_ptbl(void);
+#endif
+
 int board_late_init(void)
 {
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
@@ -99,6 +103,9 @@ int board_late_init(void)
 		setenv("board_name", "dra7xx");
 #endif
 	init_sata(0);
+#ifdef CONFIG_CMD_FASTBOOT
+	load_ptbl();
+#endif
 	return 0;
 }
 

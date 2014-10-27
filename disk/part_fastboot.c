@@ -40,17 +40,20 @@ struct partition_emmc {
  */
 static struct partition_emmc partitions[] = {
 	{ "-", 128 },	/* Master Boot Record and GUID Partition Table */
-	{ "spl", 128 },	/* First stage bootloader */
-	{ "bootloader", 512 },	/* Second stage bootloader */
+	{ "xloader", 128 },	/* First stage bootloader */
+	{ "bootloader", 384 },	/* Second stage bootloader */
+	{ "environment", 128 },
 	{ "misc", 128 },		/* Rserved for internal purpose */
-	{ "-", 128 },			/* Reserved */
-	{ "recovery", 8*1024 },	/* Recovery partition  */
-	{ "boot", 8*1024 },	/* Partition contains kernel + ramdisk images */
-	{ "system", 256*1024 },		/* Android file system */
+	{ "-", 384 },			/* Reserved */
+	{ "efs", 16384 },
+	{ "crypto", 16 },
+	{ "recovery", 10*1024 },	/* Recovery partition  */
+	{ "boot", 10*1024 },	/* Partition contains kernel + ramdisk images */
+	{ "system", 768*1024 },		/* Android file system */
 	{ "cache", 256*1024 },		/* Store Application Cache */
-	{ "userdata", 256*1024 },	/* User data */
-	{ "media", 0 },			/* Media files */
-	{ 0, 0 },
+	{ "ipu", 1024 },
+	{ "userdata", 0 },	/* User data */
+	{ NULL, 0 },
 };
 
 
@@ -218,7 +221,7 @@ void import_efi_partition(struct efi_entry *entry)
 		printf("%8d %7dK %s\n", e.start, e.length/0x400, e.name);
 }
 
-static int load_ptbl(void)
+int load_ptbl(void)
 {
 	u64 ptbl_sectors = 0;
 	int i = 0, r = 0;

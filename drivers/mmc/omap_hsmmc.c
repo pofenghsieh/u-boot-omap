@@ -716,5 +716,10 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
 	if (mmc == NULL)
 		return -1;
 
+        /*Hack needed for eMMC boot*/
+        if(dev_index == 1) {
+                mmc->block_dev.dev = 1;
+        }
+
 	return 0;
 }

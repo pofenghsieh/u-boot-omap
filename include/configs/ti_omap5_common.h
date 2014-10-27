@@ -132,6 +132,7 @@
 	NANDARGS \
 	DFUARGS \
 
+#ifndef CONFIG_CMD_FASTBOOT
 #define CONFIG_BOOTCOMMAND \
 	"run findfdt; " \
 	"run mmcboot;" \
@@ -141,6 +142,9 @@
 	"run mmcboot;" \
 	NANDBOOT \
 
+#else
+#define CONFIG_BOOTCOMMAND "booti mmc1"
+#endif
 
 /*
  * SPL related defines.  The Public RAM memory map the ROM defines the
