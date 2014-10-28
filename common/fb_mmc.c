@@ -27,6 +27,44 @@ void fastboot_okay(const char *s)
 	strncat(response_str, s, RESPONSE_LEN - 4 - 1);
 }
 
+void fb_mmc_get_ptn_size(const char *cmd, char *response)
+{
+	int ret;
+	block_dev_desc_t *dev_desc;
+	disk_partition_t info;
+	u32 sz_mb;
+	u64 sz = 0;
+	char buf[RESPONSE_LEN];
+
+	/* initialize the response buffer */
+	response_str = response;
+
+	dev_desc = get_dev("mmc", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	if (!dev_desc || dev_desc->type == DEV_TYPE_UNKNOWN) {
+		error("invalid mmc device\n");
+		fastboot_fail("invalid mmc device");
+		return;
+	}
+
+	ret = get_partition_info_efi_by_name(dev_desc, cmd, &info);
+	if (ret) {
+		error("cannot find partition: '%s'\n", cmd);
+		fastboot_fail("cannot find partition");
+		return;
+	}
+
+	sz = (info.size * info.blksz) >> 10;
+
+	if (sz >= 0xFFFFFFFF) {
+		sz_mb = (u32)(sz >> 20);
+		sprintf(buf, "0x%d MB", sz_mb);
+		fastboot_okay(buf);
+	} else {
+		sprintf(buf, "%d KB", (u32)sz);
+		fastboot_okay(buf);
+	}
+}
+
 static void write_raw_image(block_dev_desc_t *dev_desc, disk_partition_t *info,
 		const char *part_name, void *buffer,
 		unsigned int download_bytes)

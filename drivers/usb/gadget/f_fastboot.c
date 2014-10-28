@@ -473,6 +473,8 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strncat(response, s, sizeof(response));
 		else
 			strcpy(response, "FAILValue not set");
+	} else if (!strcmp_l1("userdata_size", cmd)) {
+		fb_mmc_get_ptn_size("userdata", response);
 	} else {
 		error("unknown variable: %s\n", cmd);
 		strcpy(response, "FAILVariable not implemented");
