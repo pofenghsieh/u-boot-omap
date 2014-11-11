@@ -193,7 +193,8 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	debug("boot device - %d\n", boot_device);
 
 #ifdef CONFIG_SPL_EARLY_BOOT
-	if (omap_sysboot() == SYS_BOOT_QSPI_PROD) {
+	if (omap_sysboot() == SYS_BOOT_QSPI_PROD ||
+	    omap_sysboot() == SYS_BOOT_QSPI_4_PROD) {
         if (spl_boot_linux())
 			puts("Error booting Linux, fall back to u-boot...\n");
 	}

@@ -38,6 +38,7 @@
 
 #define SYS_BOOT_DEVICE		0x3F
 #define SYS_BOOT_QSPI_PROD	0x36
+#define SYS_BOOT_QSPI_4_PROD	0x37
 
 #define LOAD_U_BOOT		0
 #define LOAD_KERNEL		1
