@@ -12,6 +12,8 @@
 #include <mmc.h>
 #include <version.h>
 #include <image.h>
+#include <fat.h>
+#include <remoteproc.h>
 #ifdef CONFIG_SPL_ANDROID_BOOT_SUPPORT
 #include <fdt_support.h>
 #endif
@@ -174,6 +176,34 @@ static int mmc_load_image_raw_os(struct mmc *mmc)
 	return mmc_load_image_raw(mmc, CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR);
 }
 #endif
+
+u32 spl_mmc_load_core(u32 core_id)
+{
+	struct rproc *cfg = NULL;
+	s32 err;
+	struct mmc *mmc;
+
+	if ((core_id == 0) || (core_id >= RPROC_END_ENUMS)) {
+		printf("Invalid core id speicified: %d\n", core_id);
+		return 1;
+	}
+
+	cfg = rproc_cfg_arr[core_id];
+
+	debug("spl: loading remote core image %s\n", cfg->firmware_name);
+
+	spl_mmc_init(&mmc);
+	/* load the remotecore image */
+	err = file_fat_read(cfg->firmware_name, (u8 *) cfg->load_addr, 0);
+
+	if (err <= 0) {
+		printf("spl: error reading image %s, err - %d\n",
+		       cfg->firmware_name, err);
+		return 1;
+	}
+
+	return 0;
+}
 
 void spl_mmc_init(struct mmc **mmc)
 {

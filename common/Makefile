@@ -220,6 +220,7 @@ ifdef CONFIG_SPL_BUILD
 obj-$(CONFIG_ENV_IS_IN_FLASH) += env_flash.o
 obj-$(CONFIG_SPL_YMODEM_SUPPORT) += xyzModem.o
 obj-$(CONFIG_SPL_NET_SUPPORT) += miiphyutil.o
+obj-$(CONFIG_CMD_ELF) += cmd_elf.o
 obj-$(CONFIG_SPL_USB_SUPPORT) += usb.o
 ifdef CONFIG_SPL_USB_BOOT_SUPPORT
 obj-$(CONFIG_CMD_FASTBOOT) += cmd_fastboot.o
@@ -276,6 +277,10 @@ obj-$(CONFIG_FIT_SIGNATURE) += image-sig.o
 obj-$(CONFIG_IO_TRACE) += iotrace.o
 obj-y += memsize.o
 obj-y += stdio.o
+
+ifdef CONFIG_LATE_ATTACH
+obj-y += elf_remoteproc.o
+endif
 
 # This option is not just y/n - it can have a numeric value
 ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV

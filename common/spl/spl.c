@@ -16,6 +16,7 @@
 #include <image.h>
 #include <malloc.h>
 #include <linux/compiler.h>
+#include <remoteproc.h>
 
 #if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
 #include <usb/fastboot.h>
@@ -132,6 +133,39 @@ __weak void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 	image_entry();
 }
 
+#ifdef CONFIG_LATE_ATTACH
+
+/* Error code to indicate that SPL failed to load a remotecore */
+#define SPL_CORE_LOAD_ERR_ID (0xFF00)
+
+/*
+ * Loads the remotecores specified in the cores array.
+ *
+ * In case of failure, the core id array is OR'ed with an error code
+ * to indicate that the load has failed.
+ *
+ * This information can be used to indicate status of the remotecore
+ * load to the kernel.
+ */
+void spl_load_cores(u32 *cores, u32 numcores)
+{
+
+	u32 i = 0;
+
+	for (i = 0; i < numcores ; i++) {
+		u32 core = cores[i];
+		if (spl_mmc_load_core(core) || spl_boot_core(core)) {
+			printf
+				("Error loading remotecore %s!,Continuing with boot ...\n",
+				 rproc_cfg_arr[core]->core_name);
+		} else {
+			cores[i] = (cores[i] | SPL_CORE_LOAD_ERR_ID);
+		}
+	}
+	return;
+}
+#endif
+
 #ifdef CONFIG_SPL_RAM_DEVICE
 static void spl_ram_load_image(void)
 {
@@ -159,6 +193,9 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	struct mmc *mmc;
 #endif
 	u32 boot_device;
+#ifdef CONFIG_LATE_ATTACH
+	u32 cores_to_boot[] = { IPU2, DSP1, DSP2, IPU1 };
+#endif
 	debug(">>spl:board_init_r()\n");
 
 #ifdef CONFIG_SYS_SPL_MALLOC_START
@@ -191,6 +228,9 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:
 		spl_mmc_load_image();
+#ifdef CONFIG_LATE_ATTACH
+		spl_load_cores(cores_to_boot, sizeof(cores_to_boot)/sizeof(u32));
+#endif
 		break;
 #endif
 #ifdef CONFIG_SPL_NAND_SUPPORT

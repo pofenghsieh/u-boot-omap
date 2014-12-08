@@ -78,4 +78,8 @@ void spl_mmc_init(struct mmc **mmc);
 #ifdef CONFIG_SPL_BOARD_INIT
 void spl_board_init(void);
 #endif
+
+u32 spl_mmc_load_core(u32 core_id);
+u32 spl_boot_core(u32 core_id);
+
 #endif
