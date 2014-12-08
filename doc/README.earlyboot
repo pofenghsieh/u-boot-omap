@@ -1,0 +1,67 @@
+/*
+ * (C) Copyright 2015
+ * Texas Instruments Incorporated.
+ * Venkateswara Rao Mandela <venkat.mandela@ti.com>
+ *
+ * Documentation for Early Boot functionality
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
+
+
+Using Early Boot on TI DRA7xx platforms
+=======================================
+
+"Early boot" as defined in the scope of this document is booting slave cores in
+a heteregeneous multiprocessor system before the main core running Linux is
+booted. In case of a DRA7xx SOC, this could be booting the M4 core or the DSP
+core before the A15 core has booted Linux. This feature is typically used to
+handle functionality that needs to be available immediately after boot. In the
+automotive domain, these functionalities could be responding to CAN messages,
+bringing up the rear view camera, playing out a chime as soon as the key is
+inserted. The "Early Boot" functionality is typically used along side a "late
+attach" feature in the Linux kernel. By doing a "late attach", the Linux kernel
+starts communicating and controlling an already running remotecore(M4/DSP)
+instead of a resetting, reloading and restarting the core.
+
+
+Current Support Status
+======================
+
+This version of U-Boot supports loading IPU2 in the DRA7x SOC from the
+bootloader. IPU2 is booted from a ELF image in the FAT partition of the MMC/SD
+device. The MMU of IPU2 is setup in a manner expected by the Linux kernel.
+
+Configuration Options
+======================
+
+    CONFIG_LATE_ATTACH_BOOTIPU2
+
+		Setting this option enables the early boot functionality in U-Boot.
+		This option automatically enables the ELF loader support and
+		includes the common/elf_remoteproc.c required for remoteproc
+		support in the build.
+
+    IPU_LOAD_ADDR
+
+		This macro determines the address into which the ELF image is
+		loaded from persistent storage before being passed to the ELF
+		Loader. Choose this address such that it does not trample on
+		U-Boot code.
+
+    CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME
+
+		Name of the file that is looked for on MMC.
+
+    CONFIG_SPL_MMC_LOAD_IPU
+
+		This option enables loading the IPU firmware from MMC into RAM.
+		Currently this is the only supported option to source IPU
+		firmware in U-Boot. In future, more locations will be
+		supported.
+
+Test Status
+===========
+
+Early boot by U-Boot and Late attach by Linux Kernel has been verified using
+IPC sample applications for RPMsg and MessageQ.

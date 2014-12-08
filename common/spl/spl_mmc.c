@@ -12,6 +12,7 @@
 #include <mmc.h>
 #include <version.h>
 #include <image.h>
+#include <fat.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -65,6 +66,32 @@ static int mmc_load_image_raw_os(struct mmc *mmc)
 	}
 
 	return mmc_load_image_raw(mmc, CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR);
+}
+#endif
+
+#ifdef CONFIG_SPL_MMC_LOAD_IPU
+/* Loads IPU ELF image from MMC to a configured location in memory.
+ * Returns 0 on success.
+ * Returns 1 on failure.
+ */
+u32 spl_mmc_load_ipu()
+{
+	s32 err;
+
+	printf("spl: loading ipu image %s\n",
+			CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME);
+
+	/* load the IPU image */
+	err = file_fat_read(CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME,
+			(u8 *)IPU_LOAD_ADDR, 0);
+
+	if (err <= 0) {
+		printf("spl: error reading image %s, err - %d\n",
+				CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME, err);
+		return 1;
+	}
+
+	return 0;
 }
 #endif
 

@@ -171,6 +171,15 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:
 		spl_mmc_load_image();
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU2)
+		if (
+# ifdef CONFIG_SPL_MMC_LOAD_IPU
+				spl_mmc_load_ipu()||
+#endif
+				spl_boot_ipu()) {
+			puts("Error loading IPU!,Continuing with boot ...\n");
+		}
+#endif
 		break;
 #endif
 #ifdef CONFIG_SPL_NAND_SUPPORT

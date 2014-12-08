@@ -320,4 +320,29 @@
 #endif
 #endif  /* NOR support */
 
+/* Enable this flag if you want to boot IPU2
+ * from SPL */
+#undef CONFIG_LATE_ATTACH_BOOTIPU2
+
+#ifdef CONFIG_LATE_ATTACH_BOOTIPU2
+
+/* Include the ELF loader */
+#define CONFIG_CMD_ELF
+
+/* Define the address to which the IPU binary is
+ * loaded from persistent storage
+ */
+#define IPU_LOAD_ADDR		0xa0fff000
+
+/* Expected name of the IPU binary in the search location.
+ * This matches the name used by remoteproc kernel module
+ */
+#define CONFIG_SPL_FAT_LOAD_IPU_PAYLOAD_NAME       "dra7-ipu2-fw.xem4"
+
+/* Enable IPU loading from MMC.
+ * Currently only this option is supported. */
+#define CONFIG_SPL_MMC_LOAD_IPU
+
+#endif
+
 #endif /* __CONFIG_DRA7XX_EVM_H */

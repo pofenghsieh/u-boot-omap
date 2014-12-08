@@ -75,4 +75,10 @@ int spl_load_image_fat_os(block_dev_desc_t *block_dev, int partition);
 #ifdef CONFIG_SPL_BOARD_INIT
 void spl_board_init(void);
 #endif
+#ifdef CONFIG_SPL_MMC_LOAD_IPU
+u32 spl_mmc_load_ipu(void);
+#endif
+#if defined(CONFIG_LATE_ATTACH_BOOTIPU2)
+u32 spl_boot_ipu(void);
+#endif
 #endif
