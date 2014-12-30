@@ -366,6 +366,8 @@ struct omap_sys_ctrl_regs {
 	u32 control_core_control_io1;
 	u32 control_core_control_io2;
 	u32 control_id_code;
+	u32 control_std_fuse_die_id_3;
+	u32 control_std_fuse_prod_id_0;
 	u32 control_std_fuse_opp_bgap;
 	u32 control_ldosram_iva_voltage_ctrl;
 	u32 control_ldosram_mpu_voltage_ctrl;
