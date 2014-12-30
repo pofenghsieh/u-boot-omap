@@ -9,6 +9,7 @@
 #include <part.h>
 #include <aboot.h>
 #include <sparse_format.h>
+#include <mmc.h>
 
 /* The 64 defined bytes plus the '\0' */
 #define RESPONSE_LEN	(64 + 1)
@@ -127,4 +128,60 @@ void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 	else
 		write_raw_image(dev_desc, &info, cmd, download_buffer,
 				download_bytes);
+}
+
+void fb_mmc_erase(const char *cmd, char *response)
+{
+	int ret;
+	block_dev_desc_t *dev_desc;
+	disk_partition_t info;
+	lbaint_t blks, blks_start, blks_size, grp_size;
+	struct mmc* mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
+
+	if (mmc == NULL) {
+		error("invalid mmc device\n");
+		fastboot_fail("invalid mmc device");
+		return;
+	}
+
+	/* initialize the response buffer */
+	response_str = response;
+
+	dev_desc = get_dev("mmc", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	if (!dev_desc || dev_desc->type == DEV_TYPE_UNKNOWN) {
+		error("invalid mmc device\n");
+		fastboot_fail("invalid mmc device");
+		return;
+	}
+
+	ret = get_partition_info_efi_by_name(dev_desc, cmd, &info);
+	if (ret) {
+		error("cannot find partition: '%s'\n", cmd);
+		fastboot_fail("cannot find partition");
+		return;
+	}
+
+	puts("Erasing partition\n");
+
+	/* Align blocks to erase group size to avoid erasing other partitions */
+	grp_size = mmc->erase_grp_size;
+	blks_start = (info.start + grp_size - 1) & ~(grp_size - 1);
+	if (info.size >= grp_size)
+		blks_size = (info.size - (blks_start - info.start)) & ~(grp_size - 1);
+	else
+		blks_size = 0;
+
+	printf("Erasing blocks " LBAFU " to " LBAFU " due to alignment\n",
+	       blks_start, blks_start + blks_size);
+
+	blks = dev_desc->block_erase(dev_desc->dev, blks_start, blks_size);
+	if (blks != blks_size) {
+		error("failed erasing from device %d\n", dev_desc->dev);
+		fastboot_fail("failed erasing from device");
+		return;
+	}
+
+	printf("........ erased " LBAFU " bytes from '%s'\n", blks_size * info.blksz,
+	       cmd);
+	fastboot_okay("");
 }
