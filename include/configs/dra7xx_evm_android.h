@@ -322,4 +322,7 @@
 #define CONFIG_ADDR_DOWNLOAD                    (MEMORY_BASE + 0x02000000)
 #define DEVICE_TREE                             0x82f80000
 
+#undef CONFIG_BOOTDELAY
+#define CONFIG_BOOTDELAY			3
+
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */
