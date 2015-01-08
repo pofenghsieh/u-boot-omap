@@ -15,9 +15,8 @@
 #define CONFIG_DRA7XX
 #define CONFIG_BOARD_EARLY_INIT_F
 
-#ifndef CONFIG_QSPI_BOOT
 /* MMC ENV related defines */
-#define CONFIG_ENV_IS_IN_MMC
+#ifdef CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		1	/* SLOT2: eMMC(1) */
 #define CONFIG_ENV_SIZE			(128 << 10)
 #define CONFIG_ENV_OFFSET		0xE0000
@@ -67,6 +66,10 @@
 	"boot part 0 1;" \
 	"rootfs part 0 2;" \
 	"MLO fat 0 1;" \
+	"MLO.raw raw 0x100 0x100;" \
+	"u-boot.img.raw raw 0x300 0x400;" \
+	"spl-os-args.raw raw 0x80 0x80;" \
+	"spl-os-image.raw raw 0x900 0x2000;" \
 	"spl-os-args fat 0 1;" \
 	"spl-os-image fat 0 1;" \
 	"u-boot.img fat 0 1;" \
@@ -74,8 +77,18 @@
 
 #define DFU_ALT_INFO_EMMC \
 	"dfu_alt_info_emmc=" \
-	"MLO raw 0x100 0x100 mmcpart 0;" \
-	"u-boot.img raw 0x300 0x1000 mmcpart 0\0"
+	"rawemmc raw 0 3751936;" \
+	"boot part 1 1;" \
+	"rootfs part 1 2;" \
+	"MLO fat 1 1;" \
+	"MLO.raw raw 0x100 0x100;" \
+	"u-boot.img.raw raw 0x300 0x400;" \
+	"spl-os-args.raw raw 0x80 0x80;" \
+	"spl-os-image.raw raw 0x900 0x2000;" \
+	"spl-os-args fat 1 1;" \
+	"spl-os-image fat 1 1;" \
+	"u-boot.img fat 1 1;" \
+	"uEnv.txt fat 1 1\0"
 
 #define DFU_ALT_INFO_RAM \
 	"dfu_alt_info_ram=" \
@@ -271,6 +284,12 @@
 #define CONFIG_CMD_SPL_NAND_OFS		0x00080000 /* os-boot params*/
 #define CONFIG_SYS_NAND_SPL_KERNEL_OFFS	0x00200000 /* kernel offset */
 #define CONFIG_CMD_SPL_WRITE_SIZE	0x2000
+#endif
+#ifdef CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_OFFSET		0x001c0000
+#define CONFIG_ENV_OFFSET_REDUND	0x001e0000
+#define CONFIG_SYS_ENV_SECT_SIZE	CONFIG_SYS_NAND_BLOCK_SIZE
+#define CONFIG_ENV_SIZE			CONFIG_SYS_NAND_BLOCK_SIZE
 #endif
 #endif /* !CONFIG_NAND */
 
