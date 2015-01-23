@@ -104,6 +104,11 @@
 
 #include <configs/ti_omap5_common.h>
 
+/* Enable option to stop boot process by any key
+ * even when the boot delay is set to zero.
+ */
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+
 /* Enhance our eMMC support / experience. */
 #define CONFIG_CMD_GPT
 #define CONFIG_EFI_PARTITION
