@@ -128,6 +128,7 @@
  * console baudrate of 115200 and use the default baud rate table.
  */
 #define CONFIG_SYS_MALLOC_LEN		(16 << 20)
+#define CONFIG_SYS_MALLOC_SMALL_LEN	(2 << 20)
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"U-Boot# "
 #define CONFIG_SYS_CONSOLE_INFO_QUIET
@@ -226,6 +227,7 @@
 #define CONFIG_SYS_SPL_MALLOC_START	(CONFIG_SPL_BSS_START_ADDR + \
 					 CONFIG_SPL_BSS_MAX_SIZE)
 #define CONFIG_SYS_SPL_MALLOC_SIZE	CONFIG_SYS_MALLOC_LEN
+#define CONFIG_SYS_SPL_MALLOC_SMALL_SIZE	CONFIG_SYS_MALLOC_SMALL_LEN
 #endif
 
 /* RAW SD card / eMMC locations. */

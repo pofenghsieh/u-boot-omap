@@ -132,11 +132,20 @@ static void spl_ram_load_image(void)
 void board_init_r(gd_t *dummy1, ulong dummy2)
 {
 	u32 boot_device;
+	u32 size;
 	debug(">>spl:board_init_r()\n");
 
+	boot_device = spl_boot_device();
+	debug("boot device - %d\n", boot_device);
+
 #ifdef CONFIG_SYS_SPL_MALLOC_START
+	size = CONFIG_SYS_SPL_MALLOC_SIZE;
+#if defined(CONFIG_DRA7XX) && defined(CONFIG_QSPI_BOOT)
+	if (boot_device == BOOT_DEVICE_SPI)
+		size = CONFIG_SYS_SPL_MALLOC_SMALL_SIZE;
+#endif
 	mem_malloc_init(CONFIG_SYS_SPL_MALLOC_START,
-			CONFIG_SYS_SPL_MALLOC_SIZE);
+			size);
 #endif
 
 #ifndef CONFIG_PPC
@@ -151,8 +160,6 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	spl_board_init();
 #endif
 
-	boot_device = spl_boot_device();
-	debug("boot device - %d\n", boot_device);
 	switch (boot_device) {
 #ifdef CONFIG_SPL_RAM_DEVICE
 	case BOOT_DEVICE_RAM:
