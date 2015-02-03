@@ -123,9 +123,9 @@
 		"if test $board_name = omap5_uevm; then " \
 			"setenv fdtfile omap5-uevm.dtb; fi; " \
 		"if test $board_name = dra7xx; then " \
-			"setenv fdtfile dra7-evm.dtb; fi;" \
+			"setenv fdtfile dra7-evm-lcd7.dtb; fi;" \
 		"if test $board_name = dra72x; then " \
-			"setenv fdtfile dra72-evm.dtb; fi;" \
+			"setenv fdtfile dra72-evm-lcd10.dtb; fi;" \
 		"if test $board_name = beagle_x15; then " \
 			"setenv fdtfile am57xx-beagle-x15.dtb; fi;" \
 		"if test $fdtfile = undefined; then " \
