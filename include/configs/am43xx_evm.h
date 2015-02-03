@@ -109,8 +109,12 @@
 /* USB GADGET */
 #if !defined(CONFIG_SPL_BUILD) || \
 	(defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT))
+
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
 #undef CONFIG_ENV_IS_IN_FAT
 #define CONFIG_ENV_IS_NOWHERE
+#endif
+
 #define CONFIG_USB_DWC3_PHY_OMAP
 #define CONFIG_USB_DWC3_OMAP
 #define CONFIG_USB_DWC3
@@ -227,6 +231,10 @@
 	"usbroot=/dev/sda2 rw\0" \
 	"usbrootfstype=ext4 rootwait\0" \
 	"usbdev=0\0" \
+	"rootpath=/export/rootfs\0" \
+	"nfsopts=nolock\0" \
+	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
+		"::off\0" \
 	"ramroot=/dev/ram0 rw\0" \
 	"ramrootfstype=ext2\0" \
 	"mmcargs=setenv bootargs console=${console} " \
@@ -237,6 +245,11 @@
 		"${optargs} " \
 		"root=${usbroot} " \
 		"rootfstype=${usbrootfstype}\0" \
+	"netargs=setenv bootargs console=${console} " \
+		"${optargs} " \
+		"root=/dev/nfs " \
+		"nfsroot=${serverip}:${rootpath},${nfsopts} rw " \
+		"ip=dhcp\0" \
 	"bootenv=uEnv.txt\0" \
 	"loadbootenv=load ${devtype} ${devnum} ${loadaddr} ${bootenv}\0" \
 	"importbootenv=echo Importing environment from mmc ...; " \
@@ -288,6 +301,13 @@
 				"bootz ${loadaddr} - ${fdtaddr}; " \
 			"fi;" \
 		"fi\0" \
+	"netboot=echo Booting from network ...; " \
+		"setenv autoload no; " \
+		"dhcp; " \
+		"tftp ${loadaddr} ${bootfile}; " \
+		"tftp ${fdtaddr} ${fdtfile}; " \
+		"run netargs; " \
+		"bootz ${loadaddr} - ${fdtaddr}\0" \
 	"findfdt="\
 		"if test $board_name = AM43EPOS; then " \
 			"setenv fdtfile am43x-epos-evm.dtb; fi; " \
