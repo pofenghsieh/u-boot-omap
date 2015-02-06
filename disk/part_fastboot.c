@@ -268,21 +268,23 @@ fail:
 
 int board_mmc_fbtptn_init(void)
 {
-	char *mmc_init[2] = {"mmc", "rescan",};
-	char dev[2];
-	char *mmc_dev[3] = {"mmc", "dev", dev};
+	struct mmc *mmc = NULL;
+	int ret = 0;
 
-	sprintf(dev, "0x%x", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+        mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
+        if (!mmc) {
+                printf("no mmc device at slot %x\n", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+                return -1;
+        }
+        mmc->has_init = 0;
+        if (mmc_init(mmc))
+                return -1;
 
-	if (do_mmcops(NULL, 0, 3, mmc_dev)) {
-		printf("MMC DEV: %d selection FAILED!\n", CONFIG_FASTBOOT_FLASH_MMC_DEV);
-		return -1;
-	}
-
-	if (do_mmcops(NULL, 0, 2, mmc_init)) {
-			printf("FAIL:Init of MMC card\n");
-			return 1;
-	}
+        ret = mmc_select_hwpart(CONFIG_FASTBOOT_FLASH_MMC_DEV, 0);
+        printf("switch to partitions #%d, %s\n",
+               0, (!ret) ? "OK" : "ERROR");
+        if (ret)
+                return -1;
 
 	return load_ptbl();
 }
@@ -296,6 +298,7 @@ int do_format(void)
 	unsigned blocks;
 	unsigned next;
 	int n;
+	int ret;
 
 	/* get mmc info */
 	struct mmc *mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
@@ -336,30 +339,17 @@ int do_format(void)
 
 	fastboot_flash_reset_ptn();
 
-	/* 10/11:modified as per PSP release support */
-	char *mmc_write[5]  = {"mmc", "write", NULL, NULL, NULL};
-	char source[32], dest[32], length[32];
-
-	char dev[2];
-	char *mmc_dev[3] = {"mmc", "dev", NULL};
-
-	mmc_dev[2] = dev;
-	sprintf(dev, "0x%x", CONFIG_FASTBOOT_FLASH_MMC_DEV);
-
-	if (do_mmcops(NULL, 0, 3, mmc_dev)) {
-		printf("MMC DEV: %d selection FAILED!\n", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	ret = mmc_select_hwpart(CONFIG_FASTBOOT_FLASH_MMC_DEV, 0);
+	printf("switch to partitions #%d, %s\n",
+	       0, (!ret) ? "OK" : "ERROR");
+	if (ret)
 		return -1;
-	}
 
-	mmc_write[2] = source;
-	mmc_write[3] = dest;
-	mmc_write[4] = length;
+	n = mmc->block_dev.block_write(CONFIG_FASTBOOT_FLASH_MMC_DEV, 0x00,
+				       (sizeof(struct ptable)/512)+1,
+				       (void *)ptbl);
 
-	sprintf(source, "%p", (void *)ptbl);
-	sprintf(dest, "0x%x", 0x00);
-	sprintf(length, "0x%x", (sizeof(struct ptable)/512)+1);
-
-	if (do_mmcops(NULL, 0, 5, mmc_write)) {
+	if (n != ((sizeof(struct ptable)/512)+1)) {
 		printf("Writing mbr is FAILED!\n");
 		return -1;
 	} else {
