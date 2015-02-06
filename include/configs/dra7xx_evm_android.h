@@ -93,7 +93,9 @@
 #define CONFIG_USB_FASTBOOT_BUF_ADDR    CONFIG_SYS_LOAD_ADDR
 #define CONFIG_USB_FASTBOOT_BUF_SIZE    0x2F000000
 #define CONFIG_FASTBOOT_FLASH
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_FASTBOOT_FLASH_MMC_DEV   1
+#endif
 
 #include <configs/ti_omap5_common.h>
 
@@ -203,6 +205,7 @@
 #define CONFIG_G_DNL_PRODUCT_NUM 0xd022
 #define CONFIG_USB_GADGET_DUALSPEED
 
+#ifndef CONFIG_SPL_BUILD
 /* USB Device Firmware Update support */
 #define CONFIG_DFU_FUNCTION
 #define CONFIG_DFU_RAM
@@ -221,6 +224,7 @@
 #define CONFIG_SYS_SCSI_MAX_LUN		1
 #define CONFIG_SYS_SCSI_MAX_DEVICE	(CONFIG_SYS_SCSI_MAX_SCSI_ID * \
 						CONFIG_SYS_SCSI_MAX_LUN)
+#endif
 
 /* Parallel NOR Support */
 #if defined(CONFIG_NOR)
