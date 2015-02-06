@@ -488,15 +488,18 @@ void enable_ipu(void)
 # endif
 
 # ifdef CONFIG_LATE_ATTACH_BOOTIPU2
-	/* Using SYS CLK2 as the clock source */
-	reg = __raw_readl(CM_L4PER_TIMER4_CLKCTRL);
-	__raw_writel((reg & ~0x0F000003)|0x02000002, CM_L4PER_TIMER4_CLKCTRL);
-# endif
+	/* Using SYS_CLK1_32K_CLK as the clock source for both the watch dog
+	 * timers. IPU will eventually configure these timers to run from
+	 * SYS_CLK2. If we use SYS_CLK2 from the boot loader, the timer will
+	 * overflow and trigger a watchdog interrupt even before the kernel has
+	 * a chance to connect to IPU
+	 */
 
-# ifdef CONFIG_LATE_ATTACH_BOOTIPU2
-	/* Using SYS CLK2 as the clock source */
+	reg = __raw_readl(CM_L4PER_TIMER4_CLKCTRL);
+	__raw_writel((reg & ~0x0F000003)|0x01000002, CM_L4PER_TIMER4_CLKCTRL);
+
 	reg = __raw_readl(CM_L4PER_TIMER9_CLKCTRL);
-	__raw_writel((reg & ~0x0F000003)|0x02000002, CM_L4PER_TIMER9_CLKCTRL);
+	__raw_writel((reg & ~0x0F000003)|0x01000002, CM_L4PER_TIMER9_CLKCTRL);
 # endif
 
 	/* enable DSS */
