@@ -24,6 +24,7 @@
 #include <mmc.h>
 #include <dfu.h>
 #include <asm/arch/mmc_host_def.h>
+#include <malloc.h>
 
 #define EFI_VERSION 0x00010000
 #define EFI_ENTRIES 128
@@ -226,13 +227,19 @@ int load_ptbl(void)
 	u64 ptbl_sectors = 0;
 	int i = 0, r = 0;
 
-	struct ptable gpt[sizeof(struct ptable)];
 	struct mmc* mmc = NULL;
+
+	struct ptable *gpt = memalign(ARCH_DMA_MINALIGN, sizeof(struct ptable));
+	if (gpt == NULL) {
+		printf("Failed to allocate GPT\n");
+		return -1;
+	}
 
 	mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
 	if (mmc == NULL) {
 		printf("No MMC in slot 1\n");
-		return -1;
+		r = -1;
+		goto fail;
 	}
 
 	int gpt_size = sizeof(struct ptable);
@@ -255,6 +262,7 @@ int load_ptbl(void)
 		import_efi_partition(&gpt->entry[i]);
 
 fail:
+	free(gpt);
 	return r;
 }
 
