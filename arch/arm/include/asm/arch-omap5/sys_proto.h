@@ -18,6 +18,18 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+/*
+ * Structure for Iodelay configuration registers.
+ * Theoretical max for g_delay is 21560 ps.
+ * Theoretical max for a_delay is 1/3rd of g_delay max.
+ * So using u16 for both a/g_delay.
+ */
+struct iodelay_cfg_entry {
+	u16 offset;
+	u16 a_delay;
+	u16 g_delay;
+};
+
 struct pad_conf_entry {
 	u32 offset;
 	u32 val;
@@ -32,6 +44,7 @@ void gpmc_init(void);
 void watchdog_init(void);
 u32 get_device_type(void);
 void do_set_mux(u32 base, struct pad_conf_entry const *array, int size);
+void do_set_mux32(u32 base, struct pad_conf_entry const *array, int size);
 void set_muxconf_regs_essential(void);
 u32 wait_on_value(u32, u32, void *, u32);
 void sdelay(unsigned long);
@@ -56,6 +69,7 @@ void force_emif_self_refresh(void);
 void get_ioregs(const struct ctrl_ioregs **regs);
 void srcomp_enable(void);
 void setup_warmreset_time(void);
+void omap_smc1(u32 service, u32 val);
 
 static inline u32 div_round_up(u32 num, u32 den)
 {
@@ -66,4 +80,7 @@ static inline u32 usec_to_32k(u32 usec)
 {
 	return div_round_up(32768 * usec, 1000000);
 }
+
+#define OMAP5_SERVICE_L2ACTLR_SET    0x104
+
 #endif
