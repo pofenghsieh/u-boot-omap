@@ -145,7 +145,9 @@ static struct usb_gadget_strings *fastboot_strings[] = {
 };
 
 static void rx_handler_command(struct usb_ep *ep, struct usb_request *req);
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 static int fastboot_update_zimage(void);
+#endif
 
 /*
  * Android style flash utilties */
@@ -480,8 +482,10 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strncat(response, s, sizeof(response));
 		else
 			strcpy(response, "FAILValue not set");
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	} else if (!strcmp_l1("userdata_size", cmd)) {
 		fb_mmc_get_ptn_size("userdata", response);
+#endif
 	} else {
 		error("unknown variable: %s\n", cmd);
 		strcpy(response, "FAILVariable not implemented");
@@ -611,6 +615,7 @@ static void cb_boot(struct usb_ep *ep, struct usb_request *req)
 
 #ifdef CONFIG_FASTBOOT_FLASH
 
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 static u32 fastboot_get_boot_ptn(struct andr_img_hdr *hdr, char *response,
 	                                   block_dev_desc_t *dev_desc)
 {
@@ -755,6 +760,7 @@ out:
 	fastboot_tx_write_str(response);
 	return ret;
 }
+#endif
 
 #ifdef CONFIG_SPL_SPI_SUPPORT
 int boot_from_spi = 0;
@@ -840,12 +846,12 @@ static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 		return;
 	}
 #endif
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	if (!strcmp(cmd, "zImage") || !strcmp(cmd, "zimage")) {
 		fastboot_update_zimage();
 		return;
 	}
 
-#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	fb_mmc_flash_write(cmd, (void *)CONFIG_USB_FASTBOOT_BUF_ADDR,
 			   download_bytes, response);
 #endif
@@ -873,11 +879,12 @@ static void cb_erase(struct usb_ep *ep, struct usb_request *req)
 }
 #endif
 
-#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 int fastboot_oem(const char *cmd)
 {
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	if (!strcmp(cmd, "format"))
 		return do_format();
+#endif
 	return -1;
 }
 
@@ -915,7 +922,6 @@ static void cb_oem(struct usb_ep *ep, struct usb_request *req)
 		fastboot_tx_write_str("OKAY");
 	}
 }
-#endif
 
 static void cb_reboot_bootloader(struct usb_ep *ep, struct usb_request *req)
 {
@@ -954,12 +960,10 @@ static const struct cmd_dispatch_info cmd_dispatch_info[] = {
 		.cb = cb_erase,
 	},
 #endif
-#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	{
 		.cmd = "oem",
 		.cb = cb_oem,
 	},
-#endif
 };
 
 static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
