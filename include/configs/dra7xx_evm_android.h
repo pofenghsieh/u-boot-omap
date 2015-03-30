@@ -289,7 +289,7 @@
 #define CONFIG_BOARD_MACH_TYPE                  4070
 #define MEMORY_BASE                             0x80000000
 #define CONFIG_ADDR_ATAGS                       (MEMORY_BASE + 0x100)
-#define CONFIG_ADDR_DOWNLOAD                    (MEMORY_BASE + 0x02000000)
+#define CONFIG_ADDR_DOWNLOAD                    (MEMORY_BASE + 0x02100000)
 #define DEVICE_TREE                             0x82f80000
 #undef CONFIG_SYS_SPL_ARGS_ADDR
 #define CONFIG_SYS_SPL_ARGS_ADDR                0x82f80000
