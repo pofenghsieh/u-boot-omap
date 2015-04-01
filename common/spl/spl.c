@@ -256,6 +256,9 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #ifdef CONFIG_SPL_SPI_SUPPORT
 	case BOOT_DEVICE_SPI:
 		spl_spi_load_image();
+#ifdef CONFIG_LATE_ATTACH
+		spl_load_cores(cores_to_boot, sizeof(cores_to_boot)/sizeof(u32));
+#endif
 		break;
 #endif
 #ifdef CONFIG_SPL_ETH_SUPPORT

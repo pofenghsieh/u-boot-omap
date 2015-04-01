@@ -193,8 +193,32 @@ u32 spl_mmc_load_core(u32 core_id)
 	debug("spl: loading remote core image %s\n", cfg->firmware_name);
 
 	spl_mmc_init(&mmc);
-	/* load the remotecore image */
-	err = file_fat_read(cfg->firmware_name, (u8 *) cfg->load_addr, 0);
+
+	/* load the remote core image from patrition */
+	if (cfg->ptn) {
+		disk_partition_t info;
+
+
+		err = get_partition_info_efi_by_name(&mmc->block_dev,
+						     cfg->ptn, &info);
+		if (err) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+			printf("cannot find partition: '%s'\n",
+			       cfg->ptn);
+#endif
+		} else if (!mmc->block_dev.block_read(mmc->block_dev.dev,
+						      info.start,
+						      info.size,
+						      (void *)cfg->load_addr)) {
+			printf("error reading from mmc\n");
+			err = -1;
+		} else {
+			err = 1;
+		}
+	} else {
+		/* load the remotecore image */
+		err = file_fat_read(cfg->firmware_name, (u8 *) cfg->load_addr, 0);
+	}
 
 	if (err <= 0) {
 		printf("spl: error reading image %s, err - %d\n",

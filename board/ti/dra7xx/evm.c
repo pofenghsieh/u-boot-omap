@@ -832,6 +832,11 @@ struct rproc ipu1_config = {
 	.load_addr = IPU_LOAD_ADDR,
 	.core_name = "IPU1",
 	.firmware_name = "dra7-ipu1-fw.xem4",
+#ifdef CONFIG_MMC_IPU1_PART_NAME
+	.ptn = CONFIG_MMC_IPU1_PART_NAME,
+#else
+	.ptn = NULL,
+#endif
 	.start_clocks = ipu_start_clocks,
 	.config_mmu = ipu_config_mmu,
 	.config_peripherals = ipu1_config_peripherals,
@@ -847,6 +852,11 @@ struct rproc ipu2_config = {
 	.load_addr = IPU_LOAD_ADDR,
 	.core_name = "IPU2",
 	.firmware_name = "dra7-ipu2-fw.xem4",
+#ifdef CONFIG_MMC_IPU2_PART_NAME
+	.ptn = CONFIG_MMC_IPU2_PART_NAME,
+#else
+	.ptn = NULL,
+#endif
 	.start_clocks = ipu_start_clocks,
 	.config_mmu = ipu_config_mmu,
 	.config_peripherals = ipu2_config_peripherals,
@@ -862,6 +872,11 @@ struct rproc dsp1_config = {
 	.load_addr = DSP_LOAD_ADDR,
 	.core_name = "DSP1",
 	.firmware_name = "dra7-dsp1-fw.xe66",
+#ifdef CONFIG_MMC_DSP1_PART_NAME
+	.ptn = CONFIG_MMC_DSP1_PART_NAME,
+#else
+	.ptn = NULL,
+#endif
 	.start_clocks = dsp_start_clocks,
 	.config_mmu = ipu_config_mmu,
 	.config_peripherals = dsp1_config_peripherals,
@@ -877,6 +892,11 @@ struct rproc dsp2_config = {
 	.load_addr = DSP_LOAD_ADDR,
 	.core_name = "DSP2",
 	.firmware_name = "dra7-dsp2-fw.xe66",
+#ifdef CONFIG_MMC_DSP2_PART_NAME
+	.ptn = CONFIG_MMC_DSP2_PART_NAME,
+#else
+	.ptn = NULL,
+#endif
 	.start_clocks = dsp_start_clocks,
 	.config_mmu = ipu_config_mmu,
 	.config_peripherals = dsp2_config_peripherals,

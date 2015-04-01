@@ -29,8 +29,8 @@ Current Support Status
 
 This version of U-Boot supports loading IPU1/IPU2/DSP1/DSP2 in the DRA7x SOC
 from the bootloader. The selected remotecores are booted from a ELF images in
-the FAT partition of the MMC/SD device. The MMU of the remotecore is setup in a
-manner expected by the Linux kernel.
+the FAT partition of the MMC/SD device or a specified eMMC partition. The MMU
+of the remotecore is setup in a manner expected by the Linux kernel.
 
 Configuration Options
 ======================
@@ -56,6 +56,34 @@ DSP_LOAD_ADDR
 	loaded from persistent storage before being passed to the ELF Loader.
 	Choose this address such that it does not trample on U-Boot code. For
 	now, this macro is aliased to the IPU_LOAD_ADDR.
+
+CONFIG_MMC_IPU1_PART_NAME
+
+	Setting this config option tells the early boot code the eMMC partition
+	name where the remote core image can be found for the IPU1. If this
+	option is configured, then the image is loaded from the specified eMMC
+	partition instead of from the FAT file system.
+
+CONFIG_MMC_IPU2_PART_NAME
+
+	Setting this config option tells the early boot code the eMMC partition
+	name where the remote core image can be found for the IPU2. If this
+	option is configured, then the image is loaded from the specified eMMC
+	partition instead of from the FAT file system.
+
+CONFIG_MMC_DSP1_PART_NAME
+
+	Setting this config option tells the early boot code the eMMC partition
+	name where the remote core image can be found for the DSP1. If this
+	option is configured, then the image is loaded from the specified eMMC
+	partition instead of from the FAT file system.
+
+CONFIG_MMC_DSP2_PART_NAME
+
+	Setting this config option tells the early boot code the eMMC partition
+	name where the remote core image can be found for the DSP2. If this
+	option is configured, then the image is loaded from the specified eMMC
+	partition instead of from the FAT file system.
 
 With these options enabled, the remotecores to be booted should be specified in
 the array cores_to_boot[] in common/spl/spl.c:board_init_r(). Only the cores
@@ -90,7 +118,3 @@ the boot loader by compiling a new DTB file. Add a feature to U-Boot to set the
 required attributes on the device tree  nodes before booting the kernel.
 
 3. Add support for loading the remotecore binaries from QSPI.
-
-4. Add support for loading remotecore binaries from dedicated partitions on
-SD/eMMC. We currently load them from a file in the boot partition on SD/eMMC.
-

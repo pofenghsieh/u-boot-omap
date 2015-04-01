@@ -309,4 +309,25 @@
 /* JAMR3 board pin mux */
 #define CONFIG_DRA7XX_JAMR3
 
+#undef CONFIG_LATE_ATTACH
+
+/* Enable this flag if you want to boot IPU2
+ * from SPL */
+#ifdef CONFIG_LATE_ATTACH
+
+/* Include the ELF loader */
+#define CONFIG_CMD_ELF
+
+#define CONFIG_MMC_IPU1_PART_NAME		"ipu"
+/* Define the address to which the IPU binary is
+ * loaded from persistent storage
+ */
+#define IPU_LOAD_ADDR		0xa0fff000
+/* Using the same load address for the DSP binary as well as the IPU binary.
+ * This is not an issue as we are performing the loads in serial.
+ */
+#define DSP_LOAD_ADDR		(IPU_LOAD_ADDR)
+
+#endif
+
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */

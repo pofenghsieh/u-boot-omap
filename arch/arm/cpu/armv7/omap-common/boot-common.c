@@ -128,11 +128,23 @@ int board_mmc_init(bd_t *bis)
 #ifdef CONFIG_SPL_USB_BOOT_SUPPORT
 	case BOOT_DEVICE_USB:
 #endif
-#if defined(CONFIG_SPL_ENV_SUPPORT) && defined(CONFIG_ENV_IS_IN_MMC)
-	case BOOT_DEVICE_SPI:
-#endif
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:
+		omap_mmc_init(1, 0, 0, -1, -1);
+		break;
+
+	/*
+	 * We are in the SPL. We are booting from SPI but also initializing
+	 * MMC. We assume that this is being done for
+	 *
+	 * 1. Linux boot with boot time optimizations as eMMC is faster than
+	 * SPI for data transfers. (or)
+	 *
+	 * 2. Android boot which uses eMMC by default.
+	 *
+	 * We will initialize eMMC interface as it has faster read speeds.
+	 */
+	case BOOT_DEVICE_SPI:
 		omap_mmc_init(1, 0, 0, -1, -1);
 		break;
 	}

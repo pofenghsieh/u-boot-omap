@@ -429,6 +429,7 @@ struct rproc {
 	unsigned long entry_point;
 	char *core_name;
 	char *firmware_name;
+	char *ptn;
 	init_func_proto start_clocks;
 	init_func_proto config_mmu;
 	init_func_proto config_peripherals;
