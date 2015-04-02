@@ -70,6 +70,7 @@ void get_ioregs(const struct ctrl_ioregs **regs);
 void srcomp_enable(void);
 void setup_warmreset_time(void);
 void omap_smc1(u32 service, u32 val);
+u32 get_sysboot_value(void);
 
 static inline u32 div_round_up(u32 num, u32 den)
 {

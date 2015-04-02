@@ -250,6 +250,21 @@ u32 get_device_type(void)
 				      (DEVICE_TYPE_MASK)) >> DEVICE_TYPE_SHIFT;
 }
 
+/*
+ * get_sysboot_value(void) - return SYS_BOOT[5:0]
+ */
+u32 get_sysboot_value(void)
+{
+	int mode;
+
+#if (defined CONFIG_DRA7XX) || (defined CONFIG_AM57XX)
+	mode = readl((*ctrl)->control_core_bootstrap) & (SYSBOOT_MASK);
+#else
+	mode = readl((*ctrl)->control_status) & (SYSBOOT_MASK);
+#endif
+	return mode;
+}
+
 #if defined(CONFIG_DISPLAY_CPUINFO)
 /*
  * Print CPU information
