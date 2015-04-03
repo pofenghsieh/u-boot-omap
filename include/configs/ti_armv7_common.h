@@ -239,7 +239,7 @@
 #ifdef CONFIG_SPL_OS_BOOT
 /* FAT */
 #define CONFIG_SPL_FAT_LOAD_KERNEL_NAME		"uImage"
-#define CONFIG_SPL_FAT_LOAD_ARGS_NAME		"args"
+#define CONFIG_SPL_FAT_LOAD_ARGS_NAME		"dra7-evm.dtb"
 
 /* RAW SD card / eMMC */
 #define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR	0x900	/* address 0x120000 */
