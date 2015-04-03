@@ -1202,6 +1202,9 @@ int spl_start_uboot(void)
 	if (serial_tstc() && serial_getc() == 'c')
 		return 1;
 
+	if ((get_sysboot_value() & SYSBOOT_TYPE_MASK) == SYSBOOT_TYPE_PROD)
+		return 0;
+
 #ifdef CONFIG_SPL_ENV_SUPPORT
 #ifdef CONFIG_ENV_IS_IN_MMC
 	struct mmc *mmc;
