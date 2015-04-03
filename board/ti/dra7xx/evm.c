@@ -1210,11 +1210,16 @@ int spl_start_uboot(void)
 
 	env_init();
 	env_relocate_spec();
-	if (getenv_yesno("boot_os") != 1)
-		return 1;
+
+	/*
+	 * Function call returns 1 only if the environment variable is
+	 * set to 1,y,Y,t or T. It returns -1 or 0 otherwise.
+	 */
+	if (getenv_yesno("boot_os") == 1)
+		return 0;
 #endif
 
-	return 0;
+	return 1;
 }
 #endif
 
