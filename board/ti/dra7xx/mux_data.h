@@ -348,6 +348,7 @@ const struct pad_conf_entry dra74x_core_padconf_array[] = {
 	{I2C2_SCL, (M0 | PIN_INPUT_PULLUP)},	/* i2c2_scl.i2c2_scl */
 	{WAKEUP0, (M1 | PIN_OUTPUT)},	/* Wakeup0.dcan1_rx */
 	{WAKEUP2, (M14 | PIN_OUTPUT)},	/* Wakeup2.gpio1_2 */
+
 #ifdef CONFIG_DRA7XX_JAMR3
 	{XREF_CLK1, (M5 | PIN_INPUT_PULLDOWN)},	/* xref_clk1.atl_clk1 */
 	{XREF_CLK3, (M14 | PIN_INPUT)},	/* xref_clk3.gpio6_20 */
@@ -368,6 +369,54 @@ const struct pad_conf_entry dra74x_core_padconf_array[] = {
 	{MCASP4_ACLKX, (M4 | PIN_INPUT_PULLUP)},	/* mcasp4_aclkx.i2c4_sda */
 	{MCASP4_FSX, (M4 | PIN_INPUT_PULLUP)},	/* mcasp4_fsx.i2c4_scl */
 #endif
+
+#ifdef CONFIG_DRA7XX_VISION
+	{ VIN1B_CLK1, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1b_clk1.vin3a_clk0 */
+	{ VIN1A_D16, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d16.vin3a_d0 */
+	{ VIN1A_D17, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d17.vin3a_d1 */
+	{ VIN1A_D18, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d18.vin3a_d2 */
+	{ VIN1A_D19, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d19.vin3a_d3 */
+	{ VIN1A_D20, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d20.vin3a_d4 */
+	{ VIN1A_D21, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d21.vin3a_d5 */
+	{ VIN1A_D22, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d22.vin3a_d6 */
+	{ VIN1A_D23, (M6 | PIN_INPUT | MANUAL_MODE) },	/* vin1a_d23.vin3a_d7 */
+	{ VIN2A_CLK0, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_clk0.vin2a_clk0 */
+	{ VIN2A_HSYNC0, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_hsync0.vin2a_hsync0 */
+	{ VIN2A_VSYNC0, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_vsync0.vin2a_vsync0 */
+	{ VIN2A_D0, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d0.vin2a_d0 */
+	{ VIN2A_D1, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d1.vin2a_d1 */
+	{ VIN2A_D2, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d2.vin2a_d2 */
+	{ VIN2A_D3, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d3.vin2a_d3 */
+	{ VIN2A_D4, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d4.vin2a_d4 */
+	{ VIN2A_D5, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d5.vin2a_d5 */
+	{ VIN2A_D6, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d6.vin2a_d6 */
+	{ VIN2A_D7, (M0 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d7.vin2a_d7 */
+	{ VIN2A_D22, (M5 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d22.vin3a_hsync0 */
+	{ VIN2A_D23, (M5 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d23.vin3a_vsync0 */
+	{ XREF_CLK1, (M7 | PIN_INPUT | MANUAL_MODE) },	/* xref_clk1.vin6a_clk0 */
+	{ MCASP1_AXR0, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp1_axr0.vin6a_vsync0 */
+	{ MCASP1_AXR1, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp1_axr1.vin6a_hsync0 */
+	{ MCASP2_ACLKX, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp2_aclkx.vin6a_d7 */
+	{ MCASP2_FSX, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp2_fsx.vin6a_d6 */
+	{ MCASP2_AXR2, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp2_axr2.vin6a_d5 */
+	{ MCASP2_AXR3, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp2_axr3.vin6a_d4 */
+	{ MCASP3_ACLKX, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp3_aclkx.vin6a_d3 */
+	{ MCASP3_FSX, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp3_fsx.vin6a_d2 */
+	{ MCASP3_AXR0, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp3_axr0.vin6a_d1 */
+	{ MCASP3_AXR1, (M7 | PIN_INPUT | MANUAL_MODE) },	/* mcasp3_axr1.vin6a_d0 */
+	{ GPIO6_10, (M9 | PIN_INPUT | MANUAL_MODE) },	/* gpio6_10.vin5a_clk0 */
+	{ MMC3_CLK, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_clk.vin5a_d7 */
+	{ MMC3_CMD, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_cmd.vin5a_d6 */
+	{ MMC3_DAT0, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat0.vin5a_d5 */
+	{ MMC3_DAT1, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat1.vin5a_d4 */
+	{ MMC3_DAT2, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat2.vin5a_d3 */
+	{ MMC3_DAT3, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat3.vin5a_d2 */
+	{ MMC3_DAT4, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat4.vin5a_d1 */
+	{ MMC3_DAT5, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat5.vin5a_d0 */
+	{ MMC3_DAT6, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat6.vin5a_hsync0 */
+	{ MMC3_DAT7, (M9 | PIN_INPUT | MANUAL_MODE) },	/* mmc3_dat7.vin5a_vsync0 */
+#endif
+
 };
 
 #ifdef CONFIG_IODELAY_RECALIBRATION
@@ -425,6 +474,53 @@ const struct iodelay_cfg_entry dra742_iodelay_cfg_array[] = {
 	{0x0AE0, 189, 1462},	/* CFG_VIN2A_D21_IN */
 	{0x0AEC, 232, 1278},	/* CFG_VIN2A_D22_IN */
 	{0x0AF8, 0, 1397},	/* CFG_VIN2A_D23_IN */
+
+#ifdef CONFIG_DRA7XX_VISION
+	{ 0x0A2C,     0,     0 },	/* CFG_VIN1B_CLK1_IN : VIN3A_CLK0 - VIP2_MANUAL2 */
+	{ 0x0930,  2805,   459 },	/* CFG_VIN1A_D16_IN : VIN3A_D0 - VIP2_MANUAL2 */
+	{ 0x093C,  2904,   360 },	/* CFG_VIN1A_D17_IN : VIN3A_D1 - VIP2_MANUAL2 */
+	{ 0x0948,  2857,   527 },	/* CFG_VIN1A_D18_IN : VIN3A_D2 - VIP2_MANUAL2 */
+	{ 0x0954,  2861,   517 },	/* CFG_VIN1A_D19_IN : VIN3A_D3 - VIP2_MANUAL2 */
+	{ 0x096C,  2855,   344 },	/* CFG_VIN1A_D20_IN : VIN3A_D4 - VIP2_MANUAL2 */
+	{ 0x0978,  2908,   248 },	/* CFG_VIN1A_D21_IN : VIN3A_D5 - VIP2_MANUAL2 */
+	{ 0x0984,  2843,   191 },	/* CFG_VIN1A_D22_IN : VIN3A_D6 - VIP2_MANUAL2 */
+	{ 0x0990,  2683,     0 },	/* CFG_VIN1A_D23_IN : VIN3A_D7 - VIP2_MANUAL2 */
+	{ 0x0A38,     0,     0 },	/* CFG_VIN2A_CLK0_IN : VIN2A_CLK0 - VIP1_MANUAL2 */
+	{ 0x0B7C,  2174,     0 },	/* CFG_VIN2A_HSYNC0_IN : VIN2A_HSYNC0 - VIP1_MANUAL2 */
+	{ 0x0B88,  1924,     0 },	/* CFG_VIN2A_VSYNC0_IN : VIN2A_VSYNC0 - VIP1_MANUAL2 */
+	{ 0x0A44,  2090,     0 },	/* CFG_VIN2A_D0_IN : VIN2A_D0 - VIP1_MANUAL2 */
+	{ 0x0AC8,  2481,     0 },	/* CFG_VIN2A_D1_IN : VIN2A_D1 - VIP1_MANUAL2 */
+	{ 0x0B04,  1970,     0 },	/* CFG_VIN2A_D2_IN : VIN2A_D2 - VIP1_MANUAL2 */
+	{ 0x0B10,  2525,     0 },	/* CFG_VIN2A_D3_IN : VIN2A_D3 - VIP1_MANUAL2 */
+	{ 0x0B1C,  1981,     0 },	/* CFG_VIN2A_D4_IN : VIN2A_D4 - VIP1_MANUAL2 */
+	{ 0x0B28,  2510,     0 },	/* CFG_VIN2A_D5_IN : VIN2A_D5 - VIP1_MANUAL2 */
+	{ 0x0B34,  1769,     0 },	/* CFG_VIN2A_D6_IN : VIN2A_D6 - VIP1_MANUAL2 */
+	{ 0x0B40,  2080,     0 },	/* CFG_VIN2A_D7_IN : VIN2A_D7 - VIP1_MANUAL2 */
+	{ 0x0AEC,  1606,     0 },	/* CFG_VIN2A_D22_IN : VIN3A_HSYNC0 - VIP2_MANUAL2 */
+	{ 0x0AF8,  1673,     0 },	/* CFG_VIN2A_D23_IN : VIN3A_VSYNC0 - VIP2_MANUAL2 */
+	{ 0x0CFC,     0,     0 },	/* CFG_XREF_CLK1_IN : VIN6A_CLK0 - VIP3_MANUAL2 */
+	{ 0x03C0,  3386,   618 },	/* CFG_MCASP1_AXR0_IN : VIN6A_VSYNC0 - VIP3_MANUAL2 */
+	{ 0x0414,  3215,     0 },	/* CFG_MCASP1_AXR1_IN : VIN6A_HSYNC0 - VIP3_MANUAL2 */
+	{ 0x04A4,  2171,     0 },	/* CFG_MCASP2_ACLKX_IN : VIN6A_D7 - VIP3_MANUAL2 */
+	{ 0x051C,  2508,     0 },	/* CFG_MCASP2_FSX_IN : VIN6A_D6 - VIP3_MANUAL2 */
+	{ 0x04C8,  2393,     0 },	/* CFG_MCASP2_AXR2_IN : VIN6A_D5 - VIP3_MANUAL2 */
+	{ 0x04D4,  3010,     0 },	/* CFG_MCASP2_AXR3_IN : VIN6A_D4 - VIP3_MANUAL2 */
+	{ 0x0528,  1029,     0 },	/* CFG_MCASP3_ACLKX_IN : VIN6A_D3 - VIP3_MANUAL2 */
+	{ 0x054C,  2752,     0 },	/* CFG_MCASP3_FSX_IN : VIN6A_D2 - VIP3_MANUAL2 */
+	{ 0x0534,  2603,     0 },	/* CFG_MCASP3_AXR0_IN : VIN6A_D1 - VIP3_MANUAL2 */
+	{ 0x0540,  1821,   268 },	/* CFG_MCASP3_AXR1_IN : VIN6A_D0 - VIP3_MANUAL2 */
+	{ 0x00D8,  1872,  2451 },	/* CFG_GPIO6_10_IN : VIN5A_CLK0 - VIP3_MANUAL2 */
+	{ 0x0678,  5071,  1118 },	/* CFG_MMC3_CLK_IN : VIN5A_D7 - VIP3_MANUAL2 */
+	{ 0x0684,  4978,  1147 },	/* CFG_MMC3_CMD_IN : VIN5A_D6 - VIP3_MANUAL2 */
+	{ 0x0690,  4869,  1199 },	/* CFG_MMC3_DAT0_IN : VIN5A_D5 - VIP3_MANUAL2 */
+	{ 0x069C,  4858,  1047 },	/* CFG_MMC3_DAT1_IN : VIN5A_D4 - VIP3_MANUAL2 */
+	{ 0x06A8,  4986,   677 },	/* CFG_MMC3_DAT2_IN : VIN5A_D3 - VIP3_MANUAL2 */
+	{ 0x06B4,  5018,  1313 },	/* CFG_MMC3_DAT3_IN : VIN5A_D2 - VIP3_MANUAL2 */
+	{ 0x06C0,  5000,   888 },	/* CFG_MMC3_DAT4_IN : VIN5A_D1 - VIP3_MANUAL2 */
+	{ 0x06CC,  4966,   874 },	/* CFG_MMC3_DAT5_IN : VIN5A_D0 - VIP3_MANUAL2 */
+	{ 0x06D8,  4876,   941 },	/* CFG_MMC3_DAT6_IN : VIN5A_HSYNC0 - VIP3_MANUAL2 */
+	{ 0x06E4,  5025,   540 },	/* CFG_MMC3_DAT7_IN : VIN5A_VSYNC0 - VIP3_MANUAL2 */
+#endif
 };
 #endif
 
