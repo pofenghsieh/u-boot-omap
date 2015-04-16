@@ -273,4 +273,8 @@
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTDELAY			3
 
+/* pcf support */
+#define CONFIG_PCF8575
+#define CONFIG_SYS_I2C_PCF8575_CHIP { {0x21, 0xeaf7} }
+
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */
