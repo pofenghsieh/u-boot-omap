@@ -318,7 +318,9 @@
 /* Include the ELF loader */
 #define CONFIG_CMD_ELF
 
-#define CONFIG_MMC_IPU1_PART_NAME		"ipu"
+#define CONFIG_MMC_IPU1_PART_NAME		"ipu1"
+#define CONFIG_MMC_IPU2_PART_NAME		"ipu2"
+
 /* Define the address to which the IPU binary is
  * loaded from persistent storage
  */

@@ -52,7 +52,8 @@ static struct partition_emmc partitions[] = {
 	{ "boot", 10*1024 },	/* Partition contains kernel + ramdisk images */
 	{ "system", 768*1024 },		/* Android file system */
 	{ "cache", 256*1024 },		/* Store Application Cache */
-	{ "ipu", 1024 },
+	{ "ipu1", 1024 },
+	{ "ipu2", 1024 },
 	{ "userdata", 0 },	/* User data */
 	{ NULL, 0 },
 };
