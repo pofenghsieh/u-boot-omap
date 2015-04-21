@@ -297,4 +297,7 @@
 #define CONFIG_SPL_ENV_SUPPORT
 #endif
 
+/* JAMR3 board pin mux */
+#define CONFIG_DRA7XX_JAMR3
+
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */
