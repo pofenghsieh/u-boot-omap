@@ -834,8 +834,25 @@ MKIMAGEFLAGS_u-boot.kwb = -n $(srctree)/$(CONFIG_SYS_KWD_CONFIG:"%"=%) \
 MKIMAGEFLAGS_u-boot.pbl = -n $(srctree)/$(CONFIG_SYS_FSL_PBL_RCW:"%"=%) \
 		-R $(srctree)/$(CONFIG_SYS_FSL_PBL_PBI:"%"=%) -T pblimage
 
+ifeq ($(CONFIG_SECURE_BOOT)$(CONFIG_OMAP_SECURE),yy)
+MKIMAGEFLAGS_u-boot.signed = -A $(ARCH) -T firmware -C none -O u-boot \
+        -a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_UBOOT_START) \
+        -n "U-Boot $(UBOOTRELEASE) for $(BOARD) board"
+
+u-boot.signed: u-boot.bin FORCE
+ifdef MSHIELD_DK_DIR
+	$(MSHIELD_DK_DIR)/scripts/ift-image-sign.sh dra7xx $< $@
+else
+	@echo "Error: MSHIELD_DK_DIR environment variable must be defined for OMAP secure devices."
+	@exit 1
+endif
+u-boot.img: u-boot.signed FORCE
+	$(call if_changed,mkimage)
+else
 u-boot.img u-boot.kwb u-boot.pbl: u-boot.bin FORCE
 	$(call if_changed,mkimage)
+endif
+
 
 MKIMAGEFLAGS_u-boot-dtb.img = $(MKIMAGEFLAGS_u-boot.img)
 

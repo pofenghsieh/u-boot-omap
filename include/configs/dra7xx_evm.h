@@ -191,6 +191,11 @@
 #endif
 #endif  /* NOR support */
 
+/* Enforce secure boot for high secure devices */
+#ifdef CONFIG_OMAP_SECURE
+#define CONFIG_SECURE_BOOT
+#endif
+
 /* pcf support */
 #define CONFIG_PCF8575
 #define CONFIG_SYS_I2C_PCF8575_CHIP { {0x21, 0xeaf7} }

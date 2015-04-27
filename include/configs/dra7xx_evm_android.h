@@ -293,6 +293,11 @@
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTDELAY			3
 
+/* Enforce secure boot for high secure devices */
+#ifdef CONFIG_OMAP_SECURE
+#define CONFIG_SECURE_BOOT
+#endif
+
 #ifndef CONFIG_PERIPHERAL_BOOT
 #define CONFIG_SPL_QSPI_OS_IN_MMC
 #define CONFIG_SPL_ANDROID_BOOT_SUPPORT

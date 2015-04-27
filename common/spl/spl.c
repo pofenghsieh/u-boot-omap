@@ -314,6 +314,13 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 	switch (spl_image.os) {
 	case IH_OS_U_BOOT:
+#if defined(CONFIG_SECURE_BOOT)
+		/* Authenticate loaded image before jumping execution */
+		secure_boot_verify_image(
+			(const void *)spl_image.entry_point,
+			(size_t)(spl_image.size - sizeof(struct image_header)));
+		debug("U-Boot authentication passed!\n");
+#endif
 		debug("Jumping to U-Boot\n");
 		break;
 #ifdef CONFIG_SPL_OS_BOOT
