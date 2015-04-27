@@ -232,7 +232,29 @@
  * set CONFIG_SPL_DISPLAY_PRINT to have omap_rev_string() called and
  * print some information.
  */
-#define CONFIG_SPL_TEXT_BASE	0x40300000
+#ifdef CONFIG_OMAP_SECURE
+#ifdef CONFIG_PERIPHERAL_BOOT
+/*
+ * For perpiheral booting on HS parts, the flash loader image
+ * is preceeded by the TOC, keys certificate, PPA, etc.
+ * So the SPL address needs to be pushed out by 64KB.
+ */
+#define CONFIG_SPL_TEXT_BASE		0x40310000
+#else
+/*
+ * For memory booting on HS parts, the flash loader image is
+ * preceeded by the certificate and will therefore run in internal RAM
+ * from address 0x40300350.
+ */
+#define CONFIG_SPL_TEXT_BASE		0x40300350
+#endif
+#else
+/*
+ * For all booting on GP parts, the flash loader image is
+ * downloaded into internal RAM at address 0x40300000.
+ */
+#define CONFIG_SPL_TEXT_BASE		0x40300000
+#endif
 #ifdef CONFIG_DRA7XX
 #define CONFIG_SPL_MAX_SIZE		(0x4037E000 - CONFIG_SPL_TEXT_BASE)
 #else

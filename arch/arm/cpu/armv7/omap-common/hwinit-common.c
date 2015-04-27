@@ -59,6 +59,7 @@ u32 cortex_rev(void)
 
 static void omap_rev_string(void)
 {
+	char *soc_s, *sec_s;
 	u32 omap_rev = omap_revision();
 	u32 soc_variant	= (omap_rev & 0xF0000000) >> 28;
 	u32 omap_variant = (omap_rev & 0xFFFF0000) >> 16;
@@ -66,11 +67,32 @@ static void omap_rev_string(void)
 	u32 minor_rev = (omap_rev & 0x000000F0) >> 4;
 
 	if (soc_variant)
-		printf("OMAP");
+		soc_s = "OMAP";
 	else
-		printf("DRA");
-	printf("%x ES%x.%x\n", omap_variant, major_rev,
-	       minor_rev);
+		soc_s = "DRA";
+
+	switch (get_device_type()) {
+	case TST_DEVICE:
+		sec_s = "TST";
+		break;
+	case EMU_DEVICE:
+		sec_s = "EMU";
+		break;
+	case HS_DEVICE:
+		sec_s = "HS";
+		break;
+	case GP_DEVICE:
+		sec_s = "GP";
+		break;
+	default:
+		sec_s = "??";
+	}
+
+	printf
+		("%s%x-%s ES%x.%x\n",
+		soc_s, omap_variant, sec_s,
+		major_rev, minor_rev
+		);
 }
 
 #ifdef CONFIG_SPL_BUILD

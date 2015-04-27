@@ -117,6 +117,12 @@ void spl_board_init(void)
 #if defined(CONFIG_DRA7XX)
 	board_init();
 #endif
+#if defined(CONFIG_OMAP_SECURE)
+	if (get_device_type() == GP_DEVICE) {
+		puts("SPL: Built for secure part, but this isn't a secure part...aborting!\n");
+		hang();
+	}
+#endif
 }
 
 int board_mmc_init(bd_t *bis)

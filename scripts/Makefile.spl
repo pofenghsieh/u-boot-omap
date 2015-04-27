@@ -184,11 +184,31 @@ MKIMAGEFLAGS_MLO = -T omapimage -a $(CONFIG_SPL_TEXT_BASE)
 
 MKIMAGEFLAGS_MLO.byteswap = -T omapimage -n byteswap -a $(CONFIG_SPL_TEXT_BASE)
 
+ifeq ($(CONFIG_OMAP_SECURE),y)
+ULO: $(obj)/u-boot-spl.bin
+ifdef MSHIELD_DK_DIR
+	$(MSHIELD_DK_DIR)/scripts/ift-boot-image-gen.sh dra7xx ULO $(obj)/u-boot-spl.bin ./ULO
+else
+	@echo "Error: MSHIELD_DK_DIR environment variable must be defined for OMAP secure devices."
+	@exit 1
+endif
+
+MLO: $(obj)/u-boot-spl.bin
+ifdef MSHIELD_DK_DIR
+	$(MSHIELD_DK_DIR)/scripts/ift-boot-image-gen.sh dra7xx MLO $(obj)/u-boot-spl.bin ./HS_MLO
+	cp ./HS_MLO MLO
+	$(MSHIELD_DK_DIR)/scripts/ift-boot-image-gen.sh dra7xx X-LOADER $(obj)/u-boot-spl.bin ./HS_QSPI_MLO
+else
+	@echo "Error: MSHIELD_DK_DIR environment variable must be defined for OMAP secure devices."
+	@exit 1
+endif
+else
 ULO: $(obj)/u-boot-spl.bin
 	cp -f $< $@
 
 MLO MLO.byteswap: $(obj)/u-boot-spl.bin
 	$(call if_changed,mkimage)
+endif
 
 MKIMAGEFLAGS_boot.bin = -T atmelimage
 
