@@ -1058,4 +1058,8 @@ ulong android_image_get_rload(const struct andr_img_hdr *hdr);
 
 #endif /* CONFIG_ANDROID_BOOT_IMAGE */
 
+#if defined(CONFIG_OMAP_SECURE)
+int secure_boot_verify_image(const void *image, size_t size);
+#endif
+
 #endif	/* __IMAGE_H__ */
