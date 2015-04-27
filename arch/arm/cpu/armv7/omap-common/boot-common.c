@@ -17,6 +17,7 @@
 #include <asm/ti-common/edma.h>
 #include <watchdog.h>
 #include <usb.h>
+#include <fdt_support.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -97,6 +98,41 @@ u32 spl_boot_mode(void)
 #endif
 }
 
+void spl_fdt_fixup_eth(void *fdt)
+{
+	uint8_t *mac_addr;
+	uint8_t mac_addr_arr[12];
+	int i, node;
+	char enet[16];
+	const char *path;
+
+	node = fdt_path_offset(fdt, "/aliases");
+	if (node < 0) {
+		printf("No aliases found\n");
+		return;
+	}
+
+	read_mac_addr_from_efuse(mac_addr_arr);
+
+	for (i = 0; i < 2; i++) {
+		mac_addr = &mac_addr_arr[i*6];
+		sprintf(enet, "ethernet%d", i);
+		path = fdt_getprop(fdt, node, enet, NULL);
+		if (!path) {
+			debug("No alias for %s\n", enet);
+			continue;
+		}
+		if (is_valid_ether_addr(mac_addr)) {
+			debug("Valid MAC address\n");
+		} else {
+			printf("Invalid mac address\n");
+			continue;
+		}
+		do_fixup_by_path(fdt, path, "mac-address", mac_addr, 6, 0);
+	}
+	return;
+}
+
 void spl_board_init(void)
 {
 #if defined(CONFIG_SPL_DMA_SUPPORT) && defined(CONFIG_TI_EDMA)
@@ -172,5 +208,10 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 	debug("image entry point: 0x%X\n", spl_image->entry_point);
 	/* Pass the saved boot_params from rom code */
 	image_entry((u32 *)&gd->arch.omap_boot_params);
+}
+
+void spl_board_prepare_for_linux(void)
+{
+	spl_fdt_fixup_eth((void *)CONFIG_SYS_SPL_ARGS_ADDR);
 }
 #endif
