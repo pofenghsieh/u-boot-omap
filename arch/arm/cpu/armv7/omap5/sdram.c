@@ -229,7 +229,7 @@ const struct dmm_lisa_map_regs lisa_map_4G_x_2_x_2 = {
 const struct dmm_lisa_map_regs lisa_map_2G_x_2_x_2_2G_x_1_x_2 = {
 	.dmm_lisa_map_0 = 0x0,
 	.dmm_lisa_map_1 = 0x80640300,
-	.dmm_lisa_map_2 = 0xC0640320,
+	.dmm_lisa_map_2 = 0xC0500220,
 	.dmm_lisa_map_3 = 0xFF020100,
 	.is_ma_present	= 0x1
 };
