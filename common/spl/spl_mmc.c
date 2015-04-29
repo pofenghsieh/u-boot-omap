@@ -229,6 +229,17 @@ u32 spl_mmc_load_core(u32 core_id)
 	return 0;
 }
 
+void spl_mmc_preinit(void)
+{
+	static u32 init_needed = 1;
+
+	if (init_needed == 1) {
+		mmc_initialize(gd->bd);
+		init_needed = 0;
+	}
+	return;
+}
+
 void spl_mmc_init(struct mmc **mmc)
 {
 	int err;
@@ -241,7 +252,13 @@ void spl_mmc_init(struct mmc **mmc)
 		device = 1;
 	}
 
-	mmc_initialize(gd->bd);
+	/*
+	 * Call the preinit function to handle the case
+	 * where preinit was not triggered beforehand.
+	 * This function is a NOP in case preinit was done.
+	 */
+	spl_mmc_preinit();
+
 	/* We register only one device. So, the dev id is always 0 */
 	*mmc = find_mmc_device(device);
 	if (!*mmc) {

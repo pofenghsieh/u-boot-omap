@@ -75,6 +75,32 @@ int spl_load_image_fat_os(block_dev_desc_t *block_dev, int partition);
 
 void spl_mmc_init(struct mmc **mmc);
 
+/*
+ * Defined a function to allow the mmc preinit to be triggered before the
+ * full mmc_init() function call. Doing a mmc preinit can be useful when doing
+ * boot time optimizations.The wait time in mmc initialization can now
+ * be utilized for other tasks.
+ *
+ * mmc preinit is triggered from the mmc_initialize() function call if the
+ * preinit flag is set in the device creation. Calling mmc_initialize()
+ * a second time, reinitializes the mmc_devices list and nullifies the benefit
+ * of doing a mmc_preinit.
+ *
+ * This function allows calling mmc_initialize() only once even if we
+ * do spl_mmc_init() multiple times.
+ *
+ * If the SPL is not being customized for reduced MMC boot time, the normal
+ * calling sequence of spl_mmc_init() can be used.
+ *
+ * If boot time reduction is desired, the calling sequence is
+ *
+ * spl_mmc_preinit();
+ * .. do non mmc operations.
+ * spl_mmc_init();
+ *
+ */
+void spl_mmc_preinit(void);
+
 #ifdef CONFIG_SPL_BOARD_INIT
 void spl_board_init(void);
 #endif
