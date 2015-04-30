@@ -205,9 +205,15 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		spl_net_load_image("usb_ether");
 		break;
 #endif
-#ifdef CONFIG_SPL_USB_SUPPORT
+#if defined(CONFIG_SPL_USB_SUPPORT) || defined(CONFIG_SPL_USB_BOOT_SUPPORT)
 	case BOOT_DEVICE_USB:
+#ifdef CONFIG_SPL_USB_BOOT_SUPPORT
+		puts("Device successfully booted, looping...\n");
+		while (1)
+			;
+#else
 		spl_usb_load_image();
+#endif
 		break;
 #endif
 #ifdef CONFIG_SPL_SATA_SUPPORT
