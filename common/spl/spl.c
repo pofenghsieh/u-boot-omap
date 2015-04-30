@@ -17,6 +17,11 @@
 #include <malloc.h>
 #include <linux/compiler.h>
 
+#if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
+#include <usb/fastboot.h>
+#include <asm/arch/sys_proto.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifndef CONFIG_SYS_UBOOT_START
@@ -129,8 +134,15 @@ static void spl_ram_load_image(void)
 }
 #endif
 
+#if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
+extern int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[]);
+#endif
+
 void board_init_r(gd_t *dummy1, ulong dummy2)
 {
+#if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
+	struct mmc *mmc;
+#endif
 	u32 boot_device;
 	debug(">>spl:board_init_r()\n");
 
@@ -208,9 +220,15 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #if defined(CONFIG_SPL_USB_SUPPORT) || defined(CONFIG_SPL_USB_BOOT_SUPPORT)
 	case BOOT_DEVICE_USB:
 #ifdef CONFIG_SPL_USB_BOOT_SUPPORT
+#ifdef CONFIG_CMD_FASTBOOT
+		puts("Device successfully booted, starting fastboot...\n");
+		spl_mmc_init(&mmc);
+		do_fastboot(NULL, 0, 0, NULL);
+#else
 		puts("Device successfully booted, looping...\n");
 		while (1)
 			;
+#endif
 #else
 		spl_usb_load_image();
 #endif

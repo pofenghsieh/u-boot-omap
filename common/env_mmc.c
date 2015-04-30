@@ -15,6 +15,7 @@
 #include <mmc.h>
 #include <search.h>
 #include <errno.h>
+#include <spl.h>
 
 #if defined(CONFIG_ENV_SIZE_REDUND) &&  \
 	(CONFIG_ENV_SIZE_REDUND != CONFIG_ENV_SIZE)
@@ -191,7 +192,10 @@ static inline int read_env(struct mmc *mmc, unsigned long size,
 	int dev = CONFIG_SYS_MMC_ENV_DEV;
 
 #ifdef CONFIG_SPL_BUILD
-	dev = 0;
+	if(spl_boot_device() == BOOT_DEVICE_MMC1)
+		dev = 0;
+	else
+		dev = 1;
 #endif
 
 	blk_start	= ALIGN(offset, mmc->read_bl_len) / mmc->read_bl_len;
@@ -218,7 +222,10 @@ void env_relocate_spec(void)
 	ALLOC_CACHE_ALIGN_BUFFER(env_t, tmp_env2, 1);
 
 #ifdef CONFIG_SPL_BUILD
-	dev = 0;
+	if(spl_boot_device() == BOOT_DEVICE_MMC1)
+		dev = 0;
+	else
+		dev = 1;
 #endif
 
 	mmc = find_mmc_device(dev);
@@ -299,7 +306,10 @@ void env_relocate_spec(void)
 	int dev = CONFIG_SYS_MMC_ENV_DEV;
 
 #ifdef CONFIG_SPL_BUILD
-	dev = 0;
+	if(spl_boot_device() == BOOT_DEVICE_MMC1)
+		dev = 0;
+	else
+		dev = 1;
 #endif
 
 	mmc = find_mmc_device(dev);

@@ -281,4 +281,8 @@
 #define CONFIG_PCF8575
 #define CONFIG_SYS_I2C_PCF8575_CHIP { {0x21, 0xeaf7} }
 
+#ifdef CONFIG_SPL_BUILD
+#define CONFIG_SPL_ENV_SUPPORT
+#endif
+
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */

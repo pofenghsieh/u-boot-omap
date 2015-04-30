@@ -26,6 +26,7 @@
 #include <dwc3-omap-uboot.h>
 #include <ti-usb-phy-uboot.h>
 #include <pcf8575.h>
+#include <spl.h>
 
 #include "mux_data.h"
 
@@ -233,6 +234,11 @@ int spl_start_uboot(void)
 		return 1;
 
 #ifdef CONFIG_SPL_ENV_SUPPORT
+#ifdef CONFIG_ENV_IS_IN_MMC
+	struct mmc *mmc;
+	spl_mmc_init(&mmc);
+#endif
+
 	env_init();
 	env_relocate_spec();
 	if (getenv_yesno("boot_os") != 1)
