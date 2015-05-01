@@ -469,6 +469,8 @@ u32 ipu_start_clocks(u32 core_id, struct rproc *cfg)
 		ipu_rstst = RM_IPU1_RSTST;
 
 		tick_timerctrl = CM_L4PER_TIMER11_CLKCTRL;
+		wdt_ctrl[0] = CM_IPU_TIMER7_CLKCTRL;
+		wdt_ctrl[1] = CM_IPU_TIMER8_CLKCTRL;
 	} else {
 		ipu_clkstctrl = CM_IPU2_CLKSTCTRL;
 		ipu_clkctrl = CM_IPU2_IPU2_CLKCTRL;
