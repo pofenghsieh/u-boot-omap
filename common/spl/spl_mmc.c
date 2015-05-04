@@ -163,9 +163,40 @@ end_noprint:
 #ifdef CONFIG_SPL_OS_BOOT
 static int mmc_load_image_raw_os(struct mmc *mmc)
 {
-	if (!mmc->block_dev.block_read(0,
-				       CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR,
-				       CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS,
+	u32 device;
+#if defined(CONFIG_SPL_MMC_DTB_NAME) || defined(CONFIG_SPL_MMC_KERNEL_NAME)
+	int ret;
+	disk_partition_t info;
+#endif
+	lbaint_t sector, num_sectors;
+
+	if (spl_boot_device() == BOOT_DEVICE_MMC1)
+		device = 0;
+	else
+		device = 1;
+
+#ifdef CONFIG_SPL_MMC_DTB_NAME
+	ret = get_partition_info_efi_by_name(&mmc->block_dev,
+					     CONFIG_SPL_MMC_DTB_NAME,
+					     &info);
+	if (ret) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+		printf("cannot find partition: '%s'\n",
+		       CONFIG_SPL_MMC_DTB_NAME);
+#endif
+		return -1;
+	}
+
+	sector = info.start;
+	num_sectors = info.size;
+#else
+	sector = CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR;
+	num_sectors = CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR;
+#endif
+
+	if (!mmc->block_dev.block_read(device,
+				       sector,
+				       num_sectors,
 				       (void *)CONFIG_SYS_SPL_ARGS_ADDR)) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("mmc args blk read error\n");
@@ -173,7 +204,23 @@ static int mmc_load_image_raw_os(struct mmc *mmc)
 		return -1;
 	}
 
-	return mmc_load_image_raw(mmc, CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR);
+#ifdef CONFIG_SPL_MMC_KERNEL_NAME
+	ret = get_partition_info_efi_by_name(&mmc->block_dev,
+					     CONFIG_SPL_MMC_KERNEL_NAME,
+					     &info);
+	if (ret) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+		printf("cannot find partition: '%s'\n",
+		       CONFIG_SPL_MMC_KERNEL_NAME);
+#endif
+		return -1;
+	}
+
+	sector = info.start;
+#else
+	sector = CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR;
+#endif
+	return mmc_load_image_raw(mmc, sector);
 }
 #endif
 
