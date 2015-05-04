@@ -12,6 +12,9 @@
 #include <mmc.h>
 #include <version.h>
 #include <image.h>
+#ifdef CONFIG_SPL_ANDROID_BOOT_SUPPORT
+#include <fdt_support.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -22,6 +25,9 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 	struct image_header *header;
 	u32 boot_device;
 	u8 device;
+#ifdef CONFIG_SPL_ANDROID_BOOT_SUPPORT
+	const char *s;
+#endif
 	boot_device = spl_boot_device();
 	if(boot_device == BOOT_DEVICE_MMC1) {
 		device = 0;
@@ -37,6 +43,11 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 	if (err == 0)
 		goto end;
 
+#ifdef CONFIG_SPL_ANDROID_BOOT_SUPPORT
+	if (genimg_get_format(header) == IMAGE_FORMAT_ANDROID) {
+		printf("Loading Android image\n");
+	} else
+#endif
 	if (image_get_magic(header) != IH_MAGIC)
 		return -1;
 
@@ -50,10 +61,98 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 	err = mmc->block_dev.block_read(device, sector, image_size_sectors,
 					(void *)spl_image.load_addr);
 
+#ifdef CONFIG_SPL_ANDROID_BOOT_SUPPORT
+	if (err == 0)
+		goto end;
+
+	/* load the ramdisk if this is an Android image */
+	if (genimg_get_format(header) == IMAGE_FORMAT_ANDROID) {
+		ulong ramdisk_start, ramdisk_len, ramdisk_load;
+		u32 sector_ramdisk;
+		printf("Loading Android ramdisk\n");
+
+		android_image_get_ramdisk((const struct andr_img_hdr *)header,
+					  &ramdisk_start, &ramdisk_len);
+		ramdisk_load = android_image_get_rload(
+					(const struct andr_img_hdr *)header);
+		sector_ramdisk = sector +
+					((ramdisk_start - (ulong)header) /
+						mmc->block_dev.blksz);
+		image_size_sectors = (ramdisk_len + mmc->read_bl_len - 1) /
+					mmc->read_bl_len;
+
+		err = mmc->block_dev.block_read(device, sector_ramdisk,
+						image_size_sectors, (void *)ramdisk_load);
+		if (err == 0)
+			goto end;
+
+		err = fdt_resize((void *)CONFIG_SYS_SPL_ARGS_ADDR);
+		if (err == 0) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+			printf("spl: fdt_resize err - %lu\n", err);
+#endif
+			goto end_noprint;
+		}
+		err = fdt_chosen((void *)CONFIG_SYS_SPL_ARGS_ADDR);
+		if (err < 0) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+			printf("spl: fdt_chosen err - %lu\n", err);
+#endif
+			err = 0;
+			goto end_noprint;
+		}
+		err = fdt_initrd((void *)CONFIG_SYS_SPL_ARGS_ADDR, ramdisk_load,
+				 ramdisk_load + ramdisk_len);
+		if (err < 0) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+			printf("spl: fdt_initrd err - %lu\n", err);
+#endif
+			err = 0;
+			goto end_noprint;
+		}
+
+		s = getenv("serial#");
+		if (s) {
+			static char data[512];
+			int  nodeoffset, len;
+
+			printf("serial# is %s\n", s);
+			nodeoffset = fdt_path_offset((void *)CONFIG_SYS_SPL_ARGS_ADDR, "/chosen");
+			if (nodeoffset < 0) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+				printf ("spl: fdt_path_offset err - %lu\n", err);
+#endif
+				err = 0;
+				goto end_noprint;
+			}
+
+			sprintf(data, "androidboot.serialno=%s ", s);
+			len = strlen(data) + 1;
+
+			err = fdt_setprop((void *)CONFIG_SYS_SPL_ARGS_ADDR,
+					  nodeoffset, "bootargs", data, len);
+			if (err < 0) {
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+				printf ("spl: fdt_setprop err - %lu\n", err);
+#endif
+				err = 0;
+				goto end_noprint;
+			}
+		}
+
+		err = 1;
+		goto end;
+	}
+#endif
+
 end:
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 	if (err == 0)
 		printf("spl: mmc blk read err - %lu\n", err);
+#endif
+
+#ifdef CONFIG_SPL_ANDROID_BOOT_SUPPORT
+end_noprint:
 #endif
 
 	return (err == 0);

@@ -114,6 +114,9 @@ void spl_board_init(void)
 #ifdef CONFIG_AM33XX
 	am33xx_spl_board_init();
 #endif
+#if defined(CONFIG_DRA7XX)
+	board_init();
+#endif
 }
 
 int board_mmc_init(bd_t *bis)

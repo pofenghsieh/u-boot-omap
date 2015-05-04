@@ -54,6 +54,27 @@ const struct omap_sysinfo sysinfo = {
  */
 int board_init(void)
 {
+#ifdef CONFIG_SPL_ENV_SUPPORT
+	char serialno[72];
+	uint32_t serialno_lo, serialno_hi;
+
+#ifdef CONFIG_ENV_IS_IN_MMC
+	struct mmc *mmc;
+	spl_mmc_init(&mmc);
+#endif
+
+	env_init();
+	env_relocate_spec();
+
+	if (!getenv("serial#")) {
+		printf("serial# not set, setting...\n");
+		serialno_lo = readl((*ctrl)->control_std_fuse_die_id_3);
+		serialno_hi = readl((*ctrl)->control_std_fuse_prod_id_0);
+		sprintf(serialno, "%08x%08x", serialno_hi, serialno_lo);
+		setenv("serial#", serialno);
+	}
+#endif
+
 	gpmc_init();
 	gd->bd->bi_boot_params = (0x80000000 + 0x100); /* boot param addr */
 
