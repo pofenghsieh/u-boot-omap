@@ -324,6 +324,17 @@ void spl_mmc_init(struct mmc **mmc)
 	}
 }
 
+#ifdef CONFIG_SPL_OS_BOOT
+int spl_mmc_load_image_raw_os(void)
+{
+	struct mmc *mmc;
+
+	spl_mmc_init(&mmc);
+
+	return mmc_load_image_raw_os(mmc);
+}
+#endif
+
 void spl_mmc_load_image(void)
 {
 	struct mmc *mmc;
