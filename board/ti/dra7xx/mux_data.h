@@ -206,35 +206,35 @@ const struct pad_conf_entry dra74x_core_padconf_array[] = {
 	{GPMC_CS1, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_cs1.mmc2_cmd */
 	{GPMC_CS2, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_cs2.qspi1_cs0 */
 	{GPMC_CS3, (M3 | PIN_INPUT_PULLUP)},	/* gpmc_cs3.vout3_clk */
-	{VIN1A_CLK0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_clk0.vin1a_clk0 */
-	{VIN1A_DE0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_de0.vin1a_de0 */
-	{VIN1A_FLD0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_fld0.vin1a_fld0 */
-	{VIN1A_HSYNC0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_hsync0.vin1a_hsync0 */
-	{VIN1A_VSYNC0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_vsync0.vin1a_vsync0 */
-	{VIN1A_D0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d0.vin1a_d0 */
-	{VIN1A_D1, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d1.vin1a_d1 */
-	{VIN1A_D2, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d2.vin1a_d2 */
-	{VIN1A_D3, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d3.vin1a_d3 */
-	{VIN1A_D4, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d4.vin1a_d4 */
-	{VIN1A_D5, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d5.vin1a_d5 */
-	{VIN1A_D6, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d6.vin1a_d6 */
-	{VIN1A_D7, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d7.vin1a_d7 */
-	{VIN1A_D8, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d8.vin1a_d8 */
-	{VIN1A_D9, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d9.vin1a_d9 */
-	{VIN1A_D10, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d10.vin1a_d10 */
-	{VIN1A_D11, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d11.vin1a_d11 */
-	{VIN1A_D12, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d12.vin1a_d12 */
-	{VIN1A_D13, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d13.vin1a_d13 */
-	{VIN1A_D14, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d14.vin1a_d14 */
-	{VIN1A_D15, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d15.vin1a_d15 */
-	{VIN1A_D16, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d16.vin1a_d16 */
-	{VIN1A_D17, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d17.vin1a_d17 */
-	{VIN1A_D18, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d18.vin1a_d18 */
-	{VIN1A_D19, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d19.vin1a_d19 */
-	{VIN1A_D20, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d20.vin1a_d20 */
-	{VIN1A_D21, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d21.vin1a_d21 */
-	{VIN1A_D22, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d22.vin1a_d22 */
-	{VIN1A_D23, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin1a_d23.vin1a_d23 */
+	{VIN1A_CLK0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_clk0.vin1a_clk0 */
+	{VIN1A_DE0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_de0.vin1a_de0 */
+	{VIN1A_FLD0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_fld0.vin1a_fld0 */
+	{VIN1A_HSYNC0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_hsync0.vin1a_hsync0 */
+	{VIN1A_VSYNC0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_vsync0.vin1a_vsync0 */
+	{VIN1A_D0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d0.vin1a_d0 */
+	{VIN1A_D1, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d1.vin1a_d1 */
+	{VIN1A_D2, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d2.vin1a_d2 */
+	{VIN1A_D3, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d3.vin1a_d3 */
+	{VIN1A_D4, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d4.vin1a_d4 */
+	{VIN1A_D5, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d5.vin1a_d5 */
+	{VIN1A_D6, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d6.vin1a_d6 */
+	{VIN1A_D7, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d7.vin1a_d7 */
+	{VIN1A_D8, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d8.vin1a_d8 */
+	{VIN1A_D9, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d9.vin1a_d9 */
+	{VIN1A_D10, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d10.vin1a_d10 */
+	{VIN1A_D11, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d11.vin1a_d11 */
+	{VIN1A_D12, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d12.vin1a_d12 */
+	{VIN1A_D13, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d13.vin1a_d13 */
+	{VIN1A_D14, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d14.vin1a_d14 */
+	{VIN1A_D15, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d15.vin1a_d15 */
+	{VIN1A_D16, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d16.vin1a_d16 */
+	{VIN1A_D17, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d17.vin1a_d17 */
+	{VIN1A_D18, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d18.vin1a_d18 */
+	{VIN1A_D19, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d19.vin1a_d19 */
+	{VIN1A_D20, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d20.vin1a_d20 */
+	{VIN1A_D21, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d21.vin1a_d21 */
+	{VIN1A_D22, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d22.vin1a_d22 */
+	{VIN1A_D23, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_d23.vin1a_d23 */
 	{VIN2A_D12, (M3 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin2a_d12.rgmii1_txc */
 	{VIN2A_D13, (M3 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin2a_d13.rgmii1_txctl */
 	{VIN2A_D14, (M3 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* vin2a_d14.rgmii1_txd3 */
