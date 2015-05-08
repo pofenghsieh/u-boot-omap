@@ -54,7 +54,7 @@ const struct omap_sysinfo sysinfo = {
  */
 int board_init(void)
 {
-#ifdef CONFIG_SPL_ENV_SUPPORT
+#if defined(CONFIG_SPL_ENV_SUPPORT) && defined(CONFIG_SPL_SPI_PROD_OS_BOOT)
 	char serialno[72];
 	uint32_t serialno_lo, serialno_hi;
 
