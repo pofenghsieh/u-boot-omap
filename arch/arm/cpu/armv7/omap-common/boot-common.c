@@ -125,8 +125,9 @@ int board_mmc_init(bd_t *bis)
 	case BOOT_DEVICE_MMC1:
 		omap_mmc_init(0, 0, 0, -1, -1);
 		break;
-#ifdef CONFIG_SPL_USB_BOOT_SUPPORT
+#ifdef CONFIG_PERIPHERAL_BOOT
 	case BOOT_DEVICE_USB:
+	case BOOT_DEVICE_UART:
 #endif
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:

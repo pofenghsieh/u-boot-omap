@@ -183,15 +183,17 @@ struct s32ktimer {
  */
 #if defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX)
 #define NON_SECURE_SRAM_START	0x40300000
-#define NON_SECURE_SRAM_END	0x40380000	/* Not inclusive */
+#define NON_SECURE_SRAM_END		0x40380000	/* Not inclusive */
+#define SRAM_SCRATCH_SPACE_ADDR	0x4037E000
+/* base address for indirect vectors (internal boot mode) */
+#define SRAM_ROM_VECT_BASE		0x4037F000
 #else
 #define NON_SECURE_SRAM_START	0x40300000
-#define NON_SECURE_SRAM_END	0x40320000	/* Not inclusive */
-#endif
+#define NON_SECURE_SRAM_END		0x40320000	/* Not inclusive */
 #define SRAM_SCRATCH_SPACE_ADDR	0x4031E000
-
 /* base address for indirect vectors (internal boot mode) */
-#define SRAM_ROM_VECT_BASE	0x4031F000
+#define SRAM_ROM_VECT_BASE		0x4031F000
+#endif
 
 /* CONTROL_SRCOMP_XXX_SIDE */
 #define OVERRIDE_XS_SHIFT		30

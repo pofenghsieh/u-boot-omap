@@ -233,7 +233,6 @@
  * print some information.
  */
 #define CONFIG_SPL_TEXT_BASE	0x40300000
-#define CONFIG_SPL_IMAGE_OFFSET		0x00000350
 #ifdef CONFIG_DRA7XX
 #define CONFIG_SPL_MAX_SIZE		(0x4037E000 - CONFIG_SPL_TEXT_BASE)
 #else

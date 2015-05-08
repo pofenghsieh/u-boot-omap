@@ -222,7 +222,7 @@ obj-$(CONFIG_SPL_YMODEM_SUPPORT) += xyzModem.o
 obj-$(CONFIG_SPL_NET_SUPPORT) += miiphyutil.o
 obj-$(CONFIG_CMD_ELF) += cmd_elf.o
 obj-$(CONFIG_SPL_USB_SUPPORT) += usb.o
-ifdef CONFIG_SPL_USB_BOOT_SUPPORT
+ifdef CONFIG_PERIPHERAL_BOOT
 obj-$(CONFIG_CMD_FASTBOOT) += cmd_fastboot.o
 obj-$(CONFIG_CMD_FASTBOOT) += command.o
 obj-$(CONFIG_CMD_FASTBOOT) += cmd_sf.o

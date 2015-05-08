@@ -18,9 +18,6 @@
 #include <version.h>
 #include <asm/system.h>
 #include <linux/linkage.h>
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USB_BOOT_SUPPORT)
-#include <configs/ti_omap5_common.h>
-#endif
 
 /*************************************************************************
  *
@@ -49,36 +46,41 @@ reset:
 	orr	r0, r0, #0xc0		@ disable FIQ and IRQ
 	msr	cpsr,r0
 
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USB_BOOT_SUPPORT)
-	/* obtain address of where _start was loaded */
-	adr r0, _start
-	ldr r1, =(NON_SECURE_SRAM_START)
+#if defined(CONFIG_SPL_BUILD)
+	/* obtain load-time address of reset */
+	adr r0, reset
+	/* obtain run-time address of reset */
+	ldr r1, =reset
 	cmp r0, r1
-	bne setup_vector
+	/* If addresses are the same, skip relocation */
+	beq setup_vector
 
-	adr r2, _end_ofs
+	/* Relocation of SPL is necessary */
+	/* R2 contains size of SPL image */
+	adr r2, _copy_size
 	ldr r2, [r2]
 
-	ldr r3, =(CONFIG_SPL_IMAGE_OFFSET)
-
-	adr r5, setup_vector
-	add r5, r3, r5
+	/* Load run-time address of next code to run after relocation */
+	ldr r5, =setup_vector
 
 	/* R0 image end (source) */
 	add r0, r2, r0
 
 	/* R1 image end (destination) */
 	add r1, r2, r1
-	add r1, r3, r1
-
-	ldr r2, =_start
 
 copy:
 	ldr r3, [r0], #-4
 	str r3, [r1], #-4
-	cmp r2, r1
-	bne copy
+	subs r2, r2, #4
+	bge copy
+	/* Branch predcitor invalidate */
+	mcr p15, 0, r0, c7, c5, 6
+	dsb
+	isb
 	bx r5
+_copy_size:
+	.word __image_copy_end - reset - 4
 #endif
 
 /*
@@ -105,19 +107,6 @@ setup_vector:
 #endif
 
 	bl	_main
-
-/*
- *************************************************************************
- *
- * Indirect vectors table
- *
- * Symbols referenced here must be defined somewhere else
- *
- *************************************************************************
- */
-
-_start:                 .word _start
-_end_ofs:               .word _end_ofs
 
 /*------------------------------------------------------------------------------*/
 

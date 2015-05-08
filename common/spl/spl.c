@@ -18,7 +18,7 @@
 #include <linux/compiler.h>
 #include <remoteproc.h>
 
-#if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
+#if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
 #include <usb/fastboot.h>
 #include <asm/arch/sys_proto.h>
 #endif
@@ -183,13 +183,13 @@ static void spl_ram_load_image(void)
 }
 #endif
 
-#if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
+#if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
 extern int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[]);
 #endif
 
 void board_init_r(gd_t *dummy1, ulong dummy2)
 {
-#if defined(CONFIG_SPL_USB_BOOT_SUPPORT) && defined(CONFIG_CMD_FASTBOOT)
+#if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
 	struct mmc *mmc;
 #endif
 	u32 boot_device;
@@ -248,9 +248,20 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		spl_nor_load_image();
 		break;
 #endif
-#ifdef CONFIG_SPL_YMODEM_SUPPORT
+#if defined(CONFIG_SPL_YMODEM_SUPPORT) || defined(CONFIG_PERIPHERAL_BOOT)
 	case BOOT_DEVICE_UART:
+#ifdef CONFIG_PERIPHERAL_BOOT
+#ifdef CONFIG_CMD_FASTBOOT
+		puts("Device successfully booted, starting fastboot...\n");
+		spl_mmc_init(&mmc);
+		do_fastboot(NULL, 0, 0, NULL);
+#else
+		debug("SPL: booted, but fastboot not supported...\n");
+		hang();
+#endif
+#else
 		spl_ymodem_load_image();
+#endif
 		break;
 #endif
 #ifdef CONFIG_SPL_SPI_SUPPORT
@@ -275,17 +286,16 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		spl_net_load_image("usb_ether");
 		break;
 #endif
-#if defined(CONFIG_SPL_USB_HOST_SUPPORT) || defined(CONFIG_SPL_USB_BOOT_SUPPORT)
+#if defined(CONFIG_SPL_USB_HOST_SUPPORT) || defined(CONFIG_PERIPHERAL_BOOT)
 	case BOOT_DEVICE_USB:
-#ifdef CONFIG_SPL_USB_BOOT_SUPPORT
+#ifdef CONFIG_PERIPHERAL_BOOT
 #ifdef CONFIG_CMD_FASTBOOT
-		puts("Device successfully booted, starting fastboot...\n");
+		puts("SPL: successfully booted, starting fastboot...\n");
 		spl_mmc_init(&mmc);
 		do_fastboot(NULL, 0, 0, NULL);
 #else
-		puts("Device successfully booted, looping...\n");
-		while (1)
-			;
+		debug("SPL: booted, but fastboot not supported...\n");
+		hang();
 #endif
 #else
 		spl_usb_load_image();

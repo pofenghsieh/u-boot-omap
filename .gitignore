@@ -30,7 +30,8 @@
 #
 # Top-level generic files
 #
-/MLO*
+/*MLO*
+/ULO
 /SPL
 /System.map
 /u-boot*

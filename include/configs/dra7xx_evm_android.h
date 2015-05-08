@@ -217,14 +217,6 @@
 #define CONFIG_USB_GADGET_DUALSPEED
 
 #ifndef CONFIG_SPL_BUILD
-/* USB Device Firmware Update support */
-#define CONFIG_DFU_FUNCTION
-#define CONFIG_DFU_RAM
-#define CONFIG_CMD_DFU
-
-#define CONFIG_DFU_MMC
-#define CONFIG_DFU_RAM
-
 /* SATA */
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_CMD_SCSI
@@ -242,6 +234,10 @@
 #undef CONFIG_CMD_DFU
 #undef CONFIG_DFU_MMC
 #undef CONFIG_DFU_RAM
+/* We also don't use fastboot unless doing SPL peripheral boot */
+#ifndef CONFIG_PERIPHERAL_BOOT
+#undef CONFIG_CMD_FASTBOOT
+#endif
 #endif
 
 /* Parallel NOR Support */
@@ -297,7 +293,7 @@
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTDELAY			3
 
-#ifndef CONFIG_SPL_USB_BOOT_SUPPORT
+#ifndef CONFIG_PERIPHERAL_BOOT
 #define CONFIG_SPL_QSPI_OS_IN_MMC
 #define CONFIG_SPL_ANDROID_BOOT_SUPPORT
 #define CONFIG_MACH_TYPE			4070
