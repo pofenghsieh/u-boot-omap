@@ -624,7 +624,6 @@ static struct dwc3_device usb_otg_ss1 = {
 static struct dwc3_omap_device usb_otg_ss1_glue = {
 	.base = (void *)USB_OTG_SS1_GLUE_BASE,
 	.utmi_mode = DWC3_OMAP_UTMI_MODE_SW,
-	.vbus_id_status = OMAP_DWC3_VBUS_VALID,
 	.index = 0,
 };
 
@@ -643,7 +642,6 @@ static struct dwc3_device usb_otg_ss2 = {
 static struct dwc3_omap_device usb_otg_ss2_glue = {
 	.base = (void *)USB_OTG_SS2_GLUE_BASE,
 	.utmi_mode = DWC3_OMAP_UTMI_MODE_SW,
-	.vbus_id_status = OMAP_DWC3_VBUS_VALID,
 	.index = 1,
 };
 
@@ -654,6 +652,7 @@ static struct ti_usb_phy_device usb_phy2_device = {
 
 int board_usb_init(int index, enum usb_init_type init)
 {
+	enable_usb_clocks(index);
 	switch (index) {
 	case 0:
 		if (init == USB_INIT_DEVICE) {
@@ -700,17 +699,18 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 	default:
 		printf("Invalid Controller Index\n");
 	}
+	disable_usb_clocks(index);
 
 	return 0;
 }
 
-int usb_gadget_handle_interrupts(void)
+int usb_gadget_handle_interrupts(int index)
 {
 	u32 status;
 
-	status = dwc3_omap_uboot_interrupt_status(0);
+	status = dwc3_omap_uboot_interrupt_status(index);
 	if (status)
-		dwc3_uboot_handle_interrupt(0);
+		dwc3_uboot_handle_interrupt(index);
 
 	return 0;
 }

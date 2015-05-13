@@ -110,10 +110,16 @@ static void ti_spi_setup_spi_register(struct ti_qspi_slave *qslave)
 	slave->op_mode_rx = 8;
 #endif
 
+#if defined(CONFIG_DRA7XX)
+	memval |= (QSPI_CMD_READ_QUAD | QSPI_SETUP0_NUM_A_BYTES |
+			QSPI_SETUP0_NUM_D_BYTES_8_BITS |
+			QSPI_SETUP0_READ_QUAD | QSPI_CMD_WRITE);
+#else
 	memval |= QSPI_CMD_READ | QSPI_SETUP0_NUM_A_BYTES |
 			QSPI_SETUP0_NUM_D_BYTES_NO_BITS |
 			QSPI_SETUP0_READ_NORMAL | QSPI_CMD_WRITE |
 			QSPI_NUM_DUMMY_BITS;
+#endif
 
 	writel(memval, &qslave->base->setup0);
 }
@@ -359,6 +365,9 @@ void spi_flash_copy_mmap(void *data, void *offset, size_t len)
 		rem_bytes  = (len % max_acnt);
 		a_cnt_value = max_acnt;
 	}
+
+	/* Invalidate the area, so no writeback into the RAM races with DMA */
+	invalidate_dcache_range(addr, addr + len);
 
 	/* Compute QSPI address and size */
 	edma_param.opt      = 0;

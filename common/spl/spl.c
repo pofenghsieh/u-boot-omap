@@ -90,6 +90,7 @@ void spl_parse_image_header(const struct image_header *header)
 		}
 		spl_image.os = image_get_os(header);
 		spl_image.name = image_get_name(header);
+		spl_image.size = roundup(spl_image.size, ARCH_DMA_MINALIGN);
 		debug("spl: payload image: %.*s load addr: 0x%x size: %d\n",
 			sizeof(spl_image.name), spl_image.name,
 			spl_image.load_addr, spl_image.size);
@@ -232,7 +233,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		spl_net_load_image("usb_ether");
 		break;
 #endif
-#if defined(CONFIG_SPL_USB_SUPPORT) || defined(CONFIG_SPL_USB_BOOT_SUPPORT)
+#if defined(CONFIG_SPL_USB_HOST_SUPPORT) || defined(CONFIG_SPL_USB_BOOT_SUPPORT)
 	case BOOT_DEVICE_USB:
 #ifdef CONFIG_SPL_USB_BOOT_SUPPORT
 #ifdef CONFIG_CMD_FASTBOOT
