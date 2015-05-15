@@ -1527,7 +1527,10 @@ void mem_malloc_init(ulong start, ulong size)
 	mem_malloc_end = start + size;
 	mem_malloc_brk = start;
 
+#if !(defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_DMA_SUPPORT) && \
+	defined(CONFIG_TI_EDMA))
 	memset((void *)mem_malloc_start, 0, size);
+#endif
 
 	malloc_bin_reloc();
 }

@@ -25,6 +25,7 @@
 #endif
 #include <remoteproc.h>
 
+#include <asm/ti-common/edma.h>
 #if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
 #include <usb/fastboot.h>
 #include <asm/arch/sys_proto.h>
@@ -244,7 +245,6 @@ static void spl_ram_load_image(void)
 #if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
 extern int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[]);
 #endif
-
 void board_init_r(gd_t *dummy1, ulong dummy2)
 {
 #if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
@@ -257,6 +257,10 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	debug(">>spl:board_init_r()\n");
 
 #ifdef CONFIG_SYS_SPL_MALLOC_START
+#if defined(CONFIG_SPL_DMA_SUPPORT) && defined(CONFIG_TI_EDMA)
+	edma_zero_memory((void *)CONFIG_SYS_SPL_MALLOC_START,
+			 CONFIG_SYS_SPL_MALLOC_SIZE, 6, 1);
+#endif
 	mem_malloc_init(CONFIG_SYS_SPL_MALLOC_START,
 			CONFIG_SYS_SPL_MALLOC_SIZE);
 #endif
