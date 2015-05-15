@@ -227,14 +227,18 @@
 
 /*
  * SPL related defines.  The Public RAM memory map the ROM defines the
- * area between 0x40300000 and 0x4031E000 as a download area for OMAP5
- * (dra7xx is larger, but we do not need to be larger at this time).  We
+ * area between 0x40300000 and 0x4031E000 as a download area for OMAP5.
+ * On DRA7xx, the download area is between 0x40300000 and 0x4037E000. We
  * set CONFIG_SPL_DISPLAY_PRINT to have omap_rev_string() called and
  * print some information.
  */
-#define CONFIG_SPL_TEXT_BASE		0x40300000
+#define CONFIG_SPL_TEXT_BASE	0x40300000
 #define CONFIG_SPL_IMAGE_OFFSET		0x00000350
+#ifdef CONFIG_DRA7XX
+#define CONFIG_SPL_MAX_SIZE		(0x4037E000 - CONFIG_SPL_TEXT_BASE)
+#else
 #define CONFIG_SPL_MAX_SIZE		(0x4031E000 - CONFIG_SPL_TEXT_BASE)
+#endif
 #define CONFIG_SPL_DISPLAY_PRINT
 #define CONFIG_SPL_LDSCRIPT "$(CPUDIR)/omap-common/u-boot-spl.lds"
 #define CONFIG_SYS_SPL_ARGS_ADDR	(CONFIG_SYS_SDRAM_BASE + \

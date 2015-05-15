@@ -235,6 +235,13 @@
 #define CONFIG_SYS_SCSI_MAX_LUN		1
 #define CONFIG_SYS_SCSI_MAX_DEVICE	(CONFIG_SYS_SCSI_MAX_SCSI_ID * \
 						CONFIG_SYS_SCSI_MAX_LUN)
+#else
+/* For Android SPL builds, we don't use DFU */
+#undef CONFIG_DFU_FUNCTION
+#undef CONFIG_DFU_RAM
+#undef CONFIG_CMD_DFU
+#undef CONFIG_DFU_MMC
+#undef CONFIG_DFU_RAM
 #endif
 
 /* Parallel NOR Support */
