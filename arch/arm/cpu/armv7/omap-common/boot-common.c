@@ -170,6 +170,7 @@ void board_init_f(ulong dummy)
 	edma_request_channel(5, 5, 0);
 	edma_zero_memory((void *)__bss_start, __bss_end - __bss_start,
 			 5, 1);
+	edma_request_channel(6, 6, 0);
 #else
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
