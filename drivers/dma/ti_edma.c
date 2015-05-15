@@ -21,6 +21,9 @@
 
 static u32 base_add = EDMA_BASE_ADDR;
 
+/* This buffer is cleared during the call to edma_init(). */
+static u32 edma_zero_buff[512] __aligned(256) __attribute__ ((section(".data")));
+
 /**
  * @brief EDMA Initialization
  *
@@ -64,6 +67,7 @@ void edma_init(u32 que_num)
 		writel(readl(addr) & EDMACC_DMAQNUM_CLR(i), addr);
 		writel(readl(addr) | EDMACC_DMAQNUM_SET(i, que_num), addr);
 	}
+	memset(edma_zero_buff, 0x0, sizeof(edma_zero_buff));
 }
 
 /**
@@ -221,4 +225,140 @@ u32 edma_get_intr_status(void)
 void edma_clr_intr(u32 value)
 {
 	writel((1 << value), base_add + EDMA_TPCC_ICR_RN(0));
+}
+
+/**
+ * @brief This function clears a region of memory using EDMA. This function
+ * has significantly lower execution time compared to CPU when the data cache
+ * is disabled.
+ *
+ * @param data pointer to the buffer to be cleared.
+ *
+ * @param len length of the buffer
+ *
+ * @param edma_ch_num EDMA channel to be used for the transfer. The function
+ * uses one additional PARAM set for linking. The linking PARAM set is always
+ * selected at an offset of 64 channels to the edma channel performing the
+ * transfer. If edma_ch_num is specified as 5, this function uses channel 5 and
+ * PARAM sets 5 and 69.
+ *
+ * @param wait_till_complete flag indicating whether the function should return
+ * only after the transfer is complete. If this flag is set to 0, the
+ * programmer should call edma_wait_till_complete() before using the data
+ * buffer.
+ */
+u32 edma_zero_memory(void *data, size_t len, unsigned int edma_ch_num,
+		     u32 wait_till_complete)
+{
+	struct edma_param_entry edma_param;
+	int bcnt = 1;
+	int acnt = len;
+	int ccnt = 1;
+	unsigned int addr = (unsigned int) (data);
+	unsigned int max_bcnt = 0xFFFFU;
+	size_t rlen = 0;
+	int ccnt_found = 0;
+
+	acnt = sizeof(edma_zero_buff);
+
+	/* Amount of data in multiples of edma_zero_buff length */
+	rlen = len - (len % acnt);
+
+	if (rlen == 0) {
+		/* Less than 1 buffer of data.
+		 * The first paramset is a dummy transfer.
+		 * The linked paramset does the actual transfer.
+		 */
+		acnt = 0;
+		bcnt = 1;
+		ccnt = 1;
+		ccnt_found = 1;
+	} else {
+		/* split large transfers between 2nd and 3rd dimensions */
+		for (ccnt = 1; (ccnt <= 6) && (ccnt_found == 0); ccnt++) {
+			bcnt = (rlen/(acnt*ccnt));
+			if ((bcnt < max_bcnt) && (rlen % bcnt == 0)) {
+				ccnt_found = 1;
+				break;
+			}
+		}
+	}
+	if (ccnt_found == 0) {
+		printf("Unable to configure EDMA exiting\n");
+		return 1;
+	}
+
+	/* base param set does tranfers in multiples of edma_zero_buff length*/
+	edma_param.opt       = 0;
+	edma_param.src_addr  = ((unsigned int) edma_zero_buff);
+	edma_param.dest_addr = addr;
+	edma_param.a_cnt     = acnt;
+	edma_param.b_cnt     = bcnt;
+	edma_param.c_cnt     = ccnt;
+	edma_param.src_bidx  = 0;
+	edma_param.dest_bidx = acnt;
+	edma_param.b_cnt_reload = bcnt;
+	edma_param.src_cidx  = 0;
+	edma_param.dest_cidx = 0;
+	edma_param.link_addr = (edma_ch_num+64)*32;
+	edma_param.opt     |=
+		(EDMA_TPCC_OPT_TCCHEN_MASK |
+		 ((edma_ch_num <<
+		   EDMA_TPCC_OPT_TCC_SHIFT) &
+		  EDMA_TPCC_OPT_TCC_MASK) |
+		 EDMA_TPCC_OPT_ITCCHEN_MASK);
+
+	edma_set_param(edma_ch_num, &edma_param);
+
+	/* linked param set transfers remaining data if any */
+	edma_param.opt       = 0;
+	edma_param.src_addr  = ((unsigned int) edma_zero_buff);
+	edma_param.dest_addr = addr + rlen;
+	edma_param.a_cnt     = len-rlen;
+	edma_param.b_cnt     = 1;
+	edma_param.c_cnt     = 1;
+	edma_param.src_bidx  = 0;
+	edma_param.dest_bidx = 1;
+	edma_param.b_cnt_reload = bcnt;
+	edma_param.src_cidx  = 0;
+	edma_param.dest_cidx = 0;
+	edma_param.link_addr = 0xFFFF;
+	edma_param.opt     |=
+		(EDMA_TPCC_OPT_TCINTEN_MASK |
+		 ((edma_ch_num <<
+		   EDMA_TPCC_OPT_TCC_SHIFT) &
+		  EDMA_TPCC_OPT_TCC_MASK));
+
+	edma_set_param((edma_ch_num+64), &edma_param);
+
+	edma_enable_transfer(edma_ch_num);
+	if (wait_till_complete)
+		edma_wait_till_complete(edma_ch_num, 0);
+	return 0;
+}
+
+/**
+ * @brief Wait until a transfer on a given channel is complete.
+ *
+ * @param edma_ch_num Number of the edma channel whose completion this function
+ * checks for. It is is assumed that there is a 1-to-1 mapping between edma
+ * channels and TCC's. If not, supply the TCC code as argument instead of the
+ * edma channel number.
+ *
+ * @param wait_cnt Number of times the function should check for completion.
+ * Set to 0 if this function should only return on completion of transfer.
+ */
+u32 edma_wait_till_complete(unsigned int edma_ch_num, u32 wait_cnt)
+{
+	if (wait_cnt == 0) {
+		/* Large enough to be wait forever */
+		wait_cnt = 0x0FFFFFFF;
+	}
+	while (!(edma_get_intr_status() & (1 << edma_ch_num))) {
+		wait_cnt--;
+		if (wait_cnt == 0)
+			return 1;
+	}
+	edma_clr_intr(edma_ch_num);
+	return 0;
 }

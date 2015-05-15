@@ -41,6 +41,9 @@
 #define EDMA_TPCC_OPT_TCC_SHIFT		(12)
 #define EDMA_TPCC_OPT_TCC_MASK		(0x0003f000)
 #define EDMA_TPCC_OPT_TCINTEN_MASK	(0x00100000)
+#define EDMA_TPCC_OPT_ITCINTEN_MASK	(0x00200000)
+#define EDMA_TPCC_OPT_TCCHEN_MASK	(0x00400000)
+#define EDMA_TPCC_OPT_ITCCHEN_MASK	(0x00800000)
 #define EDMA_TPCC_OPT_SYNCDIM_MASK	(0x00000004)
 
 /** DMAQNUM bits Clear */
@@ -156,4 +159,7 @@ void edma_set_param(u32 param_id, struct edma_param_entry* new_param);
 bool edma_enable_transfer(u32 ch_num);
 u32 edma_get_intr_status(void);
 void edma_clr_intr(u32 value);
+u32 edma_zero_memory(void *data, size_t len, unsigned int edma_ch_num,
+		     u32 wait_till_completion);
+u32 edma_wait_till_complete(unsigned int edma_ch_num, u32 wait_cnt);
 #endif
