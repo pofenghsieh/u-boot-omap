@@ -144,6 +144,14 @@ void s_init(void)
 	init_omap_revision();
 	hw_data_init();
 
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_SPI_PROD_OS_BOOT)
+	if (((get_sysboot_value() & SYSBOOT_TYPE_MASK) == SYSBOOT_TYPE_PROD) &&
+	    ((get_sysboot_value() == SYS_BOOT_QSPI_1_PROD) ||
+	     (get_sysboot_value() == SYS_BOOT_QSPI_4_PROD))) {
+		gd->arch.omap_boot_params.omap_bootmode = SPI_MODE_PROD;
+	}
+#endif
+
 #ifdef CONFIG_SPL_BUILD
 	if (warm_reset() &&
 	    (is_omap44xx() || (omap_revision() == OMAP5430_ES1_0)))

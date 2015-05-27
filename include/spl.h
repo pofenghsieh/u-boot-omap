@@ -18,6 +18,9 @@
 #define MMCSD_MODE_RAW		1
 #define MMCSD_MODE_FAT		2
 #define MMCSD_MODE_EMMCBOOT	3
+#ifdef CONFIG_SPL_SPI_PROD_OS_BOOT
+#define SPI_MODE_PROD		4
+#endif
 
 struct spl_image_info {
 	const char *name;

@@ -1202,8 +1202,14 @@ int spl_start_uboot(void)
 	if (serial_tstc() && serial_getc() == 'c')
 		return 1;
 
+#ifdef CONFIG_SPL_SPI_PROD_OS_BOOT
+	/* boot the os if boot mode is qspi prod */
+	if (spl_boot_mode() == SPI_MODE_PROD)
+		return 0;
+#else
 	if ((get_sysboot_value() & SYSBOOT_TYPE_MASK) == SYSBOOT_TYPE_PROD)
 		return 0;
+#endif
 
 #ifdef CONFIG_SPL_ENV_SUPPORT
 #ifdef CONFIG_ENV_IS_IN_MMC

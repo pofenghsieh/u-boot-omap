@@ -81,6 +81,10 @@ u32 spl_boot_mode(void)
 {
 	u32 val = gd->arch.omap_boot_params.omap_bootmode;
 
+#ifdef CONFIG_SPL_SPI_PROD_OS_BOOT
+	if (val == SPI_MODE_PROD)
+		return SPI_MODE_PROD;
+#endif
 	if (val == MMCSD_MODE_RAW)
 		return MMCSD_MODE_RAW;
 	else if (val == MMCSD_MODE_FAT)
