@@ -103,7 +103,7 @@
 	"rootfs part 0 2;" \
 	"MLO fat 0 1;" \
 	"MLO.raw raw 0x100 0x100;" \
-	"u-boot.img.raw raw 0x300 0x400;" \
+	"u-boot.img.raw raw 0x200 0x400;" \
 	"spl-os-args.raw raw 0x80 0x80;" \
 	"spl-os-image.raw raw 0x900 0x2000;" \
 	"spl-os-args fat 0 1;" \
@@ -118,7 +118,7 @@
 	"rootfs part 1 2;" \
 	"MLO fat 1 1;" \
 	"MLO.raw raw 0x100 0x100;" \
-	"u-boot.img.raw raw 0x300 0x400;" \
+	"u-boot.img.raw raw 0x200 0x400;" \
 	"spl-os-args.raw raw 0x80 0x80;" \
 	"spl-os-image.raw raw 0x900 0x2000;" \
 	"spl-os-args fat 1 1;" \
@@ -132,11 +132,28 @@
 	"fdt ram 0x80f80000 0x80000;" \
 	"ramdisk ram 0x81000000 0x4000000\0"
 
+#ifdef CONFIG_SPL_DFU
+#define DFU_ALT_INFO_EMMC_SPL \
+	"dfu_alt_info_emmc_spl=" \
+	"rawemmc raw 0 14680064;" \
+	"MLO.raw raw 0x100 0x100;" \
+	"u-boot.img.raw raw 0x200 0x400;" \
+	"spl-os-args.raw raw 0x80 0x80;" \
+	"spl-os-image.raw raw 0x900 0x2000;" \
+	"spl-os-args fat 1 1;" \
+	"spl-os-image fat 1 1;" \
+	"u-boot.img fat 1 1;" \
+	"uEnv.txt fat 1 1\0"
+#define DFUARGS \
+	"dfu_bufsiz=0x10000\0" \
+	DFU_ALT_INFO_EMMC_SPL
+#else
 #define DFUARGS \
 	"dfu_bufsiz=0x10000\0" \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_EMMC \
 	DFU_ALT_INFO_RAM
+#endif
 
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 #define CONFIG_EXTRA_ENV_SETTINGS \

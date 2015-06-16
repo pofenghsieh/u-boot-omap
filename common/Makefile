@@ -217,6 +217,19 @@ obj-$(CONFIG_CMD_GPT) += cmd_gpt.o
 endif
 
 ifdef CONFIG_SPL_BUILD
+ifdef CONFIG_SPL_DFU
+obj-y += command.o
+obj-y += cli.o
+obj-y += cli_readline.o
+obj-y += hash.o
+ifdef CONFIG_SYS_HUSH_PARSER
+obj-y += cli_hush.o
+endif
+obj-y += env_attr.o
+obj-y += env_callback.o
+obj-y += env_flags.o
+endif
+obj-y+= cmd_bootm.o
 obj-$(CONFIG_ENV_IS_IN_FLASH) += env_flash.o
 obj-$(CONFIG_SPL_YMODEM_SUPPORT) += xyzModem.o
 obj-$(CONFIG_SPL_NET_SUPPORT) += miiphyutil.o

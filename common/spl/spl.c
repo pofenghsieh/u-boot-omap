@@ -16,6 +16,13 @@
 #include <image.h>
 #include <malloc.h>
 #include <linux/compiler.h>
+#ifdef CONFIG_SPL_DFU
+#include <environment.h>
+#include <dfu.h>
+#include <g_dnl.h>
+#include <usb.h>
+#include <mmc.h>
+#endif
 #include <remoteproc.h>
 
 #if defined(CONFIG_PERIPHERAL_BOOT) && defined(CONFIG_CMD_FASTBOOT)
@@ -66,6 +73,56 @@ __weak void spl_board_prepare_for_linux(void)
 {
 	/* Nothing to do! */
 }
+
+#ifdef CONFIG_SPL_DFU
+static int run_dfu_emmc(void)
+{
+	char *str_env;
+	int ret = 1;
+	char *interface = "mmc";
+	int i = 0;
+
+	set_default_env(0);
+	str_env = getenv("dfu_alt_info_emmc_spl");
+	if (!str_env) {
+		error("\"dfu_alt_info_emmc_spl\" env variable not defined!\n");
+		return -EINVAL;
+	}
+
+	ret = setenv("dfu_alt_info", str_env);
+	if (ret) {
+		error("unable to set env variable \"dfu_alt_info\"!\n");
+		return -EINVAL;
+	}
+
+	ret = dfu_init_env_entities(interface, 1);
+	if (ret)
+		goto done;
+
+	ret = CMD_RET_SUCCESS;
+
+	board_usb_init(0, 1);
+	g_dnl_register("usb_dnl_dfu");
+
+	while (1) {
+		if (dfu_reset())
+			if (++i == 10)
+				goto exit;
+		if (ctrlc())
+			goto exit;
+		usb_gadget_handle_interrupts(0);
+	}
+exit:
+	g_dnl_unregister();
+	board_usb_cleanup(0, 1);
+done:
+	dfu_free_entities();
+	if (dfu_reset())
+		run_command("reset", 0);
+
+	return ret;
+}
+#endif
 
 void spl_parse_image_header(const struct image_header *header)
 {
@@ -217,6 +274,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 	boot_device = spl_boot_device();
 	debug("boot device - %d\n", boot_device);
+
 	switch (boot_device) {
 #ifdef CONFIG_SPL_RAM_DEVICE
 	case BOOT_DEVICE_RAM:
@@ -286,8 +344,13 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		spl_net_load_image("usb_ether");
 		break;
 #endif
-#if defined(CONFIG_SPL_USB_HOST_SUPPORT) || defined(CONFIG_PERIPHERAL_BOOT)
 	case BOOT_DEVICE_USB:
+#ifdef CONFIG_SPL_DFU
+		mmc_initialize(gd->bd);
+		spl_start_uboot();
+		run_dfu_emmc();
+#endif
+#if defined(CONFIG_SPL_USB_HOST_SUPPORT) || defined(CONFIG_PERIPHERAL_BOOT)
 #ifdef CONFIG_PERIPHERAL_BOOT
 #ifdef CONFIG_CMD_FASTBOOT
 		puts("SPL: successfully booted, starting fastboot...\n");

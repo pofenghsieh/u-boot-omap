@@ -34,6 +34,9 @@ obj-$(CONFIG_SOCFPGA_DWMMC) += socfpga_dw_mmc.o
 obj-$(CONFIG_SUPPORT_EMMC_RPMB) += rpmb.o
 ifdef CONFIG_SPL_BUILD
 obj-$(CONFIG_SPL_MMC_BOOT) += fsl_esdhc_spl.o
+ifdef CONFIG_SPL_DFU
+obj-$(CONFIG_GENERIC_MMC) += mmc_write.o
+endif
 else
 obj-$(CONFIG_GENERIC_MMC) += mmc_write.o
 endif
