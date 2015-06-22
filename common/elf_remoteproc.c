@@ -477,6 +477,11 @@ unsigned long load_elf_image_phdr_rproc(unsigned long addr,
 
 		memcpy(&proghdr, phdr, sizeof(Elf32_Phdr));
 
+		if (proghdr.p_type != PT_LOAD) {
+			++phdr;
+			continue;
+		}
+
 		va = proghdr.p_paddr;
 		pa = va_to_pa(va);
 		if (pa)
