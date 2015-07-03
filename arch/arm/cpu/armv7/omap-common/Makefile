@@ -24,7 +24,6 @@ endif
 
 ifneq ($(CONFIG_OMAP_SECURE),)
 obj-y	+= sec_fxns.o
-obj-y	+= sec_entry.o
 obj-y	+= sec_entry_bridge.o
 endif
 

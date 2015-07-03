@@ -52,7 +52,7 @@ SEC_ENTRY_Pub2SecBridgeEntry:
     MCR     p15, 0, r0, c7, c10, 5
 
     /* Use SMC #1 to enter Monitor */
-    SMC     0
+    SMC     1
     B SEC_ENTRY_ServiceEnd /* At end of the service execution, SW comes here */
     NOP
 
