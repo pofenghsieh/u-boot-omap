@@ -156,6 +156,8 @@ const struct omap_sysinfo sysinfo = {
 #define MIXED_TLB                            0x0
 #define MIXED_CPU                            0x1
 
+#define PGT_SMALLPAGE_SIZE                   0x00001000
+#define PGT_LARGEPAGE_SIZE                   0x00010000
 #define PGT_SECTION_SIZE                     0x00100000
 #define PGT_SUPERSECTION_SIZE                0x01000000
 
@@ -163,11 +165,20 @@ const struct omap_sysinfo sysinfo = {
 #define PGT_L1_DESC_SECTION                  0x00002
 #define PGT_L1_DESC_SUPERSECTION             0x40002
 
+#define PGT_L1_DESC_PAGE_MASK                0xfffffC00
 #define PGT_L1_DESC_SECTION_MASK             0xfff00000
 #define PGT_L1_DESC_SUPERSECTION_MASK        0xff000000
 
+#define PGT_L1_DESC_SMALLPAGE_INDEX_SHIFT    12
+#define PGT_L1_DESC_LARGEPAGE_INDEX_SHIFT    16
 #define PGT_L1_DESC_SECTION_INDEX_SHIFT      20
 #define PGT_L1_DESC_SUPERSECTION_INDEX_SHIFT 24
+
+#define PGT_L2_DESC_SMALLPAGE               0x02
+#define PGT_L2_DESC_LARGEPAGE               0x01
+
+#define PGT_L2_DESC_SMALLPAGE_MASK          0xfffff000
+#define PGT_L2_DESC_LARGEPAGE_MASK          0xffff0000
 
 #define DRA7_RPROC_CMA_BASE_IPU1             0x9d000000
 #define DRA7_RPROC_CMA_BASE_IPU2             0x95800000
@@ -180,12 +191,21 @@ const struct omap_sysinfo sysinfo = {
 #define DRA7_RPROC_CMA_SIZE_DSP2             0x00800000
 
 /*
- * The page table (16 KB) is placed at the end of the CMA reserved area.
+ * The page table (32 KB) is placed at the end of the CMA reserved area.
  * It's possible that this location is needed by the firmware (in which
  * case the firmware is using pretty much *all* of the reserved area), but
  * there doesn't seem to be a better location to place it.
-*/
-#define PAGE_TABLE_SIZE 0x00004000
+ *
+ * We only need 16 KB memory for the page table if we are using all 1
+ * MB sections.  There might be cases where we need to allocate memory
+ * at a lower granularity.  For these cases, we are allocating 16 KB
+ * additional memory.
+ */
+#define PAGE_TABLE_SIZE_L1 (0x00004000)
+#define PAGE_TABLE_SIZE_L2 (0x400)
+#define MAX_NUM_L2_PAGE_TABLES (16)
+#define PAGE_TABLE_SIZE_L2_TOTAL (MAX_NUM_L2_PAGE_TABLES*PAGE_TABLE_SIZE_L2)
+#define PAGE_TABLE_SIZE (PAGE_TABLE_SIZE_L1+(PAGE_TABLE_SIZE_L2_TOTAL))
 
 #define PAGE_SHIFT 12
 #define PAGE_SIZE  (1 << PAGE_SHIFT)
@@ -205,7 +225,8 @@ const struct omap_sysinfo sysinfo = {
 		(1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL               \
 )
 
-unsigned int *page_table = (unsigned int *)0x0;
+unsigned int *page_table_l1 = (unsigned int *)0x0;
+unsigned int *page_table_l2 = (unsigned int *)0x0;
 
 /* Set maximum carveout size to 96 MB */
 #define DRA7_RPROC_MAX_CMA_SIZE (96*0x100000)
@@ -220,6 +241,9 @@ unsigned long mem_base = 0;
 unsigned long mem_size = 0;
 unsigned long mem_bitmap[BITS_TO_LONGS(DRA7_RPROC_MAX_CMA_SIZE >> PAGE_SHIFT)];
 unsigned long mem_count = 0;
+
+unsigned int pgtable_l2_map[MAX_NUM_L2_PAGE_TABLES];
+unsigned int pgtable_l2_cnt = 0;
 
 void bitmap_set(unsigned long *map, int start, int nr)
 {
@@ -395,19 +419,169 @@ void *alloc_mem(unsigned long len, unsigned long align)
 	return (void *)(mem_base + (pageno << PAGE_SHIFT));
 }
 
+int find_pagesz(unsigned int virt, unsigned int phys, unsigned int len)
+{
+	int pg_sz_ind = -1;
+	unsigned int min_align = __ffs(virt);
+
+	if (min_align > __ffs(phys))
+		min_align = __ffs(phys);
+
+	if ((min_align >= PGT_L1_DESC_SUPERSECTION_INDEX_SHIFT) &&
+	    (len >= 0x1000000)) {
+		pg_sz_ind = PAGESIZE_16M;
+		goto ret_block;
+	}
+	if ((min_align >= PGT_L1_DESC_SECTION_INDEX_SHIFT) &&
+	    (len >= 0x100000)) {
+		pg_sz_ind = PAGESIZE_1M;
+		goto ret_block;
+	}
+	if ((min_align >= PGT_L1_DESC_LARGEPAGE_INDEX_SHIFT) &&
+	    (len >= 0x10000)) {
+		pg_sz_ind = PAGESIZE_64K;
+		goto ret_block;
+	}
+	if ((min_align >= PGT_L1_DESC_SMALLPAGE_INDEX_SHIFT) &&
+	    (len >= 0x1000)) {
+		pg_sz_ind = PAGESIZE_4K;
+		goto ret_block;
+	}
+
+ret_block:
+	return pg_sz_ind;
+}
+
+int get_l2_pg_tbl_addr(unsigned int virt, unsigned int *pg_tbl_addr)
+{
+	int ret = -1;
+	int i = 0;
+	int match_found = 0;
+	unsigned int tag = (virt & PGT_L1_DESC_SECTION_MASK);
+
+	*pg_tbl_addr = 0;
+	for (i = 0; (i < pgtable_l2_cnt) && (match_found == 0); i++) {
+		if (tag == pgtable_l2_map[i]) {
+			*pg_tbl_addr =
+			    ((unsigned int)page_table_l2) +
+			    (i * PAGE_TABLE_SIZE_L2);
+			match_found = 1;
+			ret = 0;
+		}
+	}
+
+	if ((match_found == 0) && (i < MAX_NUM_L2_PAGE_TABLES)) {
+		pgtable_l2_map[i] = tag;
+		pgtable_l2_cnt++;
+		*pg_tbl_addr =
+		    ((unsigned int)page_table_l2) + (i * PAGE_TABLE_SIZE_L2);
+		ret = 0;
+	}
+
+	return ret;
+}
+
+int config_l2_pagetable(unsigned int virt, unsigned int phys,
+			unsigned int pg_sz, unsigned int pg_tbl_addr)
+{
+	int ret = -1;
+	unsigned int desc = 0;
+	int32_t i = 0;
+	unsigned int *pg_tbl = (unsigned int *)pg_tbl_addr;
+
+	/* Pick bit 19:12 of the virtual address as index */
+	unsigned int index = (virt & (~PGT_L1_DESC_SECTION_MASK)) >> PAGE_SHIFT;
+
+	switch (pg_sz) {
+	case PAGESIZE_64K:
+		desc =
+		    (phys & PGT_L2_DESC_LARGEPAGE_MASK) | PGT_L2_DESC_LARGEPAGE;
+		for (i = 0; i < 16; i++)
+			pg_tbl[index + i] = desc;
+		ret = 0;
+		break;
+	case PAGESIZE_4K:
+		desc =
+		    (phys & PGT_L2_DESC_SMALLPAGE_MASK) | PGT_L2_DESC_SMALLPAGE;
+		pg_tbl[index] = desc;
+		ret = 0;
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
 unsigned int config_pagetable(unsigned int virt, unsigned int phys,
 			      unsigned int len)
 {
-	unsigned int index = virt >> PGT_L1_DESC_SECTION_INDEX_SHIFT;
+	unsigned int index;
 	unsigned int l = len;
 	unsigned int desc;
+	int pg_sz = 0;
+	int32_t i = 0;
+	int32_t err = 0;
+	unsigned int pg_tbl_l2_addr = 0;
+	unsigned int tmp_pgsz;
+
+	if ((len & 0x0FFF) != 0)
+		return 0;
 
 	while (l > 0) {
-		desc = (phys & PGT_L1_DESC_SECTION_MASK) | PGT_L1_DESC_SECTION;
-		page_table[index++] = desc;
+		pg_sz = find_pagesz(virt, phys, l);
+		index = virt >> PGT_L1_DESC_SECTION_INDEX_SHIFT;
+		switch (pg_sz) {
+			/* 16 MB super section */
+		case PAGESIZE_16M:
+			/* Program the next 16 descriptors */
+			desc =
+			    (phys & PGT_L1_DESC_SUPERSECTION_MASK) |
+			    PGT_L1_DESC_SUPERSECTION;
+			for (i = 0; i < 16; i++)
+				page_table_l1[index + i] = desc;
+			l -= PGT_SUPERSECTION_SIZE;
+			phys += PGT_SUPERSECTION_SIZE;
+			virt += PGT_SUPERSECTION_SIZE;
+			break;
+			/* 1 MB section */
+		case PAGESIZE_1M:
+			desc =
+			    (phys & PGT_L1_DESC_SECTION_MASK) |
+			    PGT_L1_DESC_SECTION;
+			page_table_l1[index] = desc;
+			l -= PGT_SECTION_SIZE;
+			phys += PGT_SECTION_SIZE;
+			virt += PGT_SECTION_SIZE;
+			break;
+			/* 64 KB large page */
+		case PAGESIZE_64K:
+		case PAGESIZE_4K:
+			if (pg_sz == PAGESIZE_64K)
+				tmp_pgsz = 0x10000;
+			else
+				tmp_pgsz = 0x1000;
 
-		l -= PGT_SECTION_SIZE;
-		phys += PGT_SECTION_SIZE;
+			err = get_l2_pg_tbl_addr(virt, &pg_tbl_l2_addr);
+			if (err != 0) {
+				printf("error: Unable to get level 2 page table addresss\n");
+				hang();
+			}
+			err =
+			    config_l2_pagetable(virt, phys, pg_sz,
+						pg_tbl_l2_addr);
+			desc =
+			    (pg_tbl_l2_addr & PGT_L1_DESC_PAGE_MASK) |
+			    PGT_L1_DESC_PAGE;
+			page_table_l1[index] = desc;
+			l -= tmp_pgsz;
+			phys += tmp_pgsz;
+			virt += tmp_pgsz;
+			break;
+		case -1:
+		default:
+			return 0;
+		}
 	}
 
 	return len;
@@ -939,7 +1113,8 @@ u32 spl_boot_core(u32 core_id)
 		cfg->start_clocks(core_id, cfg);
 
 	/* Calculate the page table address */
-	cfg->page_table_addr = cfg->cma_base + cfg->cma_size - (PAGE_TABLE_SIZE);
+	cfg->page_table_addr =
+	    cfg->cma_base + cfg->cma_size - (PAGE_TABLE_SIZE);
 
 	debug("Configuring IOMMU\n");
 
@@ -955,11 +1130,17 @@ u32 spl_boot_core(u32 core_id)
 	 * remote core.
 	 */
 
-	page_table = (unsigned int *)cfg->page_table_addr;
+	page_table_l1 = (unsigned int *)cfg->page_table_addr;
+	page_table_l2 =
+	    (unsigned int *)(cfg->page_table_addr + PAGE_TABLE_SIZE_L1);
 	mem_base = cfg->cma_base;
 	mem_size = cfg->cma_size;
 	memset(mem_bitmap, 0x00, sizeof(mem_bitmap));
 	mem_count = (cfg->cma_size >> PAGE_SHIFT);
+
+	/* Clear variables used for level 2 page table allocation */
+	memset(pgtable_l2_map, 0x00, sizeof(pgtable_l2_map));
+	pgtable_l2_cnt = 0;
 
 	debug("Loading ELF Image\n");
 	load_elf_status =
