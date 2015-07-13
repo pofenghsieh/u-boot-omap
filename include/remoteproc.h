@@ -402,8 +402,10 @@ typedef u32(*init_func_proto) (u32 core_id, struct rproc *cfg);
  *
  * @cma_size: Length of the carveout in bytes.
  *
- * @page_table_addr: array with the physical address of the page table for each
- * iommu.
+ * @page_table_addr: array with the physical address of the page table. We are
+ * using the same page table for both IOMMU's. There is currently no strong
+ * usecase for maintaining different page tables for different MMU's servicing
+ * the same CPU.
  *
  * @mmu_base_addr: base address of the MMU
  *
@@ -419,11 +421,12 @@ typedef u32(*init_func_proto) (u32 core_id, struct rproc *cfg);
  * @firmware_name: Name of the file that is expected to contain the ELF image.
  *
  */
+
 struct rproc {
 	u32 num_iommus;
 	unsigned long cma_base;
 	u32 cma_size;
-	unsigned long page_table_addr[MAX_NUM_IOMMU];
+	unsigned long page_table_addr;
 	unsigned long mmu_base_addr[MAX_NUM_IOMMU];
 	unsigned long load_addr;
 	unsigned long entry_point;

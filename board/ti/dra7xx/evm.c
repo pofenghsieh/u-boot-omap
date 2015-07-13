@@ -532,18 +532,18 @@ u32 ipu_config_mmu(u32 core_id, struct rproc *cfg)
 	u32 i = 0;
 	u32 reg = 0;
 
+	/*
+	 * Clear the entire pagetable location before programming the
+	 * address into the MMU
+	 */
+	memset((void *)cfg->page_table_addr, 0x00, PAGE_TABLE_SIZE);
+	debug("Cleared the page table for MMU\n");
+
 	for (i = 0; i < cfg->num_iommus; i++) {
 
 		u32 mmu_base = cfg->mmu_base_addr[i];
 
-		/*
-		 * Clear the entire pagetable location before programming the
-		 * address into the MMU
-		 */
-		memset((void *)cfg->page_table_addr[i], 0x00, PAGE_TABLE_SIZE);
-		debug("Cleared the page table for MMU%d\n", i);
-
-		__raw_writel((int)cfg->page_table_addr[i], mmu_base + 0x4c);
+		__raw_writel((int)cfg->page_table_addr, mmu_base + 0x4c);
 		reg = __raw_readl(mmu_base + 0x88);
 
 		/* enable bus-error back */
@@ -829,7 +829,7 @@ struct rproc ipu1_config = {
 	.num_iommus = 1,
 	.cma_base = DRA7_RPROC_CMA_BASE_IPU1,
 	.cma_size = DRA7_RPROC_CMA_SIZE_IPU1,
-	.page_table_addr = {0, 0},
+	.page_table_addr = 0,
 	.mmu_base_addr = {0x58882000, 0},
 	.load_addr = IPU_LOAD_ADDR,
 	.core_name = "IPU1",
@@ -849,7 +849,7 @@ struct rproc ipu2_config = {
 	.num_iommus = 1,
 	.cma_base = DRA7_RPROC_CMA_BASE_IPU2,
 	.cma_size = DRA7_RPROC_CMA_SIZE_IPU2,
-	.page_table_addr = {0, 0},
+	.page_table_addr = 0,
 	.mmu_base_addr = {0x55082000, 0},
 	.load_addr = IPU_LOAD_ADDR,
 	.core_name = "IPU2",
@@ -869,7 +869,7 @@ struct rproc dsp1_config = {
 	.num_iommus = 2,
 	.cma_base = DRA7_RPROC_CMA_BASE_DSP1,
 	.cma_size = DRA7_RPROC_CMA_SIZE_DSP1,
-	.page_table_addr = {0, 0},
+	.page_table_addr = 0,
 	.mmu_base_addr = {0x40D01000, 0x40D02000},
 	.load_addr = DSP_LOAD_ADDR,
 	.core_name = "DSP1",
@@ -889,7 +889,7 @@ struct rproc dsp2_config = {
 	.num_iommus = 2,
 	.cma_base = DRA7_RPROC_CMA_BASE_DSP2,
 	.cma_size = DRA7_RPROC_CMA_SIZE_DSP2,
-	.page_table_addr = {0, 0},
+	.page_table_addr = 0,
 	.mmu_base_addr = {0x41501000, 0x41502000},
 	.load_addr = DSP_LOAD_ADDR,
 	.core_name = "DSP2",
@@ -919,7 +919,6 @@ extern unsigned long load_elf_image_phdr_rproc(unsigned long addr,
 u32 spl_boot_core(u32 core_id)
 {
 	struct rproc *cfg = NULL;
-	u32 i = 0;
 	unsigned long load_elf_status = 0;
 
 	if ((core_id == 0) || (core_id >= RPROC_END_ENUMS)) {
@@ -940,10 +939,7 @@ u32 spl_boot_core(u32 core_id)
 		cfg->start_clocks(core_id, cfg);
 
 	/* Calculate the page table address */
-	for (i = 0; i < cfg->num_iommus; i++) {
-		cfg->page_table_addr[i] =
-		    cfg->cma_base + cfg->cma_size - ((i + 1) * PAGE_TABLE_SIZE);
-	}
+	cfg->page_table_addr = cfg->cma_base + cfg->cma_size - (PAGE_TABLE_SIZE);
 
 	debug("Configuring IOMMU\n");
 
@@ -959,7 +955,7 @@ u32 spl_boot_core(u32 core_id)
 	 * remote core.
 	 */
 
-	page_table = (unsigned int *)cfg->page_table_addr[0];
+	page_table = (unsigned int *)cfg->page_table_addr;
 	mem_base = cfg->cma_base;
 	mem_size = cfg->cma_size;
 	memset(mem_bitmap, 0x00, sizeof(mem_bitmap));
@@ -976,11 +972,6 @@ u32 spl_boot_core(u32 core_id)
 		debug("Core entry point is 0x%08x\n",
 		      (unsigned int)cfg->entry_point);
 	}
-
-	/* Duplicate the page table for the DSP's */
-	if (cfg->num_iommus == 2)
-		memcpy((void *)cfg->page_table_addr[1],
-		       (void *)cfg->page_table_addr[0], PAGE_TABLE_SIZE);
 
 	if (cfg->config_peripherals)
 		cfg->config_peripherals(core_id, cfg);
