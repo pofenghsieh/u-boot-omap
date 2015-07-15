@@ -212,11 +212,12 @@ void spl_load_cores(u32 *cores, u32 numcores)
 	for (i = 0; i < numcores ; i++) {
 		u32 core = cores[i];
 		if (spl_mmc_load_core(core) || spl_boot_core(core)) {
+			cores[i] = (cores[i] | SPL_CORE_LOAD_ERR_ID);
 			printf
 				("Error loading remotecore %s!,Continuing with boot ...\n",
 				 rproc_cfg_arr[core]->core_name);
 		} else {
-			cores[i] = (cores[i] | SPL_CORE_LOAD_ERR_ID);
+			debug("loading remote core successful\n");
 		}
 	}
 	return;
