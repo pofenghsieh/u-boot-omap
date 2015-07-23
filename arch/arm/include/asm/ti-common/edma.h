@@ -143,6 +143,11 @@ struct edma_param_entry {
 	 * @brief Number of Frames in a block (CCNT)
 	 */
 	u16 c_cnt;
+
+	/**
+	 * @brief reserved member.
+	 */
+	u16 rsv;
 } __packed;
 
 void edma_init(u32 que_num);
