@@ -333,6 +333,13 @@ void init_cpu_configuration(void)
 	omap_smc1(OMAP5_SERVICE_L2ACTLR_SET, l2actlr);
 }
 
+void v7_arch_cp15_set_acr(u32 acr, u32 cpu_midr, u32 cpu_rev_comb,
+			  u32 cpu_variant, u32 cpu_rev)
+{
+	omap_smc1(OMAP5_SERVICE_ACR_SET, acr);
+}
+
+
 void init_omap_revision(void)
 {
 	/*
