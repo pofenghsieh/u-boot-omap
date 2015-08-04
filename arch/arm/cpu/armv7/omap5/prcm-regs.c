@@ -819,6 +819,15 @@ struct prcm_regs const dra7xx_prcm = {
 	.cm_dsp_clkstctrl			= 0x4a005400,
 	.cm_dsp_dsp_clkctrl			= 0x4a005420,
 
+	.rm_dsp_rstctrl				= 0x4AE06410,
+	.pm_dsp_pwrstctrl			= 0x4AE06400,
+
+	.cm_dsp2_clkstctrl			= 0x4A005600,
+	.cm_dsp2_dsp2_clkctrl			= 0x4A005620,
+
+	.rm_dsp2_rstctrl			= 0x4AE07B10,
+	.pm_dsp2_pwrstctrl			= 0x4AE07B00,
+
 	/* cm IPU */
 	.cm_ipu_clkstctrl			= 0x4a005540,
 	.cm_ipu_i2c5_clkctrl			= 0x4a005578,

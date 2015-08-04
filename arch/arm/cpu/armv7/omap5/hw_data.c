@@ -648,6 +648,81 @@ void disable_usb_clocks(int index)
 }
 #endif
 
+/*
+ * Note that this sequence is expected to be run before any early loading of
+ * the DSP. If run after early loading, then DSP will be put back into reset.
+ * This sequence also expects that the DSP Power State is ON, as is the default
+ * state at reset. As such, it leaves the power state to ON when finished and
+ * it is up to subsequent software to turn it OFF, if desired.
+ */
+void perform_dsp_errata_i872_wa(void)
+{
+	u32 omap_rev = omap_revision();
+	u32 i = 0;
+	u32 timeout = 5000;
+
+	if (omap_rev != DRA752_ES1_0 &&
+	    omap_rev != DRA752_ES1_1 &&
+	    omap_rev != DRA722_ES1_0) {
+		/* Errata does not apply, return */
+		return;
+	}
+
+	/* DSP1 */
+	/* Start a SW force wakeup for DSPSS */
+	writel(0x2, (*prcm)->cm_dsp_clkstctrl);
+	/* Enable DSPSS clock */
+	writel(0x1, (*prcm)->cm_dsp_dsp_clkctrl);
+	/* Reset de-assertion for DSP SS logic */
+	writel(0x1, (*prcm)->rm_dsp_rstctrl);
+	/* Check whether GFCLK is gated or not */
+	while (((readl((*prcm)->cm_dsp_clkstctrl) & 0x100) != 0x100) && (i++ < timeout));
+
+	if (i >= timeout) {
+		printf("Warning: CM_DSP1_CLKSTCTRL GFCLK is not "
+			"running. Errata i872 may still occur if DSP1 "
+			"is not in use. CLKSTCTRL (0x%x): 0x%x\n",
+			(*prcm)->cm_dsp_clkstctrl,
+			readl((*prcm)->cm_dsp_clkstctrl));
+	}
+
+	/* Make the DSP1 CLK CTRL to HW auto */
+	writel(0x3, (*prcm)->cm_dsp_clkstctrl);
+	/* Disable DSPSS clock */
+	writel(0x0, (*prcm)->cm_dsp_dsp_clkctrl);
+	/* Reset assertion for DSP SS logic */
+	writel(0x3, (*prcm)->rm_dsp_rstctrl);
+
+	if (omap_rev == DRA752_ES1_0 ||
+	    omap_rev == DRA752_ES1_1) {
+		i = 0;
+		/* DSP2 */
+		/* Start a SW force wakeup for DSPSS */
+		writel(0x2, (*prcm)->cm_dsp2_clkstctrl);
+		/* Enable DSPSS clock */
+		writel(0x1, (*prcm)->cm_dsp2_dsp2_clkctrl);
+		/* Reset de-assertion for DSP SS logic */
+		writel(0x1, (*prcm)->rm_dsp2_rstctrl);
+		/* Check whether GFCLK is gated or not */
+		while (((readl((*prcm)->cm_dsp2_clkstctrl) & 0x100) != 0x100) && (i++ < timeout));
+
+		if (i >= timeout) {
+		printf("Warning: CM_DSP2_CLKSTCTRL GFCLK is not "
+			"running. Errata i872 may still occur if DSP1 "
+			"is not in use. CLKSTCTRL (0x%x): 0x%x\n",
+			(*prcm)->cm_dsp2_clkstctrl,
+			readl((*prcm)->cm_dsp2_clkstctrl));
+		}
+
+		/* Make the DSP2 CLK CTRL to HW auto */
+		writel(0x3, (*prcm)->cm_dsp2_clkstctrl);
+		/* Disable DSPSS clock */
+		writel(0x0, (*prcm)->cm_dsp2_dsp2_clkctrl);
+		/* Reset assertion for DSP SS logic */
+		writel(0x3, (*prcm)->rm_dsp2_rstctrl);
+	}
+}
+
 const struct ctrl_ioregs ioregs_omap5430 = {
 	.ctrl_ddrch = DDR_IO_I_34OHM_SR_FASTEST_WD_DQ_NO_PULL_DQS_PULL_DOWN,
 	.ctrl_lpddr2ch = DDR_IO_I_34OHM_SR_FASTEST_WD_CK_CKE_NCS_CA_PULL_DOWN,

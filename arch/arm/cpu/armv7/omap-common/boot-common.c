@@ -120,6 +120,7 @@ void spl_board_init(void)
 #endif
 #if defined(CONFIG_DRA7XX)
 	board_init();
+	perform_dsp_errata_i872_wa();
 #endif
 #if defined(CONFIG_OMAP_SECURE)
 	if (get_device_type() == GP_DEVICE) {

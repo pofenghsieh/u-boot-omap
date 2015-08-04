@@ -80,6 +80,15 @@ struct prcm_regs {
 	u32 cm_dsp_clkstctrl;
 	u32 cm_dsp_dsp_clkctrl;
 
+	u32 rm_dsp_rstctrl;
+	u32 pm_dsp_pwrstctrl;
+
+	u32 cm_dsp2_clkstctrl;
+	u32 cm_dsp2_dsp2_clkctrl;
+
+	u32 rm_dsp2_rstctrl;
+	u32 pm_dsp2_pwrstctrl;
+
 	/* cm1.abe */
 	u32 cm1_abe_clkstctrl;
 	u32 cm1_abe_l4abe_clkctrl;
@@ -596,6 +605,8 @@ void enable_basic_uboot_clocks(void);
 void enable_usb_clocks(int index);
 void disable_usb_clocks(int index);
 #endif
+
+void perform_dsp_errata_i872_wa(void);
 
 void scale_vcores(struct vcores_data const *);
 u32 get_offset_code(u32 volt_offset, struct pmic_data *pmic);
