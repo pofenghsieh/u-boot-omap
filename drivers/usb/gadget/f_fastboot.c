@@ -467,6 +467,7 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 		switch (omap_revision()) {
 		case DRA752_ES1_0:
 		case DRA752_ES1_1:
+		case DRA752_ES2_0:
 			strncat(response, "J6", sizeof(response));
 			break;
 		case DRA722_ES1_0:
