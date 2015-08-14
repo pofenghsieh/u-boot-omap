@@ -578,6 +578,13 @@ static int bootz_start(cmd_tbl_t *cmdtp, int flag, int argc,
 		return 1;
 
 	lmb_reserve(&images->lmb, images->ep, zi_end - zi_start);
+#if defined(CONFIG_SECURE_BOOT) && defined(CONFIG_SECURE_IMAGE_AUTH)
+	/* Authenticate loaded kernel image */
+	secure_boot_verify_image(
+		(const void *)images->ep,
+		(size_t)((zi_end - zi_start) + 0x118));
+	debug("kernel authentication passed!\n");
+#endif
 
 	/*
 	 * Handle the BOOTM_STATE_FINDOTHER state ourselves as we do not
@@ -586,6 +593,13 @@ static int bootz_start(cmd_tbl_t *cmdtp, int flag, int argc,
 	if (bootm_find_ramdisk_fdt(flag, argc, argv))
 		return 1;
 
+#if defined(CONFIG_SECURE_BOOT) && defined(CONFIG_SECURE_DTB_AUTH)
+	/* Authenticate loaded device tree */
+	secure_boot_verify_image(
+		(const void *)images->ft_addr,
+		(size_t)(images->ft_len + 0x118));
+	debug("dtb authentication passed!\n");
+#endif
 	return 0;
 }
 

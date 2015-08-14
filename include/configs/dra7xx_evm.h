@@ -196,6 +196,8 @@
 /* Enforce secure boot for high secure devices */
 #ifdef CONFIG_OMAP_SECURE
 #define CONFIG_SECURE_BOOT
+#define CONFIG_SECURE_IMAGE_AUTH
+#define CONFIG_SECURE_DTB_AUTH
 #endif
 
 /* pcf support */
