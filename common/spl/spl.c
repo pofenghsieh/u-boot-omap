@@ -364,8 +364,8 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #else
 		spl_usb_load_image();
 #endif
-		break;
 #endif
+		break;
 #ifdef CONFIG_SPL_SATA_SUPPORT
 	case BOOT_DEVICE_SATA:
 		spl_sata_load_image();
