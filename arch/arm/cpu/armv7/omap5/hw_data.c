@@ -108,7 +108,7 @@ static const struct dpll_params
 static const struct dpll_params
 		core_dpll_params_2128mhz_dra7xx[NUM_SYS_CLKS] = {
 	{266, 2, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 12 MHz   */
-	{266, 4, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 20 MHz   */
+	{266, 4, 2, 1, -1, 4, 62, 4, -1, 5, 4, 6},		/* 20 MHz   */
 	{443, 6, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 16.8 MHz */
 	{277, 4, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 19.2 MHz */
 	{368, 8, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 26 MHz   */
@@ -375,7 +375,7 @@ struct vcores_data dra752_volts = {
 	.eve.pmic	= &tps659038,
 
 	.gpu.value	= VDD_GPU_DRA752,
-	.gpu.efuse.reg	= STD_FUSE_OPP_VMIN_GPU_NOM,
+	.gpu.efuse.reg	= STD_FUSE_OPP_VMIN_GPU_HIGH,
 	.gpu.efuse.reg_bits	= DRA752_EFUSE_REGBITS,
 	.gpu.addr	= TPS659038_REG_ADDR_SMPS6,
 	.gpu.pmic	= &tps659038,
