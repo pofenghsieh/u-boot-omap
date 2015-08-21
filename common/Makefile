@@ -234,6 +234,7 @@ obj-$(CONFIG_ENV_IS_IN_FLASH) += env_flash.o
 obj-$(CONFIG_SPL_YMODEM_SUPPORT) += xyzModem.o
 obj-$(CONFIG_SPL_NET_SUPPORT) += miiphyutil.o
 obj-$(CONFIG_CMD_ELF) += cmd_elf.o
+obj-$(CONFIG_OF_LIBFDT) += fdt_support.o
 obj-$(CONFIG_SPL_USB_SUPPORT) += usb.o
 ifdef CONFIG_PERIPHERAL_BOOT
 obj-$(CONFIG_CMD_FASTBOOT) += cmd_fastboot.o
