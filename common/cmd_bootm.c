@@ -597,7 +597,7 @@ static int bootz_start(cmd_tbl_t *cmdtp, int flag, int argc,
 	/* Authenticate loaded device tree */
 	secure_boot_verify_image(
 		(const void *)images->ft_addr,
-		(size_t)(images->ft_len + 0x118));
+		(size_t)(roundup(images->ft_len, 4) + 0x118));
 	debug("dtb authentication passed!\n");
 #endif
 	return 0;
