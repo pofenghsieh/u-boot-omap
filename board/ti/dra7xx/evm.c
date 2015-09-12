@@ -1423,6 +1423,41 @@ int spl_start_uboot(void)
 }
 #endif
 
+/*
+ * read mac address of the ethernet macs from efuse into
+ * the input array. The input array needs to be 12 bytes
+ * long to accommodate both mac addresses. No checks are
+ * done on the pointer validity.
+ */
+void read_mac_addr_from_efuse(uint8_t *mac_addr_arr)
+{
+	uint8_t *mac_addr;
+	uint32_t mac_hi, mac_lo;
+
+	/* try reading mac address from efuse */
+	mac_addr = &mac_addr_arr[0];
+	mac_lo = readl((*ctrl)->control_core_mac_id_0_lo);
+	mac_hi = readl((*ctrl)->control_core_mac_id_0_hi);
+	mac_addr[0] = (mac_hi & 0xFF0000) >> 16;
+	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
+	mac_addr[2] = mac_hi & 0xFF;
+	mac_addr[3] = (mac_lo & 0xFF0000) >> 16;
+	mac_addr[4] = (mac_lo & 0xFF00) >> 8;
+	mac_addr[5] = mac_lo & 0xFF;
+
+	mac_addr = &mac_addr_arr[6];
+	mac_lo = readl((*ctrl)->control_core_mac_id_1_lo);
+	mac_hi = readl((*ctrl)->control_core_mac_id_1_hi);
+	mac_addr[0] = (mac_hi & 0xFF0000) >> 16;
+	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
+	mac_addr[2] = mac_hi & 0xFF;
+	mac_addr[3] = (mac_lo & 0xFF0000) >> 16;
+	mac_addr[4] = (mac_lo & 0xFF00) >> 8;
+	mac_addr[5] = mac_lo & 0xFF;
+
+	return;
+}
+
 #ifdef CONFIG_DRIVER_TI_CPSW
 
 /* Delay value to add to calibrated value */
@@ -1481,20 +1516,13 @@ static struct cpsw_platform_data cpsw_data = {
 int board_eth_init(bd_t *bis)
 {
 	int ret;
-	uint8_t mac_addr[6];
-	uint32_t mac_hi, mac_lo;
+	uint8_t *mac_addr;
+	uint8_t mac_addr_arr[12];
 	uint32_t ctrl_val;
 
-	/* try reading mac address from efuse */
-	mac_lo = readl((*ctrl)->control_core_mac_id_0_lo);
-	mac_hi = readl((*ctrl)->control_core_mac_id_0_hi);
-	mac_addr[0] = (mac_hi & 0xFF0000) >> 16;
-	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
-	mac_addr[2] = mac_hi & 0xFF;
-	mac_addr[3] = (mac_lo & 0xFF0000) >> 16;
-	mac_addr[4] = (mac_lo & 0xFF00) >> 8;
-	mac_addr[5] = mac_lo & 0xFF;
+	read_mac_addr_from_efuse(mac_addr_arr);
 
+	mac_addr = &mac_addr_arr[0];
 	if (!getenv("ethaddr")) {
 		printf("<ethaddr> not set. Validating first E-fuse MAC\n");
 
@@ -1502,15 +1530,8 @@ int board_eth_init(bd_t *bis)
 			eth_setenv_enetaddr("ethaddr", mac_addr);
 	}
 
-	mac_lo = readl((*ctrl)->control_core_mac_id_1_lo);
-	mac_hi = readl((*ctrl)->control_core_mac_id_1_hi);
-	mac_addr[0] = (mac_hi & 0xFF0000) >> 16;
-	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
-	mac_addr[2] = mac_hi & 0xFF;
-	mac_addr[3] = (mac_lo & 0xFF0000) >> 16;
-	mac_addr[4] = (mac_lo & 0xFF00) >> 8;
-	mac_addr[5] = mac_lo & 0xFF;
 
+	mac_addr = &mac_addr_arr[6];
 	if (!getenv("eth1addr")) {
 		if (is_valid_ether_addr(mac_addr))
 			eth_setenv_enetaddr("eth1addr", mac_addr);

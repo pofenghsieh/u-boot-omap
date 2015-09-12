@@ -71,6 +71,7 @@ void srcomp_enable(void);
 void setup_warmreset_time(void);
 void omap_smc1(u32 service, u32 val);
 u32 get_sysboot_value(void);
+void read_mac_addr_from_efuse(uint8_t *mac_addr_arr);
 
 static inline u32 div_round_up(u32 num, u32 den)
 {
