@@ -327,6 +327,16 @@ void board_show_dram(ulong size);
  */
 int arch_fixup_memory_node(void *blob);
 
+/**
+ * board_fixup_fdt() - platform specific fixup to fdt
+ *
+ * Defined in common/bootm.c
+ *
+ * @blob:	FDT blob to write to
+ * @return 0 if ok, or -ve on failure
+ */
+int board_fixup_fdt(void *fdt);
+
 /* common/flash.c */
 void flash_perror (int);
 
