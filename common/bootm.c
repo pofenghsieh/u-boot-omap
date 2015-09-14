@@ -215,6 +215,9 @@ static int bootm_find_fdt(int flag, int argc, char * const argv[])
 
 	set_working_fdt_addr(images.ft_addr);
 
+	/* fixup board/platform specific dt update */
+	board_fixup_fdt((void *)images.ft_addr);
+
 	return 0;
 }
 #endif

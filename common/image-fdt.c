@@ -455,6 +455,11 @@ __weak int arch_fixup_memory_node(void *blob)
 	return 0;
 }
 
+__weak int board_fixup_fdt(void *fdt)
+{
+	return 0;
+}
+
 int image_setup_libfdt(bootm_headers_t *images, void *blob,
 		       int of_size, struct lmb *lmb)
 {

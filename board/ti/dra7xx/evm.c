@@ -28,6 +28,8 @@
 #include <pcf8575.h>
 #include <spl.h>
 #include <remoteproc.h>
+#include <libfdt.h>
+#include <fdt_support.h>
 
 #include "mux_data.h"
 
@@ -1166,6 +1168,86 @@ u32 spl_boot_core(u32 core_id)
 }
 
 #endif
+
+static int board_fixup_fdt_mmc(void *fdt, int mmc_num, int pinctl)
+{
+	const struct fdt_property *mmc_prop, *prop;
+	const char *path;
+	char propstr[24];
+	u32 *src, *dest;
+	int length, si_rev = omap_revision(), index;
+
+	sprintf(propstr, "mmc%d", mmc_num);
+	/* get path of mmc node */
+	path = fdt_getpath_prop(fdt, "/aliases", propstr, &length);
+	if (!path) {
+		printf("mmc%d node not found in DT\n", mmc_num);
+		goto err;
+	}
+
+	sprintf(propstr, "mmc%d_pctrl%d_iodelay", mmc_num, pinctl);
+	/* get property of mmc1 iodelay node */
+	prop = fdt_getprop_path(fdt, "/chosen", propstr, &length);
+	if (!prop) {
+		debug("%s node not found in DT\n", propstr);
+		goto err;
+	}
+
+	if (length != 8) {
+		debug("no mmc-iodelay update is needed\n");
+		goto err;
+	}
+
+	sprintf(propstr, "pinctrl-%d", pinctl);
+	mmc_prop = fdt_getprop_path(fdt, (char *)path, propstr, &length);
+	if (!mmc_prop) {
+		debug("prop for pinctrl-4 not found\n");
+		goto err;
+	}
+
+	if (length != 8) {
+		debug("no mmc-iodelay update is needed\n");
+		goto err;
+	}
+
+	/* check silicon-revision */
+	switch (si_rev) {
+	case DRA752_ES1_0:
+	case DRA752_ES1_1:
+		index = 0;
+		break;
+	case DRA752_ES2_0:
+		index = 1;
+		break;
+	default:
+		printf("invalid si-revision\n");
+		goto err;
+	}
+
+	/* udpate the iodelay structure based on si-revision*/
+	src = (u32 *)&prop->data[index * 4];
+	dest = (u32 *)&mmc_prop->data[4];
+	*dest = *src;
+	do_fixup_by_path(fdt, path, propstr, &mmc_prop->data[0], length, 0);
+
+	debug("iodelay update for mmc%d-pinctl%d-done\n", mmc_num, pinctl);
+
+	return 0;
+err:
+	debug("iodelay update for mmc%d-pinctl%d-failed\n", mmc_num, pinctl);
+	return -1;
+}
+
+int board_fixup_fdt(void *fdt)
+{
+	int mmc_num, pinctrl;
+
+	for (mmc_num = 1; mmc_num <= 4; ++mmc_num) {
+		for (pinctrl = 0; pinctrl <= 4; ++pinctrl)
+			board_fixup_fdt_mmc(fdt, mmc_num, pinctrl);
+	}
+	return 0;
+}
 
 /**
  * @brief board_init
