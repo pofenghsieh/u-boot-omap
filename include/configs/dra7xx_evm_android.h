@@ -265,14 +265,17 @@
 /* JAMR3 board pin mux */
 #define CONFIG_DRA7XX_JAMR3
 
+/*
+ * Enable this flag if you want to boot remotecores
+ * from SPL. The specific cores loaded is controlled
+ * by the array cores_to_boot[] in spl.c:board_init_r()
+ */
 #undef CONFIG_LATE_ATTACH
 
-/* Enable this flag if you want to boot IPU2
- * from SPL */
 #ifdef CONFIG_LATE_ATTACH
-
-/* Include the ELF loader */
+/* Include ELF loader for parsing remotecore binaries */
 #define CONFIG_CMD_ELF
+#endif
 
 #define CONFIG_MMC_IPU1_PART_NAME		"ipu1"
 #define CONFIG_MMC_IPU2_PART_NAME		"ipu2"
@@ -285,7 +288,5 @@
  * This is not an issue as we are performing the loads in serial.
  */
 #define DSP_LOAD_ADDR		(IPU_LOAD_ADDR)
-
-#endif
 
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */

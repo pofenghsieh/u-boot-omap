@@ -205,14 +205,17 @@
 #define CONFIG_PCF8575
 #define CONFIG_SYS_I2C_PCF8575_CHIP { {0x21, 0xeaf7} }
 
+/*
+ * Enable this flag if you want to boot remotecores
+ * from SPL. The specific cores loaded is controlled
+ * by the array cores_to_boot[] in spl.c:board_init_r()
+ */
 #undef CONFIG_LATE_ATTACH
 
-/* Enable this flag if you want to boot IPU2
- * from SPL */
 #ifdef CONFIG_LATE_ATTACH
-
-/* Include the ELF loader */
+/* Include ELF loader for parsing remotecore binaries */
 #define CONFIG_CMD_ELF
+#endif
 
 /* Define the address to which the IPU binary is
  * loaded from persistent storage
@@ -222,7 +225,5 @@
  * This is not an issue as we are performing the loads in serial.
  */
 #define DSP_LOAD_ADDR		(IPU_LOAD_ADDR)
-
-#endif
 
 #endif /* __CONFIG_DRA7XX_EVM_H */

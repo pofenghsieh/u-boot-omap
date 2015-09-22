@@ -7,4 +7,6 @@
 
 obj-y	:= evm.o
 
+obj-$(CONFIG_LATE_ATTACH) += lateattach.o
+
 obj-$(CONFIG_CMD_FASTBOOT) += fastboot.o
