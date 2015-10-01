@@ -1169,6 +1169,28 @@ u32 spl_boot_core(u32 core_id)
 
 #endif
 
+static int fdt_addprop_aliases(void *fdt, char *node, char *propstr,
+	int *val, int len)
+{
+	const char *path;
+	int offs;
+
+	/* get path of mmc node */
+	path = fdt_getpath_prop(fdt, "/aliases", node, 0);
+	if (!path) {
+		debug("%s not found in aliases\n", node);
+		return -1;
+	}
+
+	offs = fdt_path_offset(fdt, path);
+	if (offs < 0) {
+		debug("error get offset for %s\n", path);
+		return -1;
+	}
+
+	return fdt_appendprop(fdt, offs, propstr, val, len);
+}
+
 static int board_fixup_fdt_mmc(void *fdt, int mmc_num, int pinctl)
 {
 	const struct fdt_property *mmc_prop, *prop;
@@ -1240,12 +1262,33 @@ err:
 
 int board_fixup_fdt(void *fdt)
 {
-	int mmc_num, pinctrl;
+	int mmc_num, pinctrl, max_freq;
 
+	/* dt-update for mmc pinctl iodelays based on si-revsion */
 	for (mmc_num = 1; mmc_num <= 4; ++mmc_num) {
 		for (pinctrl = 0; pinctrl <= 4; ++pinctrl)
 			board_fixup_fdt_mmc(fdt, mmc_num, pinctrl);
 	}
+
+	switch (omap_revision()) {
+	case DRA752_ES1_0:
+	case DRA752_ES1_1:
+		break;
+
+	case DRA752_ES2_0:
+		max_freq = cpu_to_fdt32(192000000);
+		/* dt-update: add mmc1 property*/
+		fdt_addprop_aliases(fdt, "mmc1", "sd-uhs-sdr104", NULL, 0);
+		fdt_addprop_aliases(fdt, "mmc1", "max-frequency", &max_freq, 4);
+
+		/* dt-update: add mmc2 property*/
+		fdt_addprop_aliases(fdt, "mmc2", "mmc-hs200-1_8v", NULL, 0);
+		fdt_addprop_aliases(fdt, "mmc2", "max-frequency", &max_freq, 4);
+		break;
+	default:
+		break;
+	}
+
 	return 0;
 }
 
