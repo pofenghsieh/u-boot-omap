@@ -826,6 +826,10 @@ int do_booti(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf("booti: Could not set initrd_start and initrd_end\n");
 		goto fail;
 	}
+
+	/* fixup board/platform specific dt update */
+	board_fixup_fdt((void *)DEVICE_TREE);
+
 	fdt_bootargs[4] = bootargs_str;
 	sprintf(bootargs_str, "androidboot.serialno=%s ", getenv("serial#") ? : "");
 	if (strlen((char*)hdr->cmdline))
