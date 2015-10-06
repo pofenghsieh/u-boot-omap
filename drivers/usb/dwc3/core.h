@@ -239,6 +239,15 @@
 #define DWC3_DCTL_ULSTCHNG_COMPLIANCE	(DWC3_DCTL_ULSTCHNGREQ(10))
 #define DWC3_DCTL_ULSTCHNG_LOOPBACK	(DWC3_DCTL_ULSTCHNGREQ(11))
 
+/* Global Status Register */
+#define DWC3_GSTS_OTG_IP	(1 << 10)
+#define DWC3_GSTS_BC_IP		(1 << 9)
+#define DWC3_GSTS_ADP_IP	(1 << 8)
+#define DWC3_GSTS_HOST_IP	(1 << 7)
+#define DWC3_GSTS_DEVICE_IP	(1 << 6)
+#define DWC3_GSTS_CSR_TIMEOUT	(1 << 5)
+#define DWC3_GSTS_BUS_ERR_ADDR_VLD	(1 << 4)
+
 /* Device Event Enable Register */
 #define DWC3_DEVTEN_VNDRDEVTSTRCVEDEN	(1 << 12)
 #define DWC3_DEVTEN_EVNTOVERFLOWEN	(1 << 11)

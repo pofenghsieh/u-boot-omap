@@ -637,7 +637,8 @@ void dwc3_uboot_handle_interrupt(int index)
 			dwc3_flush_cache((int)evt->buf, evt->length);
 		}
 
-		dwc3_gadget_uboot_handle_interrupt(dwc);
+		if (dwc3_readl(dwc->regs, DWC3_GSTS) & DWC3_GSTS_DEVICE_IP)
+			dwc3_gadget_uboot_handle_interrupt(dwc);
 		break;
 	}
 }
