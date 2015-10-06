@@ -121,6 +121,8 @@ static struct dwc3_event_buffer *dwc3_alloc_one_event_buffer(struct dwc3 *dwc,
 	evt->length	= length;
 	evt->buf	= dma_alloc_coherent(length,
 					     (unsigned long *)&evt->dma);
+	memset(evt->buf, 0, length);
+
 	if (!evt->buf)
 		return ERR_PTR(-ENOMEM);
 
