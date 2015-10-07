@@ -866,6 +866,13 @@ u32 dsp_start_clocks(u32 core_id, struct rproc *cfg)
 	debug("DSP Clock enabled and gated in domain controller\n");
 
 	/*
+	 * Clear the prm status bits before bringing the core out of reset.
+	 * This will prevent the below status checks from passing prematurely
+	 * if the DSP core was powered on and off earlier in U-Boot.
+	 * The register is write '1' to clear a bit. */
+	__raw_writel(0x3, prm_base + 0x14);
+
+	/*
 	 * Enable RESET for the DSP MMU, cache and slave interface and
 	 * DSP local reset. This may not be necessary since the reset value
 	 * is the same.*/
