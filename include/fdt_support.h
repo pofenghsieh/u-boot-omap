@@ -96,6 +96,9 @@ int fdt_verify_alias_address(void *fdt, int anode, const char *alias,
 u64 fdt_get_base_address(void *fdt, int node);
 int fdt_read_range(void *fdt, int node, int n, uint64_t *child_addr,
 		   uint64_t *addr, uint64_t *len);
+const char *fdt_getpath_prop(void *fdt, char *node, char *prop, int *length);
+const struct fdt_property *fdt_getprop_path(void *fdt, char *snode, char *sprop,
+		int *length);
 
 enum fdt_status {
 	FDT_STATUS_OKAY,
