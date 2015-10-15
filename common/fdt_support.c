@@ -137,6 +137,50 @@ static int fdt_find_or_add_subnode(void *fdt, int parentoffset,
 	return offset;
 }
 
+/**
+ * fdt_getpath_prop: Find a node and get path of propery
+ *
+ * @fdt: ptr to device tree
+ * @node: path of node
+ * @prop: property name
+ * @len: length of new property value
+ *
+ * Convenience function to directly get a path of given property of node.
+ */
+const char *fdt_getpath_prop(void *fdt, char *node, char *prop, int *length)
+{
+	int offs;
+
+	offs = fdt_path_offset(fdt, node);
+	if (offs < 0)
+		return NULL;
+
+	return fdt_getprop(fdt, offs, prop, length ? length : 0);
+}
+
+/**
+ * fdt_getprop_path: Find a node and return the property
+ *
+ * @fdt: ptr to device tree
+ * @node: path of node
+ * @prop: property name
+ * @len: length of new property value
+ *
+ * Convenience function to directly get a property of given property of node
+ * and property string
+ */
+const struct fdt_property *fdt_getprop_path(void *fdt, char *node, char *prop,
+	int *length)
+{
+	int offs;
+
+	offs = fdt_path_offset(fdt, node);
+	if (offs < 0)
+		return NULL;
+
+	return fdt_get_property(fdt, offs, prop, length);
+}
+
 /* rename to CONFIG_OF_STDOUT_PATH ? */
 #if defined(OF_STDOUT_PATH)
 static int fdt_fixup_stdout(void *fdt, int chosenoff)
