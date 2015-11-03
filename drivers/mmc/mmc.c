@@ -1133,6 +1133,12 @@ static int mmc_startup(struct mmc *mmc)
 			if (err)
 				continue;
 
+			if ((extw == EXT_CSD_DDR_BUS_WIDTH_8) ||
+			    (extw == EXT_CSD_DDR_BUS_WIDTH_4))
+				mmc->ddr = 1;
+			else
+				mmc->ddr = 0;
+
 			mmc_set_bus_width(mmc, widths[idx]);
 
 			err = mmc_send_ext_csd(mmc, test_csd);
@@ -1293,6 +1299,13 @@ int mmc_start_init(struct mmc *mmc)
 
 	if (mmc->has_init)
 		return 0;
+
+	/*
+	 * Initialize dual data rate flag to 0 by default.
+	 * This flag will be set based on the host capabilities
+	 * and device capabilities during mmc_startup() call.
+	 */
+	mmc->ddr = 0;
 
 	/* made sure it's not NULL earlier */
 	err = mmc->cfg->ops->init(mmc);

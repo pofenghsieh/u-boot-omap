@@ -717,6 +717,13 @@ static void omap_hsmmc_set_ios(struct mmc *mmc)
 		break;
 	}
 
+	if (mmc->ddr) {
+		writel(readl(&mmc_base->con) | CON_DDR,
+		       &mmc_base->con);
+	} else {
+		writel(readl(&mmc_base->con) & ~CON_DDR,
+		       &mmc_base->con);
+	}
 	/* configure clock with 96Mhz system clock.
 	 */
 	if (mmc->clock != 0) {
@@ -806,6 +813,7 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
 		defined(CONFIG_HSMMC2_8BIT)
 		/* Enable 8-bit interface for eMMC on OMAP4/5 or DRA7XX */
 		host_caps_val |= MMC_MODE_8BIT;
+		host_caps_val |= MMC_MODE_DDR_52MHz;
 #endif
 		break;
 #endif
