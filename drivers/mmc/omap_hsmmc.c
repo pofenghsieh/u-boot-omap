@@ -322,10 +322,6 @@ static int omap_hsmmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	mmc_base = ((struct omap_hsmmc_data *)mmc->priv)->base_addr;
 
-	if (!IS_SD(mmc) && data && (cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK)){
-		return mmc_adma_read(mmc_base, data->dest, data->blocks,
-				cmd->cmdarg);
-	}
 	start = get_timer(0);
 	while ((readl(&mmc_base->pstate) & (DATI_MASK | CMDI_MASK)) != 0) {
 		if (get_timer(0) - start > MAX_RETRY_MS) {
@@ -342,6 +338,12 @@ static int omap_hsmmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 				__func__, readl(&mmc_base->stat));
 			return TIMEOUT;
 		}
+	}
+
+	if (!IS_SD(mmc) && data &&
+	    (cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK)) {
+		return mmc_adma_read(mmc_base, data->dest, data->blocks,
+				cmd->cmdarg);
 	}
 	/*
 	 * CMDREG
