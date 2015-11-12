@@ -135,10 +135,6 @@ void spl_fdt_fixup_eth(void *fdt)
 
 void spl_board_init(void)
 {
-#if defined(CONFIG_SPL_DMA_SUPPORT) && defined(CONFIG_TI_EDMA)
-	edma_init(0);
-	edma_request_channel(1,1,0);
-#endif
 #ifdef CONFIG_SPL_NAND_SUPPORT
 	gpmc_init();
 #endif
@@ -164,6 +160,25 @@ void spl_board_init(void)
 		hang();
 	}
 #endif
+}
+
+void board_init_f(ulong dummy)
+{
+#if defined(CONFIG_SPL_DMA_SUPPORT) && defined(CONFIG_TI_EDMA)
+	edma_init(0);
+	edma_request_channel(1, 1, 0);
+	edma_request_channel(5, 5, 0);
+	edma_zero_memory((void *)__bss_start, __bss_end - __bss_start,
+			 5, 1);
+#else
+	/* Clear the BSS. */
+	memset(__bss_start, 0, __bss_end - __bss_start);
+#endif
+
+	/* Set global data pointer. */
+	gd = &gdata;
+
+	board_init_r(NULL, 0);
 }
 
 int board_mmc_init(bd_t *bis)
