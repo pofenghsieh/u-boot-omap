@@ -78,6 +78,9 @@ static void io_settings_ddr3(void)
 	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch1_0);
 	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch1_1);
 
+	/* omap5432 does not use lpddr2 */
+	writel(ioregs->ctrl_lpddr2ch, (*ctrl)->control_lpddr2ch1_0);
+
 	writel(ioregs->ctrl_ddr3ch, (*ctrl)->control_ddr3ch2_0);
 	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch2_0);
 	writel(ioregs->ctrl_ddrch, (*ctrl)->control_ddrch2_1);
@@ -89,9 +92,6 @@ static void io_settings_ddr3(void)
 		writel(ioregs->ctrl_ddrio_2, (*ctrl)->control_ddrio_2);
 		writel(ioregs->ctrl_lpddr2ch, (*ctrl)->control_lpddr2ch1_1);
 	}
-
-	/* omap5432 does not use lpddr2 */
-	writel(ioregs->ctrl_lpddr2ch, (*ctrl)->control_lpddr2ch1_0);
 
 	writel(ioregs->ctrl_emif_sdram_config_ext,
 	       (*ctrl)->control_emif1_sdram_config_ext);
