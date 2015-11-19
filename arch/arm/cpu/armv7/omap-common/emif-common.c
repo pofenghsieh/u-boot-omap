@@ -302,14 +302,18 @@ static void dra7_ddr3_leveling(u32 base, const struct emif_regs *regs)
 
 	__udelay(300);
 
+	/* check self clear bit whether full levelling is complete */
+	if (readl(&emif->emif_rd_wr_lvl_ctl) & DDR3_FULL_LVL)
+		printf("Levelling is not complete after 300us\n");
+
+	/* Enable refreshes after leveling */
+	clrbits_le32(&emif->emif_sdram_ref_ctrl, EMIF_REG_INITREF_DIS_MASK);
+
 	/* Check for leveling timeout */
 	if (readl(&emif->emif_status) & EMIF_REG_LEVELING_TO_MASK) {
 		printf("Leveling timeout on EMIF%d\n", emif_num(base));
 		return;
 	}
-
-	/* Enable refreshes after leveling */
-	clrbits_le32(&emif->emif_sdram_ref_ctrl, EMIF_REG_INITREF_DIS_MASK);
 
 	debug("HW leveling success\n");
 	/*
@@ -327,23 +331,34 @@ static void dra7_ddr3_init(u32 base, const struct emif_regs *regs)
 		emif_reset_phy(base);
 	do_ext_phy_settings(base, regs);
 
+	writel(regs->ref_ctrl, &emif->emif_sdram_ref_ctrl_shdw);
 	writel(regs->ref_ctrl | EMIF_REG_INITREF_DIS_MASK,
 	       &emif->emif_sdram_ref_ctrl);
-	/* Update timing registers */
+	/* Update ddr timing and shadowregisters */
 	writel(regs->sdram_tim1, &emif->emif_sdram_tim_1);
+	writel(regs->sdram_tim1, &emif->emif_sdram_tim_1_shdw);
 	writel(regs->sdram_tim2, &emif->emif_sdram_tim_2);
+	writel(regs->sdram_tim2, &emif->emif_sdram_tim_2_shdw);
 	writel(regs->sdram_tim3, &emif->emif_sdram_tim_3);
+	writel(regs->sdram_tim3, &emif->emif_sdram_tim_3_shdw);
+	/* disable power management */
+	writel(EMIF_PWR_MGMT_CTRL_SHDW, &emif->emif_pwr_mgmt_ctrl);
+	writel(EMIF_PWR_MGMT_CTRL_SHDW, &emif->emif_pwr_mgmt_ctrl_shdw);
 
 	writel(EMIF_L3_CONFIG_VAL_SYS_10_MPU_5_LL_0, &emif->emif_l3_config);
+	writel(readl(&emif->emif_iodft_tlgc), &emif->emif_iodft_tlgc);
 	writel(regs->read_idle_ctrl, &emif->emif_read_idlectrl);
+	writel(regs->read_idle_ctrl, &emif->emif_read_idlectrl_shdw);
 	writel(regs->zq_config, &emif->emif_zq_config);
 	writel(regs->temp_alert_config, &emif->emif_temp_alert_config);
 	writel(regs->emif_rd_wr_lvl_rmp_ctl, &emif->emif_rd_wr_lvl_rmp_ctl);
 	writel(regs->emif_rd_wr_lvl_ctl, &emif->emif_rd_wr_lvl_ctl);
 
 	writel(regs->emif_ddr_phy_ctlr_1_init, &emif->emif_ddr_phy_ctrl_1);
+	writel(regs->emif_ddr_phy_ctlr_1, &emif->emif_ddr_phy_ctrl_1_shdw);
 	writel(regs->emif_rd_wr_exec_thresh, &emif->emif_rd_wr_exec_thresh);
 
+	writel(regs->ref_ctrl, &emif->emif_sdram_ref_ctrl_shdw);
 	writel(regs->ref_ctrl, &emif->emif_sdram_ref_ctrl);
 
 	writel(regs->sdram_config2, &emif->emif_lpddr2_nvm_config);
@@ -351,10 +366,14 @@ static void dra7_ddr3_init(u32 base, const struct emif_regs *regs)
 
 	__udelay(1000);
 
+	writel(regs->ref_ctrl_final, &emif->emif_sdram_ref_ctrl_shdw);
 	writel(regs->ref_ctrl_final, &emif->emif_sdram_ref_ctrl);
 
 	if (regs->emif_rd_wr_lvl_rmp_ctl & EMIF_REG_RDWRLVL_EN_MASK)
 		dra7_ddr3_leveling(base, regs);
+
+	writel(EMIF_PWR_MGMT_CTRL, &emif->emif_pwr_mgmt_ctrl);
+	writel(EMIF_PWR_MGMT_CTRL_SHDW, &emif->emif_pwr_mgmt_ctrl_shdw);
 }
 
 static void omap5_ddr3_init(u32 base, const struct emif_regs *regs)
@@ -1185,7 +1204,8 @@ static void do_sdram_init(u32 base)
 	}
 
 	/* Write to the shadow registers */
-	emif_update_timings(base, regs);
+	if (!is_dra7xx())
+		emif_update_timings(base, regs);
 
 	debug("<<do_sdram_init() %x\n", base);
 }
