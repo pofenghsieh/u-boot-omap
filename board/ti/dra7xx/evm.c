@@ -85,7 +85,7 @@ static int board_fixup_fdt_mmc(void *fdt, int mmc_num, int pinctl)
 	/* get path of mmc node */
 	path = fdt_getpath_prop(fdt, "/aliases", propstr, &length);
 	if (!path) {
-		printf("mmc%d node not found in DT\n", mmc_num);
+		debug("mmc%d node not found in DT aliases\n", mmc_num);
 		goto err;
 	}
 
