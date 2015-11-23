@@ -240,9 +240,9 @@
 #define VDD_MM_ES2_LOW 880
 
 /* TPS659038 Voltage settings in mv for OPP_NOMINAL */
-#define VDD_MPU_DRA752		1090
+#define VDD_MPU_DRA752		1100
 #define VDD_EVE_DRA752		1060
-#define VDD_CORE_DRA752		1030
+#define VDD_CORE_DRA752		1060
 #define VDD_IVA_DRA752		1060
 
 /* Update GPU Voltage to 1.25V corresponding to OPP_HIGH */
