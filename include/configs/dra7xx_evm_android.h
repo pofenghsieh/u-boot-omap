@@ -248,6 +248,11 @@
 /* Enforce secure boot for high secure devices */
 #ifdef CONFIG_OMAP_SECURE
 #define CONFIG_SECURE_BOOT
+#define CONFIG_SECURE_FW_MEMORY_SIZE            0x00680000
+#define CONFIG_SECURE_NOFW_MEMORY_SIZE          0x00180000
+/* Set aside protected RAM region - size in KB */
+#define CONFIG_PRAM                            (CONFIG_SECURE_FW_MEMORY_SIZE + \
+                                                CONFIG_SECURE_NOFW_MEMORY_SIZE) >> 10
 #endif
 
 #ifndef CONFIG_PERIPHERAL_BOOT

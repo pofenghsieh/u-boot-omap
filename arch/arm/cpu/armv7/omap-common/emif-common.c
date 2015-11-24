@@ -1464,6 +1464,24 @@ void sdram_init(void)
 	if (sdram_type == EMIF_SDRAM_TYPE_LPDDR2)
 		freq_update_core();
 
+#if defined(CONFIG_OMAP_SECURE)
+#if defined(CONFIG_SECURE_FW_MEMORY_SIZE)
+	/* On HS devices, do static EMIF firewall configuration */
+	if (!in_sdram)
+	{
+		int result = 1;
+		u32 sec_mem_start =
+			(CONFIG_SYS_SDRAM_BASE + omap_sdram_size()) -
+			(CONFIG_SECURE_FW_MEMORY_SIZE + CONFIG_SECURE_NOFW_MEMORY_SIZE);
+		result = secure_memory_reserve(sec_mem_start, CONFIG_SECURE_FW_MEMORY_SIZE);
+		if (1 == result)
+			printf("SDRAM Firewall: Secure memory reservation failed!\n");
+	}
+#endif
+	/* On HS devices, make sure static EMIF firewall APIs are locked */
+	secure_emif_firewall_lock();
+#endif
+
 	/* Do some testing after the init */
 	if (!in_sdram) {
 		size_prog = omap_sdram_size();
@@ -1480,6 +1498,7 @@ void sdram_init(void)
 				size_prog);
 		} else
 			debug("get_ram_size() successful");
+
 	}
 
 	if (sdram_type == EMIF_SDRAM_TYPE_DDR3 &&
