@@ -263,7 +263,7 @@
  * preceeded by the certificate and will therefore run in internal RAM
  * from address 0x40300350.
  */
-#define CONFIG_SPL_TEXT_BASE		0x40300350
+#define CONFIG_SPL_TEXT_BASE		0x40301350
 #endif
 #else
 /*
