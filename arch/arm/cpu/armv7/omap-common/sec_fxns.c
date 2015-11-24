@@ -32,6 +32,12 @@ extern int SEC_ENTRY_Pub2SecBridgeEntry(uint32_t appl_id, uint32_t proc_ID, uint
 #if defined(CONFIG_OMAP54XX)
 /* API Index for OMAP5, DRA7xx */
 #define API_HAL_KM_VERIFYCERTIFICATESIGNATURE_INDEX     (0x0000000E)
+
+#define PPA_HAL_SERVICES_START_INDEX                    (0x200)
+#define PPA_SERV_HAL_SETUP_SEC_RESVD_REGION             (PPA_HAL_SERVICES_START_INDEX + 25)
+#define PPA_SERV_HAL_SETUP_EMIF_FW_REGION               (PPA_HAL_SERVICES_START_INDEX + 26)
+#define PPA_SERV_HAL_LOCK_EMIF_FW                       (PPA_HAL_SERVICES_START_INDEX + 27)
+
 #else
 /* API Index for OMAP4, J5, J5Eco, Aegis, Subarctic */
 #define API_HAL_KM_VERIFYCERTIFICATESIGNATURE_INDEX     (0x0000000C)
@@ -128,6 +134,83 @@ auth_exit:
 		}
 
 	return result;
+}
+
+int secure_memory_reserve(uint32_t startAddr, uint32_t size)
+{
+	int result = 1;
+
+	/*
+	 * Call PPA HAL API to reserve a chunk of EMIF SDRAM
+	 * for secure world use. This region should be carved out
+	 * from use by any public code. EMIF firewall region 7
+     * will be used to protect this block of memory.
+	 */
+	debug("%s: startAddr = %x, size = %x", __func__,
+		startAddr, size);
+
+	LOCAL_prepParams(2, startAddr, size);
+	result = SEC_ENTRY_Pub2SecBridgeEntry(
+		PPA_SERV_HAL_SETUP_SEC_RESVD_REGION,
+        0, 0, LOCAL_smcParams);
+
+	if (result != 0) {
+		puts("Secure Memory Reservation failed!\n");
+		printf("Return Value = %08X\n", result);
+	}
+
+	return result;
+}
+
+int secure_emif_firewall_setup(uint8_t regionNum, uint32_t startAddr, uint32_t size,
+							uint32_t accessPerm, uint32_t initiatorPerm)
+{
+	int result = 1;
+
+	/*
+	 * Call PPA HAL API to do any other general firewall
+	 * configuration for regions 1-6 of the EMIF firewall.
+	 */
+	debug("%s: regionNum = %x, startAddr = %x, size = %x", __func__,
+		regionNum, startAddr, size);
+
+	LOCAL_prepParams(4, (startAddr & 0xFFFFFFF0) | (regionNum & 0x0F), size,
+		accessPerm, initiatorPerm);
+	result = SEC_ENTRY_Pub2SecBridgeEntry(
+		PPA_SERV_HAL_SETUP_EMIF_FW_REGION,
+        0, 0, LOCAL_smcParams);
+
+    if (result != 0) {
+        puts("Secure EMIF Firewall Setup failed!\n");
+        printf("Return Value = %08X\n", result);
+    }
+
+    return result;
+}
+
+int secure_emif_firewall_lock(void)
+{
+	int result = 1;
+
+	/*
+	 * Call PPA HAL API to lock the EMIF firewall configurations.
+	 * After this API is called, none of the PPA HAL APIs for
+	 * configuring the EMIF firewalls will be usable again (that
+	 * is, calls to those APIs will return failure and have no 
+     * effect).
+	 */
+	LOCAL_prepParams(0);
+
+	result = SEC_ENTRY_Pub2SecBridgeEntry(
+		PPA_SERV_HAL_LOCK_EMIF_FW,
+		0, 0, LOCAL_smcParams);
+
+    if (result != 0) {
+        puts("Secure EMIF Firewall Lock failed!\n");
+        printf("Return Value = %08X\n", result);
+    }
+
+    return result;
 }
 
 /*------------------------------- End Of File --------------------------------*/

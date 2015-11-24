@@ -618,6 +618,15 @@ s8 abb_setup_ldovbb(u32 fuse, u32 ldovbb);
 void usb_fake_mac_from_die_id(u32 *id);
 void recalibrate_iodelay(void);
 
+#if defined(CONFIG_OMAP_SECURE)
+
+int secure_memory_reserve(uint32_t startAddr, uint32_t size);
+int secure_emif_firewall_setup(uint8_t regionNum, uint32_t startAddr, uint32_t size,
+							   uint32_t accessPerm, uint32_t initiatorPerm);
+int secure_emif_firewall_lock(void);
+
+#endif
+
 /* ABB */
 #define OMAP_ABB_NOMINAL_OPP		0
 #define OMAP_ABB_FAST_OPP		1
