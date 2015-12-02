@@ -18,6 +18,7 @@
 
 #include <asm/arch/sys_proto.h>
 #include <asm/omap_common.h>
+#include <fdt_support.h>
 
 
 /*----------------------------- Extern Declarations --------------------------*/
@@ -212,5 +213,89 @@ int secure_emif_firewall_lock(void)
 
     return result;
 }
+
+#if !defined(CONFIG_SECURE_FW_MEMORY_SIZE)
+#define CONFIG_SECURE_FW_MEMORY_SIZE (0)
+#endif
+#if !defined(CONFIG_SECURE_NOFW_MEMORY_SIZE)
+#define CONFIG_SECURE_NOFW_MEMORY_SIZE (0)
+#endif
+int hs_device_fixup_fdt(void *fdt)
+{
+	if (HS_DEVICE == get_device_type()) {
+		int offs;
+		const char *path;
+		u32 temp[16];
+
+		u32 sec_mem_size  = (CONFIG_SECURE_FW_MEMORY_SIZE + CONFIG_SECURE_NOFW_MEMORY_SIZE);
+		u32 sec_mem_start = (CONFIG_SYS_SDRAM_BASE + omap_sdram_size()) - sec_mem_size;
+
+		/* Only add reserved memory region if size is non zero */
+		if (sec_mem_size) {
+			/* Delete any original sec_rsvd node */
+			path = "/reserved-memory/sec_rsvd";
+			offs = fdt_path_offset(fdt,path);
+			if (offs >= 0) {
+				fdt_del_node(fdt,offs);
+			}
+
+			/* Add new sec_rsvd node */
+			path = "/reserved-memory";
+			offs = fdt_path_offset(fdt, path);
+			if (offs < 0) {
+				debug("Node %s not found\n", path);
+			}
+			else {
+				offs = fdt_add_subnode(fdt, offs,"sec_rsvd");
+				temp[0] = cpu_to_fdt32(sec_mem_start);
+				temp[1] = cpu_to_fdt32(sec_mem_size);
+				fdt_setprop_string(fdt, offs, "compatible", "sec-rsvd");
+				fdt_setprop_string(fdt, offs, "status", "okay");
+				fdt_setprop(fdt, offs, "no-map", NULL, 0);
+				fdt_setprop(fdt, offs, "reg", temp, 2*sizeof(temp[0]));
+			}
+		}
+
+		/* Reserve IRQs that are used/needed by secure world */
+		path = "/ocp/crossbar";
+		offs = fdt_path_offset(fdt, path);
+		if (offs < 0) {
+			debug("Node %s not found\n", path);
+		}
+		else {
+			int len;
+			int cnt = 0;
+			const u32* pData;
+
+			pData = fdt_getprop(fdt, offs, "ti,irqs-skip", &len);
+			if (pData) {
+				int i;
+				cnt = len/sizeof(u32);
+				for (i=0; i<cnt; i++) {
+					temp[i+3] = pData[i];
+				}
+			}
+			/* Add 8, 15, 118 to skip list for HS parts */
+			temp[0] = cpu_to_fdt32(8);
+			temp[1] = cpu_to_fdt32(15);
+			temp[2] = cpu_to_fdt32(118);
+			fdt_delprop(fdt, offs, "ti,irqs-skip");
+			fdt_setprop(fdt, offs, "ti,irqs-skip", temp, (cnt+3)*sizeof(temp[0]));
+		}
+
+		/* Make HW RNG reserved for secure world use */
+		path = "/ocp/rng";
+		offs = fdt_path_offset(fdt, path);
+		if (offs < 0) {
+			debug("Node %s not found\n", path);
+		}
+		else {
+			fdt_setprop_string(fdt, offs, "status", "disabled");
+		}
+    }
+
+	return 0;
+}
+
 
 /*------------------------------- End Of File --------------------------------*/

@@ -205,7 +205,6 @@
 #ifdef CONFIG_OMAP_SECURE
 #define CONFIG_SECURE_BOOT
 #define CONFIG_SECURE_IMAGE_AUTH
-#define CONFIG_SECURE_DTB_AUTH
 #define CONFIG_SECURE_FW_MEMORY_SIZE            0x00680000
 #define CONFIG_SECURE_NOFW_MEMORY_SIZE          0x00180000
 /* Set aside protected RAM region - size in KB */

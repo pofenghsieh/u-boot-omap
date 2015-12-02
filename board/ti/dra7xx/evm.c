@@ -384,6 +384,11 @@ int board_fixup_fdt(void *fdt)
 		break;
 	}
 
+#if defined(CONFIG_OMAP_SECURE)
+	/* dt-update for secure parts */
+	hs_device_fixup_fdt(fdt);
+#endif
+
 	return 0;
 }
 

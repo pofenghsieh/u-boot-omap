@@ -625,6 +625,7 @@ int secure_emif_firewall_setup(uint8_t regionNum, uint32_t startAddr, uint32_t s
 							   uint32_t accessPerm, uint32_t initiatorPerm);
 int secure_emif_firewall_lock(void);
 
+int hs_device_fixup_fdt(void *fdt);
 #endif
 
 /* ABB */
