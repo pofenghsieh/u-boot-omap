@@ -566,7 +566,7 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 	{ GPMC_OEN_REN, (M0 | PIN_OUTPUT) },	/* gpmc_oen_ren.gpmc_oen_ren */
 	{ GPMC_WEN, (M0 | PIN_OUTPUT) },	/* gpmc_wen.gpmc_wen */
 	{ GPMC_BEN0, (M0 | PIN_OUTPUT) },	/* gpmc_ben0.gpmc_ben0 */
-	{ GPMC_WAIT0, (M0 | PIN_INPUT) },	/* gpmc_wait0.gpmc_wait0 */
+	{ GPMC_WAIT0, (M0 | PIN_INPUT | SLEWCONTROL) },	/* gpmc_wait0.gpmc_wait0 */
 	{ VIN2A_CLK0, (M0 | PIN_INPUT | VIRTUAL_MODE9) },	/* vin2a_clk0.vin2a_clk0 */
 	{ VIN2A_HSYNC0, (M0 | PIN_INPUT | VIRTUAL_MODE6) },	/* vin2a_hsync0.vin2a_hsync0 */
 	{ VIN2A_VSYNC0, (M0 | PIN_INPUT | VIRTUAL_MODE9) },	/* vin2a_vsync0.vin2a_vsync0 */
@@ -590,8 +590,8 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 	{ VIN2A_D21, (M3 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d21.rgmii1_rxd2 */
 	{ VIN2A_D22, (M3 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d22.rgmii1_rxd1 */
 	{ VIN2A_D23, (M3 | PIN_INPUT | MANUAL_MODE) },	/* vin2a_d23.rgmii1_rxd0 */
-	{ MDIO_MCLK, (M0 | PIN_OUTPUT_PULLUP) },	/* mdio_mclk.mdio_mclk */
-	{ MDIO_D, (M0 | PIN_INPUT_PULLUP) },	/* mdio_d.mdio_d */
+	{ MDIO_MCLK, (M0 | PIN_OUTPUT_PULLUP | SLEWCONTROL) },	/* mdio_mclk.mdio_mclk */
+	{ MDIO_D, (M0 | PIN_INPUT_PULLUP | SLEWCONTROL) },	/* mdio_d.mdio_d */
 	{ RGMII0_TXC, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_txc.rgmii0_txc */
 	{ RGMII0_TXCTL, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_txctl.rgmii0_txctl */
 	{ RGMII0_TXD3, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_txd3.rgmii0_txd3 */
@@ -604,37 +604,37 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 	{ RGMII0_RXD2, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_rxd2.rgmii0_rxd2 */
 	{ RGMII0_RXD1, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_rxd1.rgmii0_rxd1 */
 	{ RGMII0_RXD0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_rxd0.rgmii0_rxd0 */
-	{ USB2_DRVVBUS, (M0 | PIN_INPUT_PULLDOWN) },	/* usb2_drvvbus.usb2_drvvbus */
+	{ USB2_DRVVBUS, (M0 | PIN_INPUT_PULLDOWN | SLEWCONTROL) },	/* usb2_drvvbus.usb2_drvvbus */
 	{ XREF_CLK2, (M5 | PIN_INPUT_PULLDOWN) },	/* xref_clk2.atl_clk2 */
-	{ MCASP1_AXR0, (M10 | PIN_INPUT) },	/* mcasp1_axr0.i2c5_sda */
-	{ MCASP1_AXR1, (M10 | PIN_INPUT) },	/* mcasp1_axr1.i2c5_scl */
+	{ MCASP1_AXR0, (M10 | PIN_INPUT | SLEWCONTROL) },	/* mcasp1_axr0.i2c5_sda */
+	{ MCASP1_AXR1, (M10 | PIN_INPUT | SLEWCONTROL) },	/* mcasp1_axr1.i2c5_scl */
 	{ MCASP1_AXR2, (M14 | PIN_OUTPUT) },	/* mcasp1_axr2.gpio5_4 */
 	{ MCASP1_AXR5, (M14 | PIN_INPUT_PULLDOWN) },	/* mcasp1_axr5.gpio5_7 */
 	{ MCASP1_AXR6, (M14 | PIN_OUTPUT) },	/* mcasp1_axr6.gpio5_8 */
-	{ MCASP1_AXR12, (M1 | PIN_INPUT | VIRTUAL_MODE10) },	/* mcasp1_axr12.mcasp7_axr0 */
-	{ MCASP1_AXR13, (M1 | PIN_INPUT | VIRTUAL_MODE10) },	/* mcasp1_axr13.mcasp7_axr1 */
-	{ MCASP1_AXR14, (M1 | PIN_INPUT | VIRTUAL_MODE10) },	/* mcasp1_axr14.mcasp7_aclkx */
-	{ MCASP1_AXR15, (M1 | PIN_INPUT | VIRTUAL_MODE10) },	/* mcasp1_axr15.mcasp7_fsx */
+	{ MCASP1_AXR12, (M1 | PIN_INPUT | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp1_axr12.mcasp7_axr0 */
+	{ MCASP1_AXR13, (M1 | PIN_INPUT | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp1_axr13.mcasp7_axr1 */
+	{ MCASP1_AXR14, (M1 | PIN_INPUT | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp1_axr14.mcasp7_aclkx */
+	{ MCASP1_AXR15, (M1 | PIN_INPUT | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp1_axr15.mcasp7_fsx */
 	{ MCASP3_ACLKX, (M0 | PIN_INPUT_PULLDOWN) },	/* mcasp3_aclkx.mcasp3_aclkx */
-	{ MCASP3_FSX, (M0 | PIN_INPUT) },	/* mcasp3_fsx.mcasp3_fsx */
-	{ MCASP3_AXR0, (M0 | PIN_INPUT) },	/* mcasp3_axr0.mcasp3_axr0 */
-	{ MCASP3_AXR1, (M0 | PIN_INPUT) },	/* mcasp3_axr1.mcasp3_axr1 */
+	{ MCASP3_FSX, (M0 | PIN_INPUT | SLEWCONTROL) },	/* mcasp3_fsx.mcasp3_fsx */
+	{ MCASP3_AXR0, (M0 | PIN_INPUT | SLEWCONTROL) },	/* mcasp3_axr0.mcasp3_axr0 */
+	{ MCASP3_AXR1, (M0 | PIN_INPUT | SLEWCONTROL) },	/* mcasp3_axr1.mcasp3_axr1 */
 	{ MMC1_CLK, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_clk.mmc1_clk */
 	{ MMC1_CMD, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_cmd.mmc1_cmd */
 	{ MMC1_DAT0, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_dat0.mmc1_dat0 */
 	{ MMC1_DAT1, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_dat1.mmc1_dat1 */
 	{ MMC1_DAT2, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_dat2.mmc1_dat2 */
 	{ MMC1_DAT3, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_dat3.mmc1_dat3 */
-	{ MMC1_SDCD, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_sdcd.mmc1_sdcd */
-	{ MMC1_SDWP, (M14 | PIN_INPUT) },	/* mmc1_sdwp.gpio6_28 */
+	{ MMC1_SDCD, (M0 | PIN_INPUT_PULLUP | SLEWCONTROL) },	/* mmc1_sdcd.mmc1_sdcd */
+	{ MMC1_SDWP, (M14 | PIN_INPUT | SLEWCONTROL) },	/* mmc1_sdwp.gpio6_28 */
 	{ SPI1_CS1, (M14 | PIN_OUTPUT) },	/* spi1_cs1.gpio7_11 */
-	{ SPI1_CS2, (M14 | PIN_INPUT_PULLDOWN) },	/* spi1_cs2.gpio7_12 */
+	{ SPI1_CS2, (M14 | PIN_INPUT_PULLDOWN | SLEWCONTROL) },	/* spi1_cs2.gpio7_12 */
 	{ SPI2_SCLK, (M1 | PIN_INPUT_PULLUP) },	/* spi2_sclk.uart3_rxd */
-	{ SPI2_D1, (M1 | PIN_OUTPUT_PULLDOWN) },	/* spi2_d1.uart3_txd */
-	{ SPI2_D0, (M1 | PIN_INPUT) },	/* spi2_d0.uart3_ctsn */
-	{ SPI2_CS0, (M1 | PIN_OUTPUT_PULLDOWN) },	/* spi2_cs0.uart3_rtsn */
-	{ UART1_RXD, (M0 | PIN_INPUT_PULLUP) },	/* uart1_rxd.uart1_rxd */
-	{ UART1_TXD, (M0 | PIN_INPUT_PULLUP) },	/* uart1_txd.uart1_txd */
+	{ SPI2_D1, (M1 | PIN_OUTPUT_PULLDOWN | SLEWCONTROL) },	/* spi2_d1.uart3_txd */
+	{ SPI2_D0, (M1 | PIN_INPUT | SLEWCONTROL) },	/* spi2_d0.uart3_ctsn */
+	{ SPI2_CS0, (M1 | PIN_OUTPUT_PULLDOWN | SLEWCONTROL) },	/* spi2_cs0.uart3_rtsn */
+	{ UART1_RXD, (M0 | PIN_INPUT_PULLUP | SLEWCONTROL) },	/* uart1_rxd.uart1_rxd */
+	{ UART1_TXD, (M0 | PIN_INPUT_PULLUP | SLEWCONTROL) },	/* uart1_txd.uart1_txd */
 	{ UART1_CTSN, (M3 | PIN_INPUT_PULLUP) },	/* uart1_ctsn.mmc4_clk */
 	{ UART1_RTSN, (M3 | PIN_INPUT_PULLUP) },	/* uart1_rtsn.mmc4_cmd */
 	{ UART2_RXD, (M3 | PIN_INPUT_PULLUP) },	/* uart2_rxd.mmc4_dat0 */
@@ -647,16 +647,16 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 #ifdef CONFIG_DRA7XX_JAMR3
 	{ XREF_CLK1, (M5 | PIN_INPUT_PULLDOWN) },	/* xref_clk1.atl_clk1 */
 	{ XREF_CLK3, (M14 | PIN_INPUT)},	/* xref_clk3.gpio6_20 */
-	{ MCASP1_AXR8, (M1 | PIN_OUTPUT_PULLDOWN) },	/* mcasp1_axr8.mcasp6_axr0 */
-	{ MCASP1_AXR9, (M1 | PIN_INPUT) },	/* mcasp1_axr9.mcasp6_axr1 */
-	{ MCASP1_AXR10, (M1 | PIN_INPUT) },	/* mcasp1_axr10.mcasp6_aclkx */
-	{ MCASP1_AXR11, (M1 | PIN_INPUT) },	/* mcasp1_axr11.mcasp6_fsx */
+	{ MCASP1_AXR8, (M1 | PIN_OUTPUT_PULLDOWN | SLEWCONTROL) },	/* mcasp1_axr8.mcasp6_axr0 */
+	{ MCASP1_AXR9, (M1 | PIN_INPUT | SLEWCONTROL) },	/* mcasp1_axr9.mcasp6_axr1 */
+	{ MCASP1_AXR10, (M1 | PIN_INPUT | SLEWCONTROL) },	/* mcasp1_axr10.mcasp6_aclkx */
+	{ MCASP1_AXR11, (M1 | PIN_INPUT | SLEWCONTROL) },	/* mcasp1_axr11.mcasp6_fsx */
 	{ MCASP2_ACLKX, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE10) },	/* mcasp2_aclkx.mcasp2_aclkx */
-	{ MCASP2_FSX, (M0 | PIN_INPUT | VIRTUAL_MODE10) },	/* mcasp2_fsx.mcasp2_fsx */
+	{ MCASP2_FSX, (M0 | PIN_INPUT | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp2_fsx.mcasp2_fsx */
 	{ MCASP2_AXR0, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE12) },	/* mcasp2_axr0.mcasp2_axr0 */
 	{ MCASP2_AXR1, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE12) },	/* mcasp2_axr1.mcasp2_axr1 */
-	{ MCASP2_AXR2, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE10) },	/* mcasp2_axr2.mcasp2_axr2 */
-	{ MCASP2_AXR3, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE10) },	/* mcasp2_axr3.mcasp2_axr3 */
+	{ MCASP2_AXR2, (M0 | PIN_INPUT_PULLDOWN | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp2_axr2.mcasp2_axr2 */
+	{ MCASP2_AXR3, (M0 | PIN_INPUT_PULLDOWN | SLEWCONTROL | VIRTUAL_MODE10) },	/* mcasp2_axr3.mcasp2_axr3 */
 	{ MCASP2_AXR4, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE12) },	/* mcasp2_axr4.mcasp2_axr4 */
 	{ MCASP2_AXR5, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE12) },	/* mcasp2_axr5.mcasp2_axr5 */
 	{ MCASP2_AXR6, (M0 | PIN_INPUT_PULLDOWN | VIRTUAL_MODE12) },	/* mcasp2_axr6.mcasp2_axr6 */
