@@ -604,6 +604,7 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 	{ RGMII0_RXD2, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_rxd2.rgmii0_rxd2 */
 	{ RGMII0_RXD1, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_rxd1.rgmii0_rxd1 */
 	{ RGMII0_RXD0, (M0 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* rgmii0_rxd0.rgmii0_rxd0 */
+	{ USB1_DRVVBUS, (M0 | PIN_INPUT_PULLDOWN | SLEWCONTROL) },	/* usb2_drvvbus.usb2_drvvbus */
 	{ USB2_DRVVBUS, (M0 | PIN_INPUT_PULLDOWN | SLEWCONTROL) },	/* usb2_drvvbus.usb2_drvvbus */
 	{ XREF_CLK2, (M5 | PIN_INPUT_PULLDOWN) },	/* xref_clk2.atl_clk2 */
 	{ MCASP1_AXR0, (M10 | PIN_INPUT | SLEWCONTROL) },	/* mcasp1_axr0.i2c5_sda */
