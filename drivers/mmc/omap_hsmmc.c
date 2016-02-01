@@ -804,6 +804,15 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
 	switch (dev_index) {
 	case 0:
 		priv_data->base_addr = (struct hsmmc *)OMAP_HSMMC1_BASE;
+#if (defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX))
+#if defined(CONFIG_OMAP_MMC1_HS_52)
+		host_caps_val = MMC_MODE_HC | MMC_MODE_4BIT |
+				MMC_MODE_HS_52MHz;
+#else
+		host_caps_val = MMC_MODE_HC | MMC_MODE_4BIT |
+				MMC_MODE_HS;
+#endif /*CONFIG_OMAP_MMC1_HS_52 */
+#endif
 		break;
 #ifdef OMAP_HSMMC2_BASE
 	case 1:
@@ -813,7 +822,16 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
 		defined(CONFIG_HSMMC2_8BIT)
 		/* Enable 8-bit interface for eMMC on OMAP4/5 or DRA7XX */
 		host_caps_val |= MMC_MODE_8BIT;
-		host_caps_val |= MMC_MODE_DDR_52MHz;
+#endif
+
+#if (defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX))
+#if defined(CONFIG_OMAP_MMC2_DDR_52)
+		host_caps_val = MMC_MODE_HC | MMC_MODE_8BIT |
+				MMC_MODE_DDR_52MHz;
+#else
+		host_caps_val = MMC_MODE_HC | MMC_MODE_8BIT |
+				MMC_MODE_HS;
+#endif /* CONFIG_OMAP_MMC2_DDR_52 */
 #endif
 		break;
 #endif
