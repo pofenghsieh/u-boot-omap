@@ -89,7 +89,7 @@ static int board_fixup_fdt_mmc(void *fdt, int mmc_num, int pinctl)
 		goto err;
 	}
 
-	sprintf(propstr, "mmc%d_pctrl%d_iodelay", mmc_num, pinctl);
+	sprintf(propstr, "mmc%d_pinctl%d_iodelay", mmc_num, pinctl);
 	/* get property of mmc1 iodelay node */
 	prop = fdt_getprop_path(fdt, "/chosen", propstr, &length);
 	if (!prop) {
