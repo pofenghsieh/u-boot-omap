@@ -905,7 +905,7 @@ struct dmm_lisa_map_regs {
 
 /* Maximum delay before Low Power Modes */
 #define REG_CS_TIM		0x0
-#define REG_SR_TIM		0xF
+#define REG_SR_TIM		0xc
 #define REG_PD_TIM		0xF
 
 
