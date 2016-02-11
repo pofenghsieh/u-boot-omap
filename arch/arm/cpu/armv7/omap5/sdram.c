@@ -226,32 +226,10 @@ const struct dmm_lisa_map_regs lisa_map_4G_x_2_x_2 = {
  * EMIF2 --> 2Gb * 4 =  1GB
  * so mapping 1GB interleaved and 512MB non-interleaved
  */
-const struct dmm_lisa_map_regs lisa_map_2G_x_2_x_2_2G_x_1_x_2 = {
+const struct dmm_lisa_map_regs lisa_map_dra7_1536MB = {
 	.dmm_lisa_map_0 = 0x0,
 	.dmm_lisa_map_1 = 0x80640300,
 	.dmm_lisa_map_2 = 0xC0500220,
-	.dmm_lisa_map_3 = 0xFF020100,
-	.is_ma_present	= 0x1
-};
-
-/*
- * DRA752 EVM EMIF1 ONLY CONFIGURATION
- */
-const struct dmm_lisa_map_regs lisa_map_2G_x_1_x_2 = {
-	.dmm_lisa_map_0 = 0x0,
-	.dmm_lisa_map_1 = 0x0,
-	.dmm_lisa_map_2 = 0x80500100,
-	.dmm_lisa_map_3 = 0xFF020100,
-	.is_ma_present	= 0x1
-};
-
-/*
- * DRA752 EVM EMIF2 ONLY CONFIGURATION
- */
-const struct dmm_lisa_map_regs lisa_map_2G_x_2_x_2 = {
-	.dmm_lisa_map_0 = 0x0,
-	.dmm_lisa_map_1 = 0x0,
-	.dmm_lisa_map_2 = 0x80600200,
 	.dmm_lisa_map_3 = 0xFF020100,
 	.is_ma_present	= 0x1
 };
@@ -318,7 +296,7 @@ static void emif_get_dmm_regs_sdp(const struct dmm_lisa_map_regs
 	case DRA752_ES1_0:
 	case DRA752_ES1_1:
 	case DRA752_ES2_0:
-		*dmm_lisa_regs = &lisa_map_2G_x_2_x_2_2G_x_1_x_2;
+		*dmm_lisa_regs = &lisa_map_dra7_1536MB;
 		break;
 	case DRA722_ES1_0:
 	default:
