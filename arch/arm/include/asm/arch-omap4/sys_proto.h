@@ -37,6 +37,7 @@ void sdelay(unsigned long);
 void omap_smc1(u32 service, u32 val);
 void setup_clocks_for_console(void);
 void prcm_init(void);
+void do_board_detect(void);
 void bypass_dpll(u32 const base);
 void freq_update_core(void);
 u32 get_sys_clk_freq(void);
