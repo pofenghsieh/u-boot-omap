@@ -35,6 +35,14 @@ const struct iodelay_cfg_entry iodelay_cfg_array[] = {
 	{0x764, 1740, 240}, /* RGMMI0_TXD1_OUT */
 	{0x770, 1680, 380}, /* RGMMI0_TXD2_OUT */
 	{0x77C, 1740, 440}, /* RGMMI0_TXD3_OUT */
+	{0x144, 0, 0}, /* CFG_GPMC_A13_IN */
+	{0x150, 2062, 2277}, /* CFG_GPMC_A14_IN */
+	{0x15C, 1960, 2289}, /* CFG_GPMC_A15_IN */
+	{0x168, 2058, 2386}, /* CFG_GPMC_A16_IN */
+	{0x170, 0, 0 },	/* CFG_GPMC_A16_OUT */
+	{0x174, 2062, 2350}, /* CFG_GPMC_A17_IN */
+	{0x188, 0, 0}, /* CFG_GPMC_A18_OUT */
+	{0x374, 121, 0}, /* CFG_GPMC_CS2_OUT */
 };
 #endif
 
@@ -67,12 +75,12 @@ const struct pad_conf_entry dra74x_core_padconf_array[] = {
 	{GPMC_A9, (M3 | PIN_INPUT_PULLDOWN)},	/* gpmc_a9.vout3_vsync */
 	{GPMC_A10, (M3 | PIN_INPUT_PULLDOWN)},	/* gpmc_a10.vout3_de */
 	{GPMC_A11, (M14 | PIN_INPUT_PULLDOWN)},	/* gpmc_a11.gpio2_1 */
-	{GPMC_A13, (M1 | PIN_INPUT_PULLDOWN)},	/* gpmc_a13.qspi1_rtclk */
-	{GPMC_A14, (M1 | PIN_INPUT_PULLDOWN)},	/* gpmc_a14.qspi1_d3 */
-	{GPMC_A15, (M1 | PIN_INPUT_PULLDOWN)},	/* gpmc_a15.qspi1_d2 */
-	{GPMC_A16, (M1 | PIN_INPUT_PULLDOWN)},	/* gpmc_a16.qspi1_d0 */
-	{GPMC_A17, (M1 | PIN_INPUT_PULLDOWN)},	/* gpmc_a17.qspi1_d1 */
-	{GPMC_A18, (M1 | PIN_INPUT_PULLDOWN)},	/* gpmc_a18.qspi1_sclk */
+	{GPMC_A13, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* gpmc_a13.qspi1_rtclk */
+	{GPMC_A14, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* gpmc_a14.qspi1_d3 */
+	{GPMC_A15, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* gpmc_a15.qspi1_d2 */
+	{GPMC_A16, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* gpmc_a16.qspi1_d0 */
+	{GPMC_A17, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* gpmc_a17.qspi1_d1 */
+	{GPMC_A18, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE)},	/* gpmc_a18.qspi1_sclk */
 	{GPMC_A19, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_a19.mmc2_dat4 */
 	{GPMC_A20, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_a20.mmc2_dat5 */
 	{GPMC_A21, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_a21.mmc2_dat6 */
@@ -83,7 +91,7 @@ const struct pad_conf_entry dra74x_core_padconf_array[] = {
 	{GPMC_A26, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_a26.mmc2_dat2 */
 	{GPMC_A27, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_a27.mmc2_dat3 */
 	{GPMC_CS1, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_cs1.mmc2_cmd */
-	{GPMC_CS2, (M1 | PIN_INPUT_PULLUP)},	/* gpmc_cs2.qspi1_cs0 */
+	{GPMC_CS2, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE)},	/* gpmc_cs2.qspi1_cs0 */
 	{GPMC_CS3, (M3 | PIN_INPUT_PULLUP)},	/* gpmc_cs3.vout3_clk */
 	{VIN1A_CLK0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_clk0.vin1a_clk0 */
 	{VIN1A_DE0, (M0 | PIN_INPUT | MANUAL_MODE)},	/* vin1a_de0.vin1a_de0 */
@@ -357,6 +365,14 @@ const struct iodelay_cfg_entry dra742_es1_1_iodelay_cfg_array[] = {
 	{0x0AE0, 189, 1462},	/* CFG_VIN2A_D21_IN */
 	{0x0AEC, 232, 1278},	/* CFG_VIN2A_D22_IN */
 	{0x0AF8, 0, 1397},	/* CFG_VIN2A_D23_IN */
+	{0x0144, 0, 0},		/* CFG_GPMC_A13_IN */
+	{0x0150, 1976, 1389},	/* CFG_GPMC_A14_IN */
+	{0x015C, 1872, 1408},	/* CFG_GPMC_A15_IN */
+	{0x0168, 1914, 1506},	/* CFG_GPMC_A16_IN */
+	{0x0170, 57, 0},	/* CFG_GPMC_A16_OUT */
+	{0x0174, 1904, 1471},	/* CFG_GPMC_A17_IN */
+	{0x0188, 1690, 0},	/* CFG_GPMC_A18_OUT */
+	{0x0374, 0, 0},		/* CFG_GPMC_CS2_OUT */
 
 #ifdef CONFIG_DRA7XX_VISION
 	{ 0x0A2C,     0,     0 },	/* CFG_VIN1B_CLK1_IN : VIN3A_CLK0 - VIP2_MANUAL2 */
@@ -460,6 +476,14 @@ const struct iodelay_cfg_entry dra742_es2_0_iodelay_cfg_array[] = {
 	{0x0AE0, 130, 1450},	/* CFG_VIN2A_D21_IN */
 	{0x0AEC, 144, 1269},	/* CFG_VIN2A_D22_IN */
 	{0x0AF8, 0, 1330},	/* CFG_VIN2A_D23_IN */
+	{0x0144, 0, 0},		/* CFG_GPMC_A13_IN */
+	{0x0150, 2575, 966},	/* CFG_GPMC_A14_IN */
+	{0x015C, 2503, 889},	/* CFG_GPMC_A15_IN */
+	{0x0168, 2528, 1007},	/* CFG_GPMC_A16_IN */
+	{0x0170, 0, 0},		/* CFG_GPMC_A16_OUT */
+	{0x0174, 2533, 980},	/* CFG_GPMC_A17_IN */
+	{0x0188, 590, 0},	/* CFG_GPMC_A18_OUT */
+	{0x0374, 0, 0},		/* CFG_GPMC_CS2_OUT */
 
 #ifdef CONFIG_DRA7XX_VISION
 	{ 0x00D8,   765,  2551 },	/* CFG_GPIO6_10_IN : VIN5A_CLK0 - VIP3_MANUAL2 */
@@ -544,12 +568,12 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 	{ GPMC_AD13, (M0 | PIN_INPUT) },	/* gpmc_ad13.gpmc_ad13 */
 	{ GPMC_AD14, (M0 | PIN_INPUT) },	/* gpmc_ad14.gpmc_ad14 */
 	{ GPMC_AD15, (M0 | PIN_INPUT) },	/* gpmc_ad15.gpmc_ad15 */
-	{ GPMC_A13, (M1 | PIN_INPUT_PULLDOWN) },	/* gpmc_a13.qspi1_rtclk */
-	{ GPMC_A14, (M1 | PIN_INPUT_PULLDOWN) },	/* gpmc_a14.qspi1_d3 */
-	{ GPMC_A15, (M1 | PIN_INPUT_PULLDOWN) },	/* gpmc_a15.qspi1_d2 */
-	{ GPMC_A16, (M1 | PIN_INPUT_PULLDOWN) },	/* gpmc_a16.qspi1_d0 */
-	{ GPMC_A17, (M1 | PIN_INPUT_PULLDOWN) },	/* gpmc_a17.qspi1_d1 */
-	{ GPMC_A18, (M1 | PIN_INPUT_PULLDOWN) },	/* gpmc_a18.qspi1_sclk */
+	{ GPMC_A13, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* gpmc_a13.qspi1_rtclk */
+	{ GPMC_A14, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* gpmc_a14.qspi1_d3 */
+	{ GPMC_A15, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* gpmc_a15.qspi1_d2 */
+	{ GPMC_A16, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* gpmc_a16.qspi1_d0 */
+	{ GPMC_A17, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* gpmc_a17.qspi1_d1 */
+	{ GPMC_A18, (M1 | PIN_INPUT_PULLDOWN | MANUAL_MODE) },	/* gpmc_a18.qspi1_sclk */
 	{ GPMC_A19, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a19.mmc2_dat4 */
 	{ GPMC_A20, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a20.mmc2_dat5 */
 	{ GPMC_A21, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a21.mmc2_dat6 */
@@ -561,7 +585,7 @@ const struct pad_conf_entry dra72x_core_padconf_array[] = {
 	{ GPMC_A27, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a27.mmc2_dat3 */
 	{ GPMC_CS1, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_cs1.mmc2_cmd */
 	{ GPMC_CS0, (M0 | PIN_OUTPUT) },	/* gpmc_cs0.gpmc_cs0 */
-	{ GPMC_CS2, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_cs2.qspi1_cs0 */
+	{ GPMC_CS2, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_cs2.qspi1_cs0 */
 	{ GPMC_ADVN_ALE, (M0 | PIN_OUTPUT) },	/* gpmc_advn_ale.gpmc_advn_ale */
 	{ GPMC_OEN_REN, (M0 | PIN_OUTPUT) },	/* gpmc_oen_ren.gpmc_oen_ren */
 	{ GPMC_WEN, (M0 | PIN_OUTPUT) },	/* gpmc_wen.gpmc_wen */
