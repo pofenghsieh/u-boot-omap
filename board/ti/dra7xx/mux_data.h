@@ -209,16 +209,16 @@ const struct iodelay_cfg_entry iodelay_cfg_array[] = {
 #define DRA74x_MMC2_DELAY_CONF_ES20	/* No delay for default */
 
 #define DRA72x_MMC2_PAD_CONF \
-	{ GPMC_A19, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a19.mmc2_dat4 */ \
-	{ GPMC_A20, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a20.mmc2_dat5 */ \
-	{ GPMC_A21, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a21.mmc2_dat6 */ \
-	{ GPMC_A22, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a22.mmc2_dat7 */ \
-	{ GPMC_A23, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a23.mmc2_clk */ \
-	{ GPMC_A24, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a24.mmc2_dat0 */ \
-	{ GPMC_A25, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a25.mmc2_dat1 */ \
-	{ GPMC_A26, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a26.mmc2_dat2 */ \
-	{ GPMC_A27, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a27.mmc2_dat3 */ \
-	{ GPMC_CS1, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_cs1.mmc2_cmd */ \
+	{ GPMC_A19, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a19.mmc2_dat4 */ \
+	{ GPMC_A20, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a20.mmc2_dat5 */ \
+	{ GPMC_A21, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a21.mmc2_dat6 */ \
+	{ GPMC_A22, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a22.mmc2_dat7 */ \
+	{ GPMC_A23, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a23.mmc2_clk */ \
+	{ GPMC_A24, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a24.mmc2_dat0 */ \
+	{ GPMC_A25, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a25.mmc2_dat1 */ \
+	{ GPMC_A26, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a26.mmc2_dat2 */ \
+	{ GPMC_A27, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_a27.mmc2_dat3 */ \
+	{ GPMC_CS1, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_cs1.mmc2_cmd */ \
 
 #define DRA72x_MMC2_DELAY_CONF_ES10	/* No delay for default */
 #endif /* OMAP_MMC2_DDR_52 */
