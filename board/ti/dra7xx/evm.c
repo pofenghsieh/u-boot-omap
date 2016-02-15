@@ -13,6 +13,7 @@
 #include <common.h>
 #include <palmas.h>
 #include <sata.h>
+#include <linux/string.h>
 #include <asm/gpio.h>
 #include <asm/arch/gpio.h>
 #include <usb.h>
@@ -32,6 +33,11 @@
 #include <fdt_support.h>
 
 #include "mux_data.h"
+#include "../common/include/board_detect.h"
+
+#define board_is_dra74x_evm()		board_ti_is("5777xCPU")
+#define board_is_dra74x_revh_or_later() board_is_dra74x_evm() &&	\
+				(strncmp("H", board_ti_get_rev(), 1) <= 0)
 
 #ifdef CONFIG_DRIVER_TI_CPSW
 #include <cpsw.h>
@@ -46,8 +52,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PCF_ENET_MUX_ADDR	0x21
 #define PCF_SEL_ENET_MUX_S0	4
 
+#define SYSINFO_BOARD_NAME_MAX_LEN	37
+
 const struct omap_sysinfo sysinfo = {
-	"Board: DRA7xx\n"
+	"Board: UNKNOWN(DRA7 EVM) REV UNKNOWN\n"
 };
 
 
@@ -217,11 +225,14 @@ int board_late_init(void)
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	char serialno[72];
 	uint32_t serialno_lo, serialno_hi;
+	char *name = "unknown";
 
 	if (omap_revision() == DRA722_ES1_0)
-		setenv("board_name", "dra72x");
+		name = "dra72x";
 	else
-		setenv("board_name", "dra7xx");
+		name = "dra7xx";
+
+	set_board_info_env(name);
 
 	if (!getenv("serial#")) {
 		printf("serial# not set, setting...\n");
@@ -237,6 +248,45 @@ int board_late_init(void)
 #endif
 	return 0;
 }
+
+#ifdef CONFIG_SPL_BUILD
+void do_board_detect(void)
+{
+	int rc;
+
+	rc = ti_i2c_eeprom_dra7_get(CONFIG_EEPROM_BUS_ADDRESS,
+				    CONFIG_EEPROM_CHIP_ADDRESS);
+	if (rc)
+		printf("ti_i2c_eeprom_init failed %d\n", rc);
+}
+
+#else
+
+void do_board_detect(void)
+{
+	char *bname = NULL;
+	int rc;
+
+	rc = ti_i2c_eeprom_dra7_get(CONFIG_EEPROM_BUS_ADDRESS,
+				    CONFIG_EEPROM_CHIP_ADDRESS);
+	if (rc)
+		printf("ti_i2c_eeprom_init failed %d\n", rc);
+
+	if (board_is_dra74x_evm()) {
+		bname = "DRA74x EVM";
+	/* If EEPROM is not populated */
+	} else {
+		if (is_dra72x())
+			bname = "DRA72x EVM";
+		else
+			bname = "DRA74x EVM";
+	}
+
+	if (bname)
+		snprintf(sysinfo.board_string, SYSINFO_BOARD_NAME_MAX_LEN,
+			 "Board: %s REV %s\n", bname, board_ti_get_rev());
+}
+#endif	/* CONFIG_SPL_BUILD */
 
 void set_muxconf_regs_essential(void)
 {
