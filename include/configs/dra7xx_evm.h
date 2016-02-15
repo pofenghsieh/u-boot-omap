@@ -228,4 +228,5 @@
  */
 #define DSP_LOAD_ADDR		(IPU_LOAD_ADDR)
 
+#define CONFIG_CREATE_BOARD_SYMLINK
 #endif /* __CONFIG_DRA7XX_EVM_H */
