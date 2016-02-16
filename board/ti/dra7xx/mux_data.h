@@ -35,14 +35,6 @@ const struct iodelay_cfg_entry iodelay_cfg_array[] = {
 	{0x764, 1740, 240}, /* RGMMI0_TXD1_OUT */
 	{0x770, 1680, 380}, /* RGMMI0_TXD2_OUT */
 	{0x77C, 1740, 440}, /* RGMMI0_TXD3_OUT */
-	{0x144, 0, 0}, /* CFG_GPMC_A13_IN */
-	{0x150, 2062, 2277}, /* CFG_GPMC_A14_IN */
-	{0x15C, 1960, 2289}, /* CFG_GPMC_A15_IN */
-	{0x168, 2058, 2386}, /* CFG_GPMC_A16_IN */
-	{0x170, 0, 0 },	/* CFG_GPMC_A16_OUT */
-	{0x174, 2062, 2350}, /* CFG_GPMC_A17_IN */
-	{0x188, 0, 0}, /* CFG_GPMC_A18_OUT */
-	{0x374, 121, 0}, /* CFG_GPMC_CS2_OUT */
 };
 #endif
 
@@ -763,6 +755,15 @@ const struct iodelay_cfg_entry dra722_sr1_0_iodelay_cfg_array[] = {
 	{ 0x0AE0,   103,  1689 },	/* CFG_VIN2A_D21_IN : RGMII1_RXD2 - GMAC_RGMII1_MANUAL2 */
 	{ 0x0AEC,   161,  1563 },	/* CFG_VIN2A_D22_IN : RGMII1_RXD1 - GMAC_RGMII1_MANUAL2 */
 	{ 0x0AF8,     0,  1613 },	/* CFG_VIN2A_D23_IN : RGMII1_RXD0 - GMAC_RGMII1_MANUAL2 */
+	{0x144, 0, 0},			/* CFG_GPMC_A13_IN */
+	{0x150, 2062, 2277},		/* CFG_GPMC_A14_IN */
+	{0x15C, 1960, 2289},		/* CFG_GPMC_A15_IN */
+	{0x168, 2058, 2386},		/* CFG_GPMC_A16_IN */
+	{0x170, 0, 0 },			/* CFG_GPMC_A16_OUT */
+	{0x174, 2062, 2350},		/* CFG_GPMC_A17_IN */
+	{0x188, 0, 0},			/* CFG_GPMC_A18_OUT */
+	{0x374, 121, 0},		/* CFG_GPMC_CS2_OUT */
+
 };
 
 #endif
