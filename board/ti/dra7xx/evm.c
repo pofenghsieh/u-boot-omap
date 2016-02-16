@@ -156,7 +156,7 @@ const struct emif_regs emif1_ddr3_532_mhz_1cs_2G = {
 	.emif_ddr_ext_phy_ctrl_4        = 0x009B009B,
 	.emif_ddr_ext_phy_ctrl_5        = 0x009E009E,
 	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
-	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x00000000,
 	.emif_rd_wr_lvl_ctl             = 0x00000000,
 	.emif_rd_wr_exec_thresh         = 0x00000305
 };
@@ -181,7 +181,7 @@ const struct emif_regs emif2_ddr3_532_mhz_1cs_2G = {
 	.emif_ddr_ext_phy_ctrl_4        = 0x009B009B,
 	.emif_ddr_ext_phy_ctrl_5        = 0x009E009E,
 	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
-	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x00000000,
 	.emif_rd_wr_lvl_ctl             = 0x00000000,
 	.emif_rd_wr_exec_thresh         = 0x00000305
 };
