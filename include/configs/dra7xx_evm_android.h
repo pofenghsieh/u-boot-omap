@@ -19,6 +19,11 @@
 #define CONFIG_IODELAY_RECALIBRATION
 #endif
 
+#define CONFIG_VERY_BIG_RAM
+#define CONFIG_PHYS_64BIT
+#define CONFIG_NR_DRAM_BANKS		2
+#define CONFIG_MAX_MEM_MAPPED		0x80000000
+
 /* MMC ENV related defines */
 #ifdef CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		1	/* SLOT2: eMMC(1) */
@@ -290,5 +295,11 @@
  * This is not an issue as we are performing the loads in serial.
  */
 #define DSP_LOAD_ADDR		(IPU_LOAD_ADDR)
+
+/* enable board detect */
+#define CONFIG_CREATE_BOARD_SYMLINK
+/* EEPROM */
+#define CONFIG_EEPROM_CHIP_ADDRESS 0x50
+#define CONFIG_EEPROM_BUS_ADDRESS 0
 
 #endif /* __CONFIG_DRA7XX_EVM_ANDROID_H */
