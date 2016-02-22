@@ -505,9 +505,9 @@ unsigned long load_elf_image_phdr_rproc(unsigned long addr,
 				memset(dst + proghdr.p_filesz, 0x00,
 				       proghdr.p_memsz - proghdr.p_filesz);
 		}
-		/*Don't have to flush cache if greater than 15MB */
-		if (proghdr.p_memsz < 15 * 1024 * 1024)
-			flush_cache((unsigned long)dst, proghdr.p_filesz);
+
+		flush_cache((unsigned long)dst, proghdr.p_memsz);
+
 		++phdr;
 	}
 

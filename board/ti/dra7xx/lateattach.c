@@ -1127,6 +1127,8 @@ u32 spl_boot_core(u32 core_id)
 		debug("Core entry point is 0x%08x\n",
 		      (unsigned int)cfg->entry_point);
 	}
+	flush_cache(cfg->page_table_addr, PAGE_TABLE_SIZE);
+
 
 	if (cfg->config_peripherals)
 		cfg->config_peripherals(core_id, cfg);
