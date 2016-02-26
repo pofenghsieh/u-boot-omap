@@ -220,6 +220,10 @@
 #undef CONFIG_LATE_ATTACH
 
 #ifdef CONFIG_LATE_ATTACH
+
+/* Enable this flag to use a DMA pool with late attach instead of a CMA pool */
+#undef CONFIG_LATE_ATTACH_DMA_POOL
+
 /* Include ELF loader for parsing remotecore binaries */
 #define CONFIG_CMD_ELF
 #endif
