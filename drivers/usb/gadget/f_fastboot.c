@@ -471,6 +471,7 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strncat(response, "J6", sizeof(response));
 			break;
 		case DRA722_ES1_0:
+		case DRA722_ES2_0:
 			strncat(response, "J6ECO", sizeof(response));
 			break;
 		default:
