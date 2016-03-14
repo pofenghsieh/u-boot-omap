@@ -38,7 +38,7 @@ const struct iodelay_cfg_entry iodelay_cfg_array[] = {
 };
 #endif
 
-#ifdef OMAP_MMC1_HS_52
+#ifdef CONFIG_OMAP_MMC1_HS_52
 #define DRA74x_MMC1_PAD_CONF \
 	{ MMC1_CLK, (M0 | PIN_INPUT_PULLUP | VIRTUAL_MODE11) },	/* mmc1_clk.mmc1_clk */	\
 	{ MMC1_CMD, (M0 | PIN_INPUT_PULLUP | VIRTUAL_MODE11) },	/* mmc1_cmd.mmc1_cmd */	\
@@ -72,9 +72,9 @@ const struct iodelay_cfg_entry iodelay_cfg_array[] = {
 	{ MMC1_DAT2, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_dat2.mmc1_dat2 */ \
 	{ MMC1_DAT3, (M0 | PIN_INPUT_PULLUP) },	/* mmc1_dat3.mmc1_dat3 */ \
 
-#endif /* OMAP_MMC1_HS_52 */
+#endif /* CONFIG_OMAP_MMC1_HS_52 */
 
-#ifdef OMAP_MMC2_DDR_52
+#ifdef CONFIG_OMAP_MMC2_DDR_52
 #define DRA74x_MMC2_PAD_CONF \
 	{ GPMC_A19, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a19.mmc2_dat4 */ \
 	{ GPMC_A20, (M1 | PIN_INPUT_PULLUP | MANUAL_MODE) },	/* gpmc_a20.mmc2_dat5 */ \
@@ -221,7 +221,7 @@ const struct iodelay_cfg_entry iodelay_cfg_array[] = {
 	{ GPMC_CS1, (M1 | PIN_INPUT_PULLUP) },	/* gpmc_cs1.mmc2_cmd */ \
 
 #define DRA72x_MMC2_DELAY_CONF_ES10	/* No delay for default */
-#endif /* OMAP_MMC2_DDR_52 */
+#endif /* CONFIG_OMAP_MMC2_DDR_52 */
 
 const struct pad_conf_entry dra74x_core_padconf_array[] = {
 	{GPMC_AD0, (M3 | PIN_INPUT)},	/* gpmc_ad0.vout3_d0 */
