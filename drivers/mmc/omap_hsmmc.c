@@ -806,11 +806,7 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
 		priv_data->base_addr = (struct hsmmc *)OMAP_HSMMC1_BASE;
 #if (defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX))
 #if defined(CONFIG_OMAP_MMC1_HS_52)
-		host_caps_val = MMC_MODE_HC | MMC_MODE_4BIT |
-				MMC_MODE_HS_52MHz;
-#else
-		host_caps_val = MMC_MODE_HC | MMC_MODE_4BIT |
-				MMC_MODE_HS;
+		host_caps_val |= MMC_MODE_HS_52MHz;
 #endif /*CONFIG_OMAP_MMC1_HS_52 */
 #endif
 		break;
@@ -826,11 +822,7 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
 
 #if (defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX))
 #if defined(CONFIG_OMAP_MMC2_DDR_52)
-		host_caps_val = MMC_MODE_HC | MMC_MODE_8BIT |
-				MMC_MODE_DDR_52MHz;
-#else
-		host_caps_val = MMC_MODE_HC | MMC_MODE_8BIT |
-				MMC_MODE_HS;
+		host_caps_val |= MMC_MODE_DDR_52MHz;
 #endif /* CONFIG_OMAP_MMC2_DDR_52 */
 #endif
 		break;
