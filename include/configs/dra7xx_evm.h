@@ -66,8 +66,8 @@
 #define CONFIG_CMD_PART
 #define CONFIG_HSMMC2_8BIT
 #define CONFIG_HSMMC3_8BIT
-#define OMAP_MMC1_HS_52
-#define OMAP_MMC2_DDR_52
+#define CONFIG_OMAP_MMC1_HS_52
+#define CONFIG_OMAP_MMC2_DDR_52
 
 /* CPSW Ethernet */
 #define CONFIG_CMD_NET			/* 'bootp' and 'tftp' */
