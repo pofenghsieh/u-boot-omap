@@ -390,8 +390,12 @@ void *alloc_mem(unsigned long len, unsigned long align)
 	debug("alloc_mem: count %d mask %#lx pageno %#lx\n", count, mask,
 	      pageno);
 
-	if (pageno >= mem_count)
+	if (pageno >= mem_count) {
+		printf("%s: %s Error allocating memory; "
+		       "Please check carveout size\n",
+		       __FILE__, __func__);
 		return NULL;
+	}
 
 	bitmap_set(mem_bitmap, pageno, count);
 	return (void *)(mem_base + (pageno << PAGE_SHIFT));
@@ -412,8 +416,12 @@ void *alloc_mem(unsigned long len, unsigned long align)
 	debug("alloc_mem: count %d mask %#lx pageno %#lx\n", count, mask,
 	      pageno);
 
-	if (pageno >= mem_count)
+	if (pageno >= mem_count) {
+		printf("%s: %s Error allocating memory; "
+		       "Please check carveout size\n",
+		       __FILE__, __func__);
 		return NULL;
+	}
 
 	bitmap_set(mem_bitmap, pageno, count);
 	return (void *)(mem_base + (pageno << PAGE_SHIFT));
