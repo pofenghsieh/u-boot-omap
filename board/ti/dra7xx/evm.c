@@ -159,7 +159,7 @@ const struct emif_regs emif_1_regs_ddr3_666_mhz_1cs_dra_es2 = {
 	.emif_ddr_ext_phy_ctrl_4        = 0x006B00A8,
 	.emif_ddr_ext_phy_ctrl_5        = 0x006B00A8,
 	.emif_rd_wr_lvl_rmp_win         = 0x00000000,
-	.emif_rd_wr_lvl_rmp_ctl         = 0x80000000,
+	.emif_rd_wr_lvl_rmp_ctl         = 0x00000000,
 	.emif_rd_wr_lvl_ctl             = 0x00000000,
 	.emif_rd_wr_exec_thresh         = 0x00000305
 };
