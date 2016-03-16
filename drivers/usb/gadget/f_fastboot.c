@@ -476,6 +476,12 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 		default:
 			strcpy(response, "FAILValue not set");
 		}
+	} else if (!strcmp_l1("board_rev", cmd)) {
+		s = getenv("board_rev");
+		if(s)
+			strncat(response, s, 1);
+		else
+			strcpy(response, "FAILValue not set");
 	} else if (!strcmp_l1("secure", cmd)) {
 
 		s = get_cpu_type();
