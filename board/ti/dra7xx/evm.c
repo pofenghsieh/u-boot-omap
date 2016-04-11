@@ -572,9 +572,10 @@ void set_muxconf_regs_essential(void)
 #ifdef CONFIG_IODELAY_RECALIBRATION
 void recalibrate_iodelay(void)
 {
-	struct pad_conf_entry const *pads, *delta_pads = NULL;
+	struct pad_conf_entry const *pads;
+	struct pad_conf_entry const *delta_pads = NULL, *vision_pads = NULL;
 	struct iodelay_cfg_entry const *iodelay;
-	int npads, niodelays, delta_npads = 0;
+	int npads, niodelays, delta_npads = 0, vision_npads = 0;
 	int ret;
 
 	switch (omap_revision()) {
@@ -583,15 +584,26 @@ void recalibrate_iodelay(void)
 		pads = dra72x_core_padconf_array_common;
 		npads = ARRAY_SIZE(dra72x_core_padconf_array_common);
 		if (board_is_dra72x_revc_or_later()) {
+
 			delta_pads = dra72x_rgmii_padconf_array_revc;
 			delta_npads =
 				ARRAY_SIZE(dra72x_rgmii_padconf_array_revc);
+
+			vision_pads = dra72x_vision_padconf_array_revc;
+			vision_npads =
+				ARRAY_SIZE(dra72x_vision_padconf_array_revc);
+
 			iodelay = dra72_iodelay_cfg_array_revc;
 			niodelays = ARRAY_SIZE(dra72_iodelay_cfg_array_revc);
 		} else {
 			delta_pads = dra72x_rgmii_padconf_array_revb;
 			delta_npads =
 				ARRAY_SIZE(dra72x_rgmii_padconf_array_revb);
+
+			vision_pads = dra72x_vision_padconf_array_revb;
+			vision_npads =
+				ARRAY_SIZE(dra72x_vision_padconf_array_revb);
+
 			iodelay = dra72_iodelay_cfg_array_revb;
 			niodelays = ARRAY_SIZE(dra72_iodelay_cfg_array_revb);
 		}
@@ -626,12 +638,18 @@ void recalibrate_iodelay(void)
 	if (delta_npads)
 		do_set_mux32((*ctrl)->control_padconf_core_base,
 			     delta_pads, delta_npads);
+	if (vision_npads)
+		do_set_mux32((*ctrl)->control_padconf_core_base,
+			     vision_pads, vision_npads);
 
 	/* Setup IOdelay configuration */
 	ret = do_set_iodelay((*ctrl)->iodelay_config_base, iodelay, niodelays);
 err:
 	/* Closeup.. remove isolation */
 	__recalibrate_iodelay_end(ret);
+	printf("Board identified, using %d entries B(%d) C(%d)\n", delta_npads,
+		ARRAY_SIZE(dra72x_vision_padconf_array_revb),
+		ARRAY_SIZE(dra72x_vision_padconf_array_revc));
 }
 #endif
 
