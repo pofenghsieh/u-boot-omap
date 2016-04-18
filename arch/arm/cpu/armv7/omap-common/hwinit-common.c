@@ -178,8 +178,11 @@ void s_init(void)
 	preloader_console_init();
 	do_io_settings();
 #endif
-	prcm_init();
+	enable_basic_clocks();
+	setup_clocks_for_console();
+	timer_init();
 	do_board_detect();
+	prcm_init();
 #ifdef CONFIG_SPL_BUILD
 #ifdef CONFIG_BOARD_EARLY_INIT_F
 	board_early_init_f();
