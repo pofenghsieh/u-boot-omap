@@ -337,4 +337,7 @@
 #define CONFIG_PCF8575
 #define CONFIG_SYS_I2C_PCF8575_CHIP { {0x21, 0xeaf7} }
 
+/* JAMR3 board pin mux */
+#define CONFIG_DRA7XX_JAMR3
+
 #endif /* __CONFIG_DRA7XX_EVM_H */
