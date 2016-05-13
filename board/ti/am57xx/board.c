@@ -367,6 +367,7 @@ int board_late_init(void)
 	 * This is the POWERHOLD-in-Low behavior.
 	 */
 	palmas_i2c_write_u8(TPS65903X_CHIP_P1, 0xA0, 0x1);
+	omap_die_id_serial();
 	return 0;
 }
 
