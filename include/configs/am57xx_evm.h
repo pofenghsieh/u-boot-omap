@@ -56,6 +56,15 @@
 	"name=ipu1,size=1M,uuid=${uuid_gpt_ipu1};" \
 	"name=ipu2,size=1M,uuid=${uuid_gpt_ipu2};" \
 	"name=userdata,size=-,uuid=${uuid_gpt_userdata}"
+
+/* Fastboot */
+#define CONFIG_USB_FUNCTION_FASTBOOT
+#define CONFIG_CMD_FASTBOOT
+#define CONFIG_ANDROID_BOOT_IMAGE
+#define CONFIG_FASTBOOT_BUF_ADDR	CONFIG_SYS_LOAD_ADDR
+#define CONFIG_FASTBOOT_BUF_SIZE	0x2F000000
+#define CONFIG_FASTBOOT_FLASH
+#define CONFIG_FASTBOOT_FLASH_MMC_DEV	1
 #endif
 
 #include <configs/ti_omap5_common.h>
