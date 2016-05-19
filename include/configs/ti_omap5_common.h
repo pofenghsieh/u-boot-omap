@@ -85,16 +85,35 @@
 	"bootscript=echo Running bootscript from mmc${mmcdev} ...; " \
 		"source ${loadaddr}\0" \
 	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
-	"mmcboot=mmc dev ${mmcdev}; " \
-		"if mmc rescan; then " \
-			"echo SD/MMC found on device ${mmcdev};" \
-			"if run loadimage; then " \
-				"run loadfdt; " \
-				"echo Booting from mmc${mmcdev} ...; " \
-				"run args_mmc; " \
-				"bootz ${loadaddr} - ${fdtaddr}; " \
-			"fi;" \
+	"mmcboot=" \
+		"if mmc dev ${mmcdev}; then " \
+			"if mmc rescan; then " \
+				"echo SD/MMC found on device ${mmcdev};" \
+				"if run loadimage; then " \
+					"run loadfdt; " \
+					"echo Booting from mmc${mmcdev} ...; " \
+					"run args_mmc; " \
+					"bootz ${loadaddr} - ${fdtaddr}; " \
+				"fi; " \
+			"fi; " \
 		"fi;\0" \
+	"emmc_android_boot=" \
+		"setenv eval_bootargs setenv bootargs $bootargs; " \
+		"run eval_bootargs; " \
+		"setenv mmcdev 1; " \
+		"setenv fdt_part 3; " \
+		"setenv boot_part 9; " \
+		"setenv machid fe6; " \
+		"mmc dev $mmcdev; " \
+		"mmc rescan; " \
+		"part start mmc ${mmcdev} ${fdt_part} fdt_start; " \
+		"part size mmc ${mmcdev} ${fdt_part} fdt_size; " \
+		"part start mmc ${mmcdev} ${boot_part} boot_start; " \
+		"part size mmc ${mmcdev} ${boot_part} boot_size; " \
+		"mmc read ${fdtaddr} ${fdt_start} ${fdt_size}; " \
+		"mmc read ${loadaddr} ${boot_start} ${boot_size}; " \
+		"echo Booting from eMMC ...; " \
+		"bootm $loadaddr $loadaddr $fdtaddr;\0" \
 	"findfdt="\
 		"if test $board_name = omap5_uevm; then " \
 			"setenv fdtfile omap5-uevm.dtb; fi; " \
@@ -122,31 +141,12 @@
 	DFUARGS \
 	NETARGS \
 
-#ifdef CONFIG_ANDROID_BOOT_IMAGE
 #ifndef CONFIG_BOOTARGS_BOARD
 #define CONFIG_BOOTARGS_BOARD
 #endif
 #define CONFIG_BOOTARGS  "androidboot.serialno=${serial#} " \
 	CONFIG_BOOTARGS_BOARD
-#define CONFIG_BOOTCOMMAND \
-	"setenv eval_bootargs setenv bootargs $bootargs; " \
-	"run eval_bootargs; " \
-	"setenv partitions $partitions_android; " \
-	"setenv mmcdev 1; " \
-	"setenv fdt_part 3; " \
-	"setenv boot_part 9; " \
-	"setenv machid fe6; " \
-	"mmc dev $mmcdev; " \
-	"mmc rescan; " \
-	"part start mmc ${mmcdev} ${fdt_part} fdt_start; " \
-	"part size mmc ${mmcdev} ${fdt_part} fdt_size; " \
-	"part start mmc ${mmcdev} ${boot_part} boot_start; " \
-	"part size mmc ${mmcdev} ${boot_part} boot_size; " \
-	"mmc read ${fdtaddr} ${fdt_start} ${fdt_size}; " \
-	"mmc read ${loadaddr} ${boot_start} ${boot_size}; " \
-	"bootm $loadaddr $loadaddr $fdtaddr; " \
-	""
-#else
+
 #define CONFIG_BOOTCOMMAND \
 	"if test ${dofastboot} -eq 1; then " \
 		"echo Boot fastboot requested, resetting dofastboot ...;" \
@@ -156,13 +156,8 @@
 	"run findfdt; " \
 	"run envboot; " \
 	"run mmcboot;" \
-	"setenv mmcdev 1; " \
-	"setenv bootpart 1:2; " \
-	"setenv mmcroot /dev/mmcblk0p2 rw; " \
-	"run mmcboot;" \
+	"run emmc_android_boot; " \
 	""
-#endif
-
 #endif
 
 /*
