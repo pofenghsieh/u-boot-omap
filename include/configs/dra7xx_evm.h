@@ -132,6 +132,10 @@
 #define CONFIG_FASTBOOT_FLASH_MMC_DEV   1
 #endif
 
+#define CONFIG_BOOTARGS_BOARD		"console=ttyS0,115200 " \
+					"androidboot.console=ttyS0 " \
+					"androidboot.hardware=jacinto6evmboard"
+
 #include <configs/ti_omap5_common.h>
 
 /* Enhance our eMMC support / experience. */
