@@ -73,6 +73,10 @@
 #define CONFIG_FASTBOOT_FLASH_MMC_DEV	1
 #endif
 
+#define CONFIG_BOOTARGS_BOARD		"console=ttyS2,115200 " \
+					"androidboot.console=ttyS2 " \
+					"androidboot.hardware=am57xevmboard"
+
 #include <configs/ti_omap5_common.h>
 
 /* Enhance our eMMC support / experience. */
