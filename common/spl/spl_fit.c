@@ -62,9 +62,7 @@ static int spl_fit_select_fdt(const void *fdt, int images, int *fdt_offsetp)
 
 		*fdt_offsetp = fdt_getprop_u32(fdt, fdt_node, "data-offset");
 		len = fdt_getprop_u32(fdt, fdt_node, "data-size");
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
-		printf("FIT: Selected '%s'\n", name);
-#endif
+		debug("FIT: Selected '%s'\n", name);
 
 		return len;
 	}
@@ -195,6 +193,7 @@ int spl_load_simple_fit(struct spl_load_info *info, ulong sector, void *fit)
 	 */
 	dst = (void *)((load + data_size + align_len) & ~align_len);
 	fdt_offset += base_offset;
+	sectors = (fdt_len + info->bl_len - 1) / info->bl_len;
 	count = info->read(info, sector + fdt_offset / info->bl_len, sectors,
 			   dst);
 	debug("fit read %x sectors to %x, dst %p, data_offset %x\n",
