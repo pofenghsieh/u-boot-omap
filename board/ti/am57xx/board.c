@@ -440,14 +440,16 @@ int board_init(void)
 
 int board_late_init(void)
 {
-	setup_board_eeprom_env();
-
 	/*
 	 * DEV_CTRL.DEV_ON = 1 please - else palmas switches off in 8 seconds
 	 * This is the POWERHOLD-in-Low behavior.
 	 */
 	palmas_i2c_write_u8(TPS65903X_CHIP_P1, 0xA0, 0x1);
+
+	setup_board_eeprom_env();
 	omap_die_id_serial();
+	omap_set_fastboot_vars();
+
 	return 0;
 }
 
