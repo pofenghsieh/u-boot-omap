@@ -352,8 +352,8 @@ int board_late_init(void)
 	}
 
 	set_board_info_env(name);
-
 	omap_die_id_serial();
+	omap_set_fastboot_vars();
 #endif
 
 	if (is_dra72x() && !board_is_dra72x_revc_or_later()) {
