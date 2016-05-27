@@ -6,6 +6,16 @@
  */
 #include <common.h>
 #include <asm/arch/sys_proto.h>
+
+/* Device type bits in CONTROL_STATUS register */
+#define DEVICETYPE_OFFSET	6
+#define DEVICETYPE_MASK		(0x7 << DEVICETYPE_OFFSET)
+#define OMAP_TYPE_TEST		0x0
+#define OMAP_TYPE_EMU		0x1
+#define OMAP_TYPE_SEC		0x2
+#define OMAP_TYPE_GP		0x3
+#define OMAP_TYPE_BAD		0x4
+
 static void do_cancel_out(u32 *num, u32 *den, u32 factor)
 {
 	while (1) {
@@ -110,4 +120,135 @@ void omap_die_id_display(void)
 
 	printf("OMAP die ID: %08x%08x%08x%08x\n", die_id[0], die_id[1],
 		die_id[2], die_id[3]);
+}
+
+static const char *get_cpu_type(void)
+{
+	unsigned int value;
+
+	value = readl((*ctrl)->control_status);
+	value &= DEVICETYPE_MASK;
+	value >>= DEVICETYPE_OFFSET;
+
+	switch (value) {
+	case OMAP_TYPE_EMU:
+		return "EMU";
+	case OMAP_TYPE_SEC:
+		return "HS";
+	case OMAP_TYPE_GP:
+		return "GP";
+	default:
+		return NULL;
+	}
+}
+
+static void omap_set_fastboot_cpu(void)
+{
+	char *cpu;
+
+	switch (omap_revision()) {
+	case DRA752_ES1_0:
+	case DRA752_ES1_1:
+	case DRA752_ES2_0:
+		cpu = "J6";
+		break;
+	case DRA722_ES1_0:
+	case DRA722_ES2_0:
+		cpu = "J6ECO";
+		break;
+	default:
+		cpu = "unknown";
+		printf("Warning: fastboot.cpu: unknown cpu type\n");
+	}
+
+	setenv("fastboot.cpu", cpu);
+}
+
+static void omap_set_fastboot_secure(void)
+{
+	const char *secure;
+
+	secure = get_cpu_type();
+	if (secure == NULL) {
+		secure = "unknown";
+		printf("Warning: fastboot.secure: unknown CPU type\n");
+	}
+
+	setenv("fastboot.secure", secure);
+}
+
+static void omap_set_fastboot_board_rev(void)
+{
+	const char *board_rev;
+
+	board_rev = getenv("board_rev");
+	if (board_rev == NULL) {
+		board_rev = "unknown";
+		printf("Warning: fastboot.board_rev: unknown board revision\n");
+	}
+
+	setenv("fastboot.board_rev", board_rev);
+
+}
+
+#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
+u64 mmc_get_part_size(const char *part)
+{
+	int res;
+	struct blk_desc *dev_desc;
+	disk_partition_t info;
+	u64 sz = 0;
+
+	dev_desc = blk_get_dev("mmc", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	if (!dev_desc || dev_desc->type == DEV_TYPE_UNKNOWN) {
+		error("invalid mmc device\n");
+		return sz;
+	}
+
+	res = part_get_info_efi_by_name(dev_desc, part, &info);
+	if (res) {
+		error("cannot find partition: '%s'\n", part);
+		return sz;
+	}
+
+	/* Calculate size in bytes */
+	sz = (info.size * (u64)info.blksz);
+	/* to KiB */
+	sz >>= 10;
+
+	return sz;
+}
+
+static void omap_set_fastboot_userdata_size(void)
+{
+	char buf[64 + 1];
+	u64 sz_kb;
+
+	sz_kb = mmc_get_part_size("userdata");
+	if (sz_kb == 0) {
+		strcpy(buf, "unknown");
+		printf("Warning: fastboot.userdata_size: unable to calc\n");
+	} else if (sz_kb >= 0xffffffff) {
+		u32 sz_mb;
+
+		sz_mb = (u32)(sz_kb >> 10);
+		sprintf(buf, "0x%d MB", sz_mb);
+	} else {
+		sprintf(buf, "%d KB", (u32)sz_kb);
+	}
+
+	setenv("fastboot.userdata_size", buf);
+}
+#else
+static inline void omap_set_fastboot_userdata_size(void)
+{
+}
+#endif
+
+void omap_set_fastboot_vars(void)
+{
+	omap_set_fastboot_cpu();
+	omap_set_fastboot_secure();
+	omap_set_fastboot_board_rev();
+	omap_set_fastboot_userdata_size();
 }

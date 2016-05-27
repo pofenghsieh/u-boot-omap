@@ -623,6 +623,8 @@ void omap_die_id_get_board_serial(struct tag_serialnr *serialnr);
 void omap_die_id_usbethaddr(void);
 void omap_die_id_display(void);
 
+void omap_set_fastboot_vars(void);
+
 void recalibrate_iodelay(void);
 
 void omap_smc1(u32 service, u32 val);
